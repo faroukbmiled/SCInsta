@@ -1,7 +1,7 @@
 # SCInsta
 A feature-rich tweak for Instagram on iOS!\
-`Version v1.1.1` | `Tested on Instagram 418.2.0`
-
+`Version v1.1.4` | `Tested on Instagram 423.1.0`\
+A more maintained fork of Scinsta, with enhanced features.
 ---
 
 > [!NOTE]
