@@ -2,7 +2,7 @@
 
 set -e
 
-# Auto-detect THEOS if not set
+# Auto-detect THEOS if not set 
 if [ -z "$THEOS" ]; then
     if [ -d "$HOME/theos" ]; then
         export THEOS="$HOME/theos"
