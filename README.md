@@ -1,31 +1,23 @@
-# SCInsta
-
-A feature-rich iOS tweak for Instagram.
-
-**Version:** v1.1.4  
-**Tested on:** Instagram 423.1.0  
-
-A more actively maintained fork of Scinsta, featuring enhancements, fixes, and improved stability.
+# RyukGram
+A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com/SoCuul/SCInsta) with additional features and fixes.\
+`Version v1.1.4` | `Tested on Instagram 423.1.0`
 
 ---
 
 > [!NOTE]
-> ⚙️ &nbsp;To modify SCInsta's settings, check out [this section below](https://github.com/SoCuul/SCInsta#Opening-Tweak-Settings) for help\
-> ❓ &nbsp;If you have any questions or need help with the tweak, visit the [Discussions](https://github.com/SoCuul/SCInsta/discussions) tab
->
-> ✨ &nbsp;If you have a feature request, [click here](https://github.com/SoCuul/SCInsta/issues/new/choose)\
-> 🐛 &nbsp;If you have a bug report, [click here](https://github.com/SoCuul/SCInsta/issues/new/choose)
-> 
+> To modify RyukGram's settings, check out [this section below](#opening-tweak-settings) for help
 
 ---
 
 # Installation
 >[!IMPORTANT]
 > Which type of device are you planning on installing this tweak on?
-> - Jailbroken/TrollStore device -> [Download pre-built tweak](https://github.com/SoCuul/SCInsta/releases/latest)
-> - Standard iOS device -> [Visit the wiki to create an IPA file](https://github.com/SoCuul/SCInsta/wiki/Building-IPA)
+> - Jailbroken/TrollStore device -> [Download pre-built tweak](https://github.com/faroukbmiled/RyukGram/releases/latest)
+> - Standard iOS device -> Sideload the dylib using Feather or similar
 
 # Features
+> Features marked with **\*** are new or improved in RyukGram
+
 ### General
 - Hide ads
 - Hide Meta AI
@@ -57,18 +49,30 @@ A more actively maintained fork of Scinsta, featuring enhancements, fixes, and i
 ### Reels
 - Modify tap controls
 - Always show progress scrubber
-- Disable auto-unmuting reels
+- Disable auto-unmuting reels (properly blocks mute switch, volume buttons, and announcer broadcasts) **\***
 - Confirm reel refresh
 - Hide reels header
 - Hide reels blend button
 - Disable scrolling reels
 - Prevent doom scrolling (limit maximum viewable reels)
+- Enhanced Pause/Play mode (when Pause/Play tap control is set): **\***
+  - Mute toggle auto-hidden, only play/pause icon visible
+  - Audio forced on in reels tab
+  - Play indicator properly hidden when video plays (fixes IG bug after hold/zoom)
+  - Playback toggle synced with overlay during hold/zoom
+  - Works across IG A/B test variants
 
 ### Saving
-- Download feed posts
+- Download feed posts (photo + video)
 - Download reels
 - Download stories
 - Save profile picture
+- Download buttons on media — tap a button directly on feed posts, reels sidebar, and story overlay **\***
+- Download method — choose between download button or long-press gesture **\***
+- Save action — choose between share sheet or save directly to Photos **\***
+- Download confirmation — optional confirmation dialog before downloading **\***
+- Non-blocking download HUD — pill-style progress at the top, tap to cancel **\***
+- Debug fallback — if IG updates break downloads, shows diagnostic info instead of crashing **\***
 - *Customize finger count for long-press*
 - *Customize hold time for long-press*
 
@@ -79,7 +83,11 @@ A more actively maintained fork of Scinsta, featuring enhancements, fixes, and i
 - Unlimited replay of direct stories
 - Disable view-once limitations
 - Disable screenshot detection
-- Disable story seen receipt
+- Disable story seen receipt (blocks network upload, toggleable at runtime without restart) **\***
+- Keep stories visually unseen — keeps the colorful ring in the tray after viewing **\***
+- Manual mark story as seen — button on story overlay to selectively mark stories as seen **\***
+- Stop story auto-advance — stories won't auto-skip when the timer ends **\***
+- Story download button — download directly from the story overlay **\***
 - Disable instants creation
 
 ### Navigation
@@ -126,9 +134,9 @@ A more actively maintained fork of Scinsta, featuring enhancements, fixes, and i
 1. Install iOS 16.2 frameworks for theos
    1. [Click to download iOS SDKs](https://github.com/xybp888/iOS-SDKs/archive/refs/heads/master.zip)
    2. Unzip, then copy the `iPhoneOS16.2.sdk` folder into `~/theos/sdks`
-2. Clone SCInsta repo from GitHub: `git clone --recurse-submodules https://github.com/SoCuul/SCInsta`
+2. Clone repo: `git clone --recurse-submodules https://github.com/faroukbmiled/RyukGram`
 3. **For sideloading**: Download a decrypted Instagram IPA from a trusted source, making sure to rename it to `com.burbn.instagram.ipa`.
-   Then create a folder called `packages` inside of the `SCInsta` folder, and move the Instagram IPA file into it. 
+   Then create a folder called `packages` inside of the project folder, and move the Instagram IPA file into it.
 
 ### Run build script
 ```sh
@@ -136,18 +144,7 @@ $ chmod +x build.sh
 $ ./build.sh <sideload/rootless/rootful>
 ```
 
-# Contributing
-Contributions to this tweak are greatly appreciated. Feel free to create a pull request if you would like to contribute.
-
-If you do not have the technical knowledge to contribute to the codebase, improvements to the documentation are always welcome!
-
-# Support the project
-SCInsta takes a lot of time to develop, as the Instagram app is ever-changing and difficult to keep up with. Additionally, I'm still a student which doesn't leave me much time to work on this tweak.
-
-If you'd like to support my work, you can donate to my [ko-fi page](https://ko-fi.com/socuul)!\
-There's many other ways to support this project however, by simply sharing a link to this tweak with others who would like it!
-
-Seeing people use this tweak is what keeps me motivated to keep working on it ❤️
-
 # Credits
-- Huge thanks to [@BandarHL](https://github.com/BandarHL) for creating the original BHInstagram project, which SCInsta is based upon.
+- [SCInsta](https://github.com/SoCuul/SCInsta) by [@SoCuul](https://github.com/SoCuul) — original tweak this fork is based on
+- [@BandarHL](https://github.com/BandarHL) — creator of the original BHInstagram project
+- [@faroukbmiled](https://github.com/faroukbmiled) — RyukGram modifications and additional features

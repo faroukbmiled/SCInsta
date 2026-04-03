@@ -162,7 +162,7 @@ static void sciShowDebugIvarDump(UIView *cell) {
     NSLog(@"[SCInsta] Debug: %@", debug);
 
     dispatch_async(dispatch_get_main_queue(), ^{
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"SCInsta Debug"
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"RyukGram Debug"
                                                                       message:debug
                                                                preferredStyle:UIAlertControllerStyleAlert];
         [alert addAction:[UIAlertAction actionWithTitle:@"Copy & Close" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {

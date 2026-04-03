@@ -70,8 +70,8 @@ static char rowStaticRef[] = "row";
     [super viewWillDisappear:animated];
     
     if (![[[NSUserDefaults standardUserDefaults] objectForKey:@"SCInstaFirstRun"] isEqualToString:SCIVersionString]) {
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"SCInsta Settings Info"
-                                                                       message:@"In the future: Hold down on the three lines at the top right of your profile page, to re-open SCInsta settings."
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"RyukGram Settings Info"
+                                                                       message:@"In the future: Hold down on the three lines at the top right of your profile page, to re-open RyukGram settings."
                                                                 preferredStyle:UIAlertControllerStyleAlert];
         
         [alert addAction:[UIAlertAction actionWithTitle:@"I understand!"

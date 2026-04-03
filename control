@@ -1,10 +1,10 @@
-Package: com.socuul.scinsta
-Name: SCInsta
+Package: com.faroukbmiled.ryukgram
+Name: RyukGram
 Version: 1.1.4
 Architecture: iphoneos-arm
-Description: A feature-rich tweak for Instagram on iOS!
-Homepage: https://github.com/SoCuul/SCInsta
-Maintainer: SoCuul
-Author: SoCuul
+Description: A feature-rich tweak for Instagram on iOS, based on SCInsta
+Homepage: https://github.com/faroukbmiled/RyukGram
+Maintainer: Ryuk
+Author: Ryuk
 Section: Tweaks
 Depends: mobilesubstrate

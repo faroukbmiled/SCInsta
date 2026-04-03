@@ -73,7 +73,7 @@ BOOL dmVisualMsgsViewedButtonEnabled = false;
             NSLog(@"[SCInsta] First run, initializing");
 
             // Display settings modal on screen
-            NSLog(@"[SCInsta] Displaying SCInsta first-time settings modal");
+            NSLog(@"[SCInsta] Displaying RyukGram first-time settings modal");
             [SCIUtils showSettingsVC:[self window]];
         }
     });

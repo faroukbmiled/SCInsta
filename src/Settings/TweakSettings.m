@@ -233,10 +233,10 @@
                                             ]
                                         },
                                         @{
-                                            @"header": @"SCInsta",
+                                            @"header": @"RyukGram",
                                             @"rows": @[
-                                                [SCISetting switchCellWithTitle:@"Enable tweak settings quick-access" subtitle:@"Allows you to hold on the home tab to open the SCInsta settings" defaultsKey:@"settings_shortcut" requiresRestart:YES],
-                                                [SCISetting switchCellWithTitle:@"Show tweak settings on app launch" subtitle:@"Automatically opens the SCInsta settings when the app launches" defaultsKey:@"tweak_settings_app_launch"],
+                                                [SCISetting switchCellWithTitle:@"Enable tweak settings quick-access" subtitle:@"Allows you to hold on the home tab to open the RyukGram settings" defaultsKey:@"settings_shortcut" requiresRestart:YES],
+                                                [SCISetting switchCellWithTitle:@"Show tweak settings on app launch" subtitle:@"Automatically opens the RyukGram settings when the app launches" defaultsKey:@"tweak_settings_app_launch"],
                                                 [SCISetting buttonCellWithTitle:@"Reset onboarding completion state"
                                                                            subtitle:@""
                                                                                icon:nil
@@ -283,11 +283,11 @@
         @{
             @"header": @"Credits",
             @"rows": @[
-                [SCISetting linkCellWithTitle:@"Developer" subtitle:@"SoCuul" imageUrl:@"https://i.imgur.com/c9CbytZ.png" url:@"https://socuul.dev"],
+                [SCISetting linkCellWithTitle:@"Original Developer" subtitle:@"SoCuul (SCInsta)" imageUrl:@"https://i.imgur.com/c9CbytZ.png" url:@"https://github.com/SoCuul/SCInsta"],
                 [SCISetting linkCellWithTitle:@"Modded by" subtitle:@"Ryuk" imageUrl:@"https://github.com/faroukbmiled.png" url:@"https://github.com/faroukbmiled"],
-                [SCISetting linkCellWithTitle:@"View Repo" subtitle:@"View the tweak's source code on GitHub" imageUrl:@"https://i.imgur.com/BBUNzeP.png" url:@"https://github.com/SoCuul/SCInsta"]
+                [SCISetting linkCellWithTitle:@"View Repo" subtitle:@"View the source code on GitHub" imageUrl:@"https://i.imgur.com/BBUNzeP.png" url:@"https://github.com/faroukbmiled/RyukGram"]
             ],
-            @"footer": [NSString stringWithFormat:@"SCInsta %@\n\nInstagram v%@\n\nModded by Ryuk", SCIVersionString, [SCIUtils IGVersionString]]
+            @"footer": [NSString stringWithFormat:@"RyukGram %@\n\nInstagram v%@\n\nBased on SCInsta by SoCuul", SCIVersionString, [SCIUtils IGVersionString]]
         }
     ];
 }
@@ -300,7 +300,7 @@
 ///
 
 + (NSString *)title {
-    return @"SCInsta Settings";
+    return @"RyukGram Settings";
 }
 
 
