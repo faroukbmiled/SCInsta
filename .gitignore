@@ -38,3 +38,5 @@ CLAUDE.md
 upstream-scinsta
 *.ipa
 *.dylib
+deploy.sh
+PENDING_CHANGES.md

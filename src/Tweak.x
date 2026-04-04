@@ -13,7 +13,7 @@
 ///////////////////////////////////////////////////////////
 
 // * Tweak version *
-NSString *SCIVersionString = @"v1.1.4";
+NSString *SCIVersionString = @"v1.1.5";
 
 // Variables that work across features
 BOOL dmVisualMsgsViewedButtonEnabled = false;
@@ -90,10 +90,11 @@ BOOL dmVisualMsgsViewedButtonEnabled = false;
 
 - (void)applicationDidBecomeActive:(id)arg1 {
     %orig;
-    
+
     if ([SCIUtils getBoolPref:@"flex_app_start"]) {
         [[objc_getClass("FLEXManager") sharedManager] showExplorer];
     }
+
 }
 %end
 
@@ -101,7 +102,7 @@ BOOL dmVisualMsgsViewedButtonEnabled = false;
 - (_Bool)isLiquidGlassInAppNotificationEnabled {
     return [SCIUtils liquidGlassEnabledBool:%orig];
 }
-- (_Bool)isLiquidGlassContextMenuEnabled{
+- (_Bool)isLiquidGlassContextMenuEnabled {
     return [SCIUtils liquidGlassEnabledBool:%orig];
 }
 - (_Bool)isLiquidGlassToastEnabled {
@@ -113,7 +114,11 @@ BOOL dmVisualMsgsViewedButtonEnabled = false;
 - (_Bool)isLiquidGlassAlertDialogEnabled {
     return [SCIUtils liquidGlassEnabledBool:%orig];
 }
+- (_Bool)isLiquidGlassIconBarButtonEnabled {
+    return [SCIUtils liquidGlassEnabledBool:%orig];
+}
 %end
+
 
 // Disable sending modded insta bug reports
 %hook IGWindow
@@ -190,6 +195,7 @@ shouldPersistLastBugReportId:(id)arg6
 %hook IGDirectVisualMessageViewerController
 - (void)screenshotObserverDidSeeScreenshotTaken:(id)arg1 { VOID_HANDLESCREENSHOT(%orig); }
 - (void)screenshotObserverDidSeeActiveScreenCapture:(id)arg1 event:(NSInteger)arg2 { VOID_HANDLESCREENSHOT(%orig); }
+
 %end
 
 /////////////////////////////////////////////////////////////////////////////
@@ -659,24 +665,18 @@ shouldPersistLastBugReportId:(id)arg6
     }
 }
 
-- (void)_didTapRepostButton:(id)arg1 {
+- (void)_didTapRepostButton {
     if ([SCIUtils getBoolPref:@"repost_confirm"]) {
-        NSLog(@"[SCInsta] Confirm repost triggered");
-
         [SCIUtils showConfirmation:^(void) { %orig; }];
     }
     else {
-        return %orig;
+        %orig;
     }
 }
 
 - (void)_didLongPressRepostButton:(id)arg1 {
-    if ([SCIUtils getBoolPref:@"repost_confirm"]) {
-        NSLog(@"[SCInsta] Confirm repost triggered (long press ignored)");
-    }
-    else {
-        return %orig;
-    }
+    if ([SCIUtils getBoolPref:@"repost_confirm"]) return;
+    %orig;
 }
 %end
 
@@ -717,3 +717,38 @@ shouldPersistLastBugReportId:(id)arg6
     return %orig;
 }
 %end
+
+// liquid glass Swift class hooks
+static BOOL (*orig_swizzleToggle_isEnabled)(id, SEL) = NULL;
+static BOOL new_swizzleToggle_isEnabled(id self, SEL _cmd) {
+    if ([SCIUtils getBoolPref:@"liquid_glass_buttons"]) return YES;
+    return orig_swizzleToggle_isEnabled(self, _cmd);
+}
+
+static BOOL (*orig_expHelper_isEnabled)(id, SEL) = NULL;
+static BOOL new_expHelper_isEnabled(id self, SEL _cmd) {
+    if ([SCIUtils getBoolPref:@"liquid_glass_buttons"]) return YES;
+    return orig_expHelper_isEnabled(self, _cmd);
+}
+
+static BOOL (*orig_expHelper_isHomeFeed)(id, SEL) = NULL;
+static BOOL new_expHelper_isHomeFeed(id self, SEL _cmd) {
+    if ([SCIUtils getBoolPref:@"liquid_glass_buttons"]) return YES;
+    return orig_expHelper_isHomeFeed(self, _cmd);
+}
+
+%ctor {
+    Class swizzleToggle = objc_getClass("IGLiquidGlassSwizzle.IGLiquidGlassSwizzleToggle");
+    if (swizzleToggle) {
+        MSHookMessageEx(swizzleToggle, @selector(isEnabled),
+                        (IMP)new_swizzleToggle_isEnabled, (IMP *)&orig_swizzleToggle_isEnabled);
+    }
+
+    Class expHelper = objc_getClass("IGLiquidGlassExperimentHelper.IGLiquidGlassNavigationExperimentHelper");
+    if (expHelper) {
+        MSHookMessageEx(expHelper, @selector(isEnabled),
+                        (IMP)new_expHelper_isEnabled, (IMP *)&orig_expHelper_isEnabled);
+        MSHookMessageEx(expHelper, @selector(isHomeFeedHeaderEnabled),
+                        (IMP)new_expHelper_isHomeFeed, (IMP *)&orig_expHelper_isHomeFeed);
+    }
+}

@@ -88,6 +88,8 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 - Manual mark story as seen — button on story overlay to selectively mark stories as seen **\***
 - Stop story auto-advance — stories won't auto-skip when the timer ends **\***
 - Story download button — download directly from the story overlay **\***
+- Download disappearing DM media (photos + videos) **\***
+- Mark disappearing messages as viewed button **\***
 - Disable instants creation
 
 ### Navigation
