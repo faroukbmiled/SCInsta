@@ -79,7 +79,8 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 
 ### Stories and messages
 - Keep deleted messages
-- Manually mark messages as seen
+- Manually mark messages as seen (button or toggle mode) **\***
+- Auto mark seen on send (marks messages as read when you send any message) **\***
 - Disable typing status
 - Unlimited replay of direct stories
 - Disable view-once limitations

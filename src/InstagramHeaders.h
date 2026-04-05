@@ -497,6 +497,9 @@
 - (id)messageSenderFeatureController;
 @end
 
+@interface IGDirectMessageSenderFeatureController : NSObject
+@end
+
 @interface IGTabBarButton : UIButton
 - (void)addHandleLongPress; // new
 @end
