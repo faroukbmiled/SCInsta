@@ -14,6 +14,7 @@ static inline id sciAF(id obj, SEL sel) {
 }
 
 static __weak UIViewController *sciAudioThreadVC = nil;
+static BOOL sciDMMenuPending = NO;
 
 #pragma mark - Send audio through IG pipeline
 
@@ -554,12 +555,10 @@ static void sciShowUploadAudioOptions(UIViewController *threadVC) {
 - (id)initWithMenuItems:(NSArray *)items edr:(BOOL)edr headerLabelText:(id)header {
     if (![SCIUtils getBoolPref:@"send_audio_as_file"]) return %orig;
 
-    BOOL isDMMenu = NO;
-    for (id item in items) {
-        id title = sciAF(item, @selector(title));
-        if ([title isKindOfClass:[NSString class]] && [title isEqualToString:@"Location"]) { isDMMenu = YES; break; }
-    }
-    if (!isDMMenu) return %orig;
+    // Only inject into DM plus menus — sciDMMenuPending is set right before
+    // this menu is created by the composer overflow button callback
+    if (!sciDMMenuPending) return %orig;
+    sciDMMenuPending = NO;
 
     for (id item in items) {
         id title = sciAF(item, @selector(title));
@@ -599,6 +598,7 @@ static void sciShowUploadAudioOptions(UIViewController *threadVC) {
     %orig;
     if (![SCIUtils getBoolPref:@"send_audio_as_file"]) return;
     sciAudioThreadVC = self;
+    sciDMMenuPending = YES;
 }
 
 // file picker delegate — show trim UI

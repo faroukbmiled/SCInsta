@@ -82,6 +82,7 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 - Manually mark messages as seen (button or toggle mode) **\***
 - Auto mark seen on send (marks messages as read when you send any message) **\***
 - Send audio as file — send audio files as voice messages from the DM plus menu **\***
+- Download voice messages — adds a Download option to the long-press menu on voice messages, saves as M4A via share sheet **\***
 - Disable typing status
 - Unlimited replay of direct stories
 - Disable view-once limitations

@@ -238,7 +238,7 @@ static void sciUpdateCellIndicator(id cell) {
         if (!oldIndicator) {
             Ivar bubbleIvar = class_getInstanceVariable([cell class], "_messageContentContainerView");
             UIView *bubble = bubbleIvar ? object_getIvar(cell, bubbleIvar) : nil;
-            UIView *anchor = bubble ?: view;
+            UIView *parent = bubble ?: view;
 
             UILabel *label = [[UILabel alloc] init];
             label.tag = SCI_PRESERVED_TAG;
@@ -246,11 +246,14 @@ static void sciUpdateCellIndicator(id cell) {
             label.font = [UIFont italicSystemFontOfSize:10];
             label.textColor = [UIColor colorWithRed:1.0 green:0.3 blue:0.3 alpha:0.9];
             label.translatesAutoresizingMaskIntoConstraints = NO;
-            [view addSubview:label];
+            // Add as subview of the bubble so it moves with the bubble during
+            // long-press context menu animation (otherwise it stays on the cell
+            // and gets exposed behind the bubble).
+            [parent addSubview:label];
 
             [NSLayoutConstraint activateConstraints:@[
-                [label.leadingAnchor constraintEqualToAnchor:anchor.trailingAnchor constant:4],
-                [label.centerYAnchor constraintEqualToAnchor:anchor.centerYAnchor],
+                [label.leadingAnchor constraintEqualToAnchor:parent.trailingAnchor constant:4],
+                [label.centerYAnchor constraintEqualToAnchor:parent.centerYAnchor],
             ]];
         }
     } else if (oldIndicator) {

@@ -47,6 +47,7 @@ BOOL dmVisualMsgsViewedButtonEnabled = false;
         @"doom_scrolling_reel_count": @(1),
         @"no_seen_visual": @(YES),
         @"send_audio_as_file": @(YES),
+        @"download_audio_message": @(NO),
         @"unlock_password_reels": @(YES),
         @"seen_mode": @"button",
         @"seen_auto_on_interact": @(YES),

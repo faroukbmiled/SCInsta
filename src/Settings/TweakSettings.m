@@ -166,6 +166,7 @@
                                                 ],
                                                 [SCISetting switchCellWithTitle:@"Disable typing status" subtitle:@"Prevents the typing indicator from being shown to others when you're typing in DMs" defaultsKey:@"disable_typing_status"],
                                                 [SCISetting switchCellWithTitle:@"Send audio as file" subtitle:@"Adds an 'Audio File' option to the plus menu in DMs to send audio files as voice messages" defaultsKey:@"send_audio_as_file"],
+                                                [SCISetting switchCellWithTitle:@"Download voice messages" subtitle:@"Adds a 'Download' option to the long-press menu on voice messages to save them as M4A audio" defaultsKey:@"download_audio_message"],
                                             ]
                                         },
                                         @{
