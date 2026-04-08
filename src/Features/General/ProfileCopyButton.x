@@ -183,51 +183,61 @@ static void hooked_configureHeaderView(id self, SEL _cmd,
         return;
     }
 
-    NSArray *patched = rightButtons;
-    if ([rightButtons isKindOfClass:[NSArray class]] && [(NSArray *)rightButtons count] > 0) {
-        NSArray *rb = (NSArray *)rightButtons;
+    // Own profile (centered title) → inject on the left to avoid crowding the
+    // plus/notifications/burger cluster. Other profiles → inject on the right.
+    NSArray *lb = [leftButtons isKindOfClass:[NSArray class]] ? (NSArray *)leftButtons : nil;
+    NSArray *rb = [rightButtons isKindOfClass:[NSArray class]] ? (NSArray *)rightButtons : nil;
+    BOOL isOwnProfile = titleIsCentered;
 
-        BOOL alreadyHas = NO;
-        for (id wrapper in rb) {
-            UIView *v = sci_safeValueForKey(wrapper, @"view");
-            if ([v isKindOfClass:[UIView class]] &&
-                [v.accessibilityIdentifier isEqualToString:@"sci-profile-copy-button"]) {
-                alreadyHas = YES;
-                break;
+    BOOL alreadyHas = NO;
+    for (id wrapper in (isOwnProfile ? lb : rb)) {
+        UIView *v = sci_safeValueForKey(wrapper, @"view");
+        if ([v isKindOfClass:[UIView class]] &&
+            [v.accessibilityIdentifier isEqualToString:@"sci-profile-copy-button"]) {
+            alreadyHas = YES;
+            break;
+        }
+    }
+
+    NSArray *patchedLeft = leftButtons;
+    NSArray *patchedRight = rightButtons;
+
+    if (!alreadyHas) {
+        Class wrapperCls = NSClassFromString(@"IGProfileNavigationHeaderViewButtonSwift.IGProfileNavigationHeaderViewButton");
+        // Mirror an existing button's type so IG lays ours out the same way
+        id sample = rb.firstObject ?: lb.firstObject;
+        NSInteger type = 0;
+        id typeVal = sci_safeValueForKey(sample, @"type");
+        if ([typeVal respondsToSelector:@selector(integerValue)]) {
+            type = [typeVal integerValue];
+        }
+
+        UIView *btn = sci_buildCopyButton();
+        id wrapper = nil;
+        if (wrapperCls) {
+            wrapper = [wrapperCls alloc];
+            SEL initSel = @selector(initWithType:view:);
+            if ([wrapper respondsToSelector:initSel]) {
+                id (*ctor)(id, SEL, NSInteger, id) =
+                    (id (*)(id, SEL, NSInteger, id))objc_msgSend;
+                wrapper = ctor(wrapper, initSel, type, btn);
             }
         }
 
-        if (!alreadyHas) {
-            Class wrapperCls = NSClassFromString(@"IGProfileNavigationHeaderViewButtonSwift.IGProfileNavigationHeaderViewButton");
-            // Mirror an existing button's type so IG's layout treats ours the same.
-            NSInteger type = 0;
-            id sample = rb.firstObject;
-            id typeVal = sci_safeValueForKey(sample, @"type");
-            if ([typeVal respondsToSelector:@selector(integerValue)]) {
-                type = [typeVal integerValue];
-            }
-
-            UIView *btn = sci_buildCopyButton();
-            id wrapper = nil;
-            if (wrapperCls) {
-                wrapper = [wrapperCls alloc];
-                SEL initSel = @selector(initWithType:view:);
-                if ([wrapper respondsToSelector:initSel]) {
-                    id (*ctor)(id, SEL, NSInteger, id) =
-                        (id (*)(id, SEL, NSInteger, id))objc_msgSend;
-                    wrapper = ctor(wrapper, initSel, type, btn);
-                }
-            }
-
-            if (wrapper) {
+        if (wrapper) {
+            if (isOwnProfile) {
+                NSMutableArray *m = lb ? [lb mutableCopy] : [NSMutableArray array];
+                [m addObject:wrapper];
+                patchedLeft = m;
+            } else if (rb) {
                 NSMutableArray *m = [rb mutableCopy];
                 [m insertObject:wrapper atIndex:0];
-                patched = m;
+                patchedRight = m;
             }
         }
     }
 
-    orig_configureHeaderView(self, _cmd, titleView, leftButtons, patched, titleIsCentered);
+    orig_configureHeaderView(self, _cmd, titleView, patchedLeft, patchedRight, titleIsCentered);
 }
 
 %ctor {
