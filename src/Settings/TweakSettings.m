@@ -167,83 +167,6 @@
                                             ]
                                         }]
                 ],
-                [SCISetting navigationCellWithTitle:SCILocalized(@"Reels")
-                                           subtitle:@""
-                                               icon:[SCISymbol symbolWithName:@"film.stack"]
-                                        navSections:@[@{
-                                            @"header": SCILocalized(@"Action button"),
-                                            @"footer": SCILocalized(@"Adds a RyukGram action button above the reel sidebar with view-cover/download/share/copy/expand/repost entries. Tap opens the menu by default; change the tap behavior below."),
-                                            @"rows": @[
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Show action button") subtitle:SCILocalized(@"Places a button above the like/comment/share column on each reel") defaultsKey:@"reels_action_button"],
-                                                [SCISetting menuCellWithTitle:SCILocalized(@"Default tap action") subtitle:SCILocalized(@"What happens on a single tap. Long-press always opens the full menu") menu:[self menus][@"reels_action_default"]],
-                                            ]
-                                        },
-                                        @{
-                                            @"header": @"",
-                                            @"rows": @[
-                                                [SCISetting menuCellWithTitle:SCILocalized(@"Tap Controls") subtitle:SCILocalized(@"Change what happens when you tap on a reel") menu:[self menus][@"reels_tap_control"]],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Always show progress scrubber") subtitle:SCILocalized(@"Forces the progress bar to appear on every reel") defaultsKey:@"reels_show_scrubber"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Disable auto-unmuting reels") subtitle:SCILocalized(@"Prevents reels from unmuting when the volume/silent button is pressed") defaultsKey:@"disable_auto_unmuting_reels" requiresRestart:YES],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Confirm reel refresh") subtitle:SCILocalized(@"Shows an alert when you trigger a reels refresh") defaultsKey:@"refresh_reel_confirm"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Disable tab button refresh") subtitle:SCILocalized(@"Tapping the Reels tab while on reels does nothing") defaultsKey:@"disable_reels_tab_refresh"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Unlock password-locked reels") subtitle:SCILocalized(@"Shows buttons to reveal and auto-fill the password on locked reels") defaultsKey:@"unlock_password_reels"],
-                                            ]
-                                        },
-                                        @{
-                                            @"header": SCILocalized(@"Hiding"),
-                                            @"rows": @[
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Hide reels header") subtitle:SCILocalized(@"Hides the top navigation bar when watching reels") defaultsKey:@"hide_reels_header"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Hide repost button") subtitle:SCILocalized(@"Hides the repost button on the reels sidebar") defaultsKey:@"hide_reels_repost" requiresRestart:YES]
-                                            ]
-                                        },
-                                        @{
-                                            @"header": SCILocalized(@"Limits"),
-                                            @"rows": @[
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Disable scrolling reels") subtitle:SCILocalized(@"Prevents reels from being scrolled to the next video") defaultsKey:@"disable_scrolling_reels" requiresRestart:YES],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Prevent doom scrolling") subtitle:SCILocalized(@"Limits the amount of reels available to scroll at any given time, and prevents refreshing") defaultsKey:@"prevent_doom_scrolling"],
-                                                [SCISetting stepperCellWithTitle:SCILocalized(@"Doom scrolling limit") subtitle:SCILocalized(@"Only loads %@ %@") defaultsKey:@"doom_scrolling_reel_count" min:1 max:100 step:1 label:@"reels" singularLabel:@"reel"]
-                                            ]
-                                        }]
-                ],
-                [SCISetting navigationCellWithTitle:SCILocalized(@"Profile")
-                                           subtitle:@""
-                                               icon:[SCISymbol symbolWithName:@"person.crop.circle"]
-                                        navSections:@[@{
-                                            @"header": @"",
-                                            @"footer": SCILocalized(@"Long-press gestures on profile elements — kept separate from the per-feature action buttons."),
-                                            @"rows": @[
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Zoom profile photo") subtitle:SCILocalized(@"Long press a profile picture to open it in full-screen with zoom, share, and save") defaultsKey:@"zoom_profile_photo"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Save profile picture") subtitle:SCILocalized(@"Long press to download directly (ignored when zoom is on)") defaultsKey:@"save_profile"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"View highlight cover") subtitle:SCILocalized(@"Adds a view option to the highlight long-press menu to open the cover in full-screen") defaultsKey:@"download_highlight_cover"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Profile copy button") subtitle:SCILocalized(@"Adds a button next to the burger menu on profiles to copy username, name or bio") defaultsKey:@"profile_copy_button"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Follow indicator") subtitle:SCILocalized(@"Shows whether the profile user follows you") defaultsKey:@"follow_indicator"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Copy note on long press") subtitle:SCILocalized(@"Long press the note bubble on a profile to copy the text") defaultsKey:@"profile_note_copy"],
-                                            ]
-                                        }]
-                ],
-                [SCISetting navigationCellWithTitle:SCILocalized(@"Saving")
-                                           subtitle:@""
-                                               icon:[SCISymbol symbolWithName:@"tray.and.arrow.down"]
-                                        navSections:@[@{
-                                            @"header": SCILocalized(@"Downloads"),
-                                            @"footer": SCILocalized(@"When \"Save to RyukGram album\" is on, downloads and share-sheet \"Save to Photos\" picks are routed into a dedicated \"RyukGram\" album in your Photos library."),
-                                            @"rows": @[
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Confirm before download") subtitle:SCILocalized(@"Show a confirmation dialog before starting a download") defaultsKey:@"dw_confirm"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Save to RyukGram album") subtitle:SCILocalized(@"Route saves into a dedicated album in Photos instead of the camera roll root") defaultsKey:@"save_to_ryukgram_album"]
-                                            ]
-                                        },
-                                        [self enhancedDownloadsSection],
-                                        @{
-                                            @"header": SCILocalized(@"Legacy long-press gesture"),
-                                            @"footer": SCILocalized(@"Deprecated. The RyukGram action button (configured per feature in Feed/Reels/Stories) is the new way to download media. Enable this master toggle only if you prefer the old multi-finger long-press directly on the media."),
-                                            @"rows": @[
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Enable long-press gesture") subtitle:SCILocalized(@"Master toggle for the deprecated gesture workflow (off by default)") defaultsKey:@"dw_legacy_gesture"],
-                                                [SCISetting menuCellWithTitle:SCILocalized(@"Save action") subtitle:SCILocalized(@"What happens after the gesture downloads") menu:[self menus][@"dw_save_action"]],
-                                                [SCISetting stepperCellWithTitle:SCILocalized(@"Finger count for long-press") subtitle:SCILocalized(@"Downloads with %@ %@") defaultsKey:@"dw_finger_count" min:1 max:5 step:1 label:@"fingers" singularLabel:@"finger"],
-                                                [SCISetting stepperCellWithTitle:SCILocalized(@"Long-press hold time") subtitle:SCILocalized(@"Press finger(s) for %@ %@") defaultsKey:@"dw_finger_duration" min:0 max:10 step:0.25 label:@"sec" singularLabel:@"sec"]
-                                            ]
-                                        }]
-                ],
                 [SCISetting navigationCellWithTitle:SCILocalized(@"Stories")
                                            subtitle:@""
                                                icon:[SCISymbol symbolWithName:@"circle.dashed"]
@@ -314,6 +237,44 @@
                                             @"rows": @[
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Disable instants creation") subtitle:SCILocalized(@"Hides the functionality to create/send instants") defaultsKey:@"disable_instants_creation" requiresRestart:YES],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"View story mentions") subtitle:SCILocalized(@"Show mentioned users in eye button and story menu") defaultsKey:@"view_story_mentions"]
+                                            ]
+                                        }]
+                ],
+                [SCISetting navigationCellWithTitle:SCILocalized(@"Reels")
+                                           subtitle:@""
+                                               icon:[SCISymbol symbolWithName:@"film.stack"]
+                                        navSections:@[@{
+                                            @"header": SCILocalized(@"Action button"),
+                                            @"footer": SCILocalized(@"Adds a RyukGram action button above the reel sidebar with view-cover/download/share/copy/expand/repost entries. Tap opens the menu by default; change the tap behavior below."),
+                                            @"rows": @[
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Show action button") subtitle:SCILocalized(@"Places a button above the like/comment/share column on each reel") defaultsKey:@"reels_action_button"],
+                                                [SCISetting menuCellWithTitle:SCILocalized(@"Default tap action") subtitle:SCILocalized(@"What happens on a single tap. Long-press always opens the full menu") menu:[self menus][@"reels_action_default"]],
+                                            ]
+                                        },
+                                        @{
+                                            @"header": @"",
+                                            @"rows": @[
+                                                [SCISetting menuCellWithTitle:SCILocalized(@"Tap Controls") subtitle:SCILocalized(@"Change what happens when you tap on a reel") menu:[self menus][@"reels_tap_control"]],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Always show progress scrubber") subtitle:SCILocalized(@"Forces the progress bar to appear on every reel") defaultsKey:@"reels_show_scrubber"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Disable auto-unmuting reels") subtitle:SCILocalized(@"Prevents reels from unmuting when the volume/silent button is pressed") defaultsKey:@"disable_auto_unmuting_reels" requiresRestart:YES],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Confirm reel refresh") subtitle:SCILocalized(@"Shows an alert when you trigger a reels refresh") defaultsKey:@"refresh_reel_confirm"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Disable tab button refresh") subtitle:SCILocalized(@"Tapping the Reels tab while on reels does nothing") defaultsKey:@"disable_reels_tab_refresh"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Unlock password-locked reels") subtitle:SCILocalized(@"Shows buttons to reveal and auto-fill the password on locked reels") defaultsKey:@"unlock_password_reels"],
+                                            ]
+                                        },
+                                        @{
+                                            @"header": SCILocalized(@"Hiding"),
+                                            @"rows": @[
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Hide reels header") subtitle:SCILocalized(@"Hides the top navigation bar when watching reels") defaultsKey:@"hide_reels_header"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Hide repost button") subtitle:SCILocalized(@"Hides the repost button on the reels sidebar") defaultsKey:@"hide_reels_repost" requiresRestart:YES]
+                                            ]
+                                        },
+                                        @{
+                                            @"header": SCILocalized(@"Limits"),
+                                            @"rows": @[
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Disable scrolling reels") subtitle:SCILocalized(@"Prevents reels from being scrolled to the next video") defaultsKey:@"disable_scrolling_reels" requiresRestart:YES],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Prevent doom scrolling") subtitle:SCILocalized(@"Limits the amount of reels available to scroll at any given time, and prevents refreshing") defaultsKey:@"prevent_doom_scrolling"],
+                                                [SCISetting stepperCellWithTitle:SCILocalized(@"Doom scrolling limit") subtitle:SCILocalized(@"Only loads %@ %@") defaultsKey:@"doom_scrolling_reel_count" min:1 max:100 step:1 label:@"reels" singularLabel:@"reel"]
                                             ]
                                         }]
                 ],
@@ -433,6 +394,22 @@
                                             ]
                                         }]
                 ],
+                [SCISetting navigationCellWithTitle:SCILocalized(@"Profile")
+                                           subtitle:@""
+                                               icon:[SCISymbol symbolWithName:@"person.crop.circle"]
+                                        navSections:@[@{
+                                            @"header": @"",
+                                            @"footer": SCILocalized(@"Long-press gestures on profile elements — kept separate from the per-feature action buttons."),
+                                            @"rows": @[
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Zoom profile photo") subtitle:SCILocalized(@"Long press a profile picture to open it in full-screen with zoom, share, and save") defaultsKey:@"zoom_profile_photo"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Save profile picture") subtitle:SCILocalized(@"Long press to download directly (ignored when zoom is on)") defaultsKey:@"save_profile"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"View highlight cover") subtitle:SCILocalized(@"Adds a view option to the highlight long-press menu to open the cover in full-screen") defaultsKey:@"download_highlight_cover"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Profile copy button") subtitle:SCILocalized(@"Adds a button next to the burger menu on profiles to copy username, name or bio") defaultsKey:@"profile_copy_button"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Follow indicator") subtitle:SCILocalized(@"Shows whether the profile user follows you") defaultsKey:@"follow_indicator"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Copy note on long press") subtitle:SCILocalized(@"Long press the note bubble on a profile to copy the text") defaultsKey:@"profile_note_copy"],
+                                            ]
+                                        }]
+                ],
                 [SCISetting navigationCellWithTitle:SCILocalized(@"Navigation")
                                            subtitle:@""
                                                icon:[SCISymbol symbolWithName:@"hand.draw.fill"]
@@ -459,6 +436,29 @@
                                             @"footer": SCILocalized(@"Hides every tab except DM inbox + profile and forces launch into the inbox. Settings shortcut moves to long-press on the inbox tab."),
                                             @"rows": @[
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Messages only") subtitle:SCILocalized(@"Turn IG into a DM-only client") defaultsKey:@"messages_only" requiresRestart:YES],
+                                            ]
+                                        }]
+                ],
+                [SCISetting navigationCellWithTitle:SCILocalized(@"Saving")
+                                           subtitle:@""
+                                               icon:[SCISymbol symbolWithName:@"tray.and.arrow.down"]
+                                        navSections:@[@{
+                                            @"header": SCILocalized(@"Downloads"),
+                                            @"footer": SCILocalized(@"When \"Save to RyukGram album\" is on, downloads and share-sheet \"Save to Photos\" picks are routed into a dedicated \"RyukGram\" album in your Photos library."),
+                                            @"rows": @[
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Confirm before download") subtitle:SCILocalized(@"Show a confirmation dialog before starting a download") defaultsKey:@"dw_confirm"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Save to RyukGram album") subtitle:SCILocalized(@"Route saves into a dedicated album in Photos instead of the camera roll root") defaultsKey:@"save_to_ryukgram_album"]
+                                            ]
+                                        },
+                                        [self enhancedDownloadsSection],
+                                        @{
+                                            @"header": SCILocalized(@"Legacy long-press gesture"),
+                                            @"footer": SCILocalized(@"Deprecated. The RyukGram action button (configured per feature in Feed/Reels/Stories) is the new way to download media. Enable this master toggle only if you prefer the old multi-finger long-press directly on the media."),
+                                            @"rows": @[
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Enable long-press gesture") subtitle:SCILocalized(@"Master toggle for the deprecated gesture workflow (off by default)") defaultsKey:@"dw_legacy_gesture"],
+                                                [SCISetting menuCellWithTitle:SCILocalized(@"Save action") subtitle:SCILocalized(@"What happens after the gesture downloads") menu:[self menus][@"dw_save_action"]],
+                                                [SCISetting stepperCellWithTitle:SCILocalized(@"Finger count for long-press") subtitle:SCILocalized(@"Downloads with %@ %@") defaultsKey:@"dw_finger_count" min:1 max:5 step:1 label:@"fingers" singularLabel:@"finger"],
+                                                [SCISetting stepperCellWithTitle:SCILocalized(@"Long-press hold time") subtitle:SCILocalized(@"Press finger(s) for %@ %@") defaultsKey:@"dw_finger_duration" min:0 max:10 step:0.25 label:@"sec" singularLabel:@"sec"]
                                             ]
                                         }]
                 ],
@@ -699,6 +699,30 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundeclared-selector"
 
+// Builds the default-tap-action picker menu for a given action button context.
+// Adding a new tap action = one entry here. Order: actions first, downloads last.
++ (UIMenu *)defaultTapMenuForKey:(NSString *)key context:(NSString *)ctx {
+    // { value, title, contexts ("all" or csv of feed,reels,stories) }
+    NSArray *entries = @[
+        @[@"menu",           SCILocalized(@"Open menu"),          @"all"],
+        @[@"expand",         SCILocalized(@"Expand"),             @"all"],
+        @[@"repost",         SCILocalized(@"Repost"),             @"all"],
+        @[@"view_mentions",  SCILocalized(@"View mentions"),      @"stories"],
+        @[@"copy_link",      SCILocalized(@"Copy download URL"),  @"all"],
+        @[@"download_share", SCILocalized(@"Download and share"), @"all"],
+        @[@"download_photos",SCILocalized(@"Download to Photos"), @"all"],
+    ];
+    NSMutableArray *children = [NSMutableArray array];
+    for (NSArray *e in entries) {
+        NSString *contexts = e[2];
+        if (![contexts isEqualToString:@"all"] && ![contexts containsString:ctx]) continue;
+        [children addObject:[UICommand commandWithTitle:e[1] image:nil
+                                                 action:@selector(menuChanged:)
+                                           propertyList:@{@"defaultsKey": key, @"value": e[0]}]];
+    }
+    return [UIMenu menuWithChildren:children];
+}
+
 + (NSDictionary *)menus {
     return @{
         @"chat_blocking_mode": [UIMenu menuWithChildren:@[
@@ -784,38 +808,9 @@
             ]
         ]],
 
-        // Per-context action button default tap mode. Each feature page gets
-        // its own key so users can pick different defaults per context.
-        @"feed_action_default": [UIMenu menuWithChildren:@[
-            [UICommand commandWithTitle:SCILocalized(@"Open menu") image:nil action:@selector(menuChanged:)
-                           propertyList:@{@"defaultsKey": @"feed_action_default", @"value": @"menu"}],
-            [UICommand commandWithTitle:SCILocalized(@"Expand") image:nil action:@selector(menuChanged:)
-                           propertyList:@{@"defaultsKey": @"feed_action_default", @"value": @"expand"}],
-            [UICommand commandWithTitle:SCILocalized(@"Download and share") image:nil action:@selector(menuChanged:)
-                           propertyList:@{@"defaultsKey": @"feed_action_default", @"value": @"download_share"}],
-            [UICommand commandWithTitle:SCILocalized(@"Download to Photos") image:nil action:@selector(menuChanged:)
-                           propertyList:@{@"defaultsKey": @"feed_action_default", @"value": @"download_photos"}],
-        ]],
-        @"reels_action_default": [UIMenu menuWithChildren:@[
-            [UICommand commandWithTitle:SCILocalized(@"Open menu") image:nil action:@selector(menuChanged:)
-                           propertyList:@{@"defaultsKey": @"reels_action_default", @"value": @"menu"}],
-            [UICommand commandWithTitle:SCILocalized(@"Expand") image:nil action:@selector(menuChanged:)
-                           propertyList:@{@"defaultsKey": @"reels_action_default", @"value": @"expand"}],
-            [UICommand commandWithTitle:SCILocalized(@"Download and share") image:nil action:@selector(menuChanged:)
-                           propertyList:@{@"defaultsKey": @"reels_action_default", @"value": @"download_share"}],
-            [UICommand commandWithTitle:SCILocalized(@"Download to Photos") image:nil action:@selector(menuChanged:)
-                           propertyList:@{@"defaultsKey": @"reels_action_default", @"value": @"download_photos"}],
-        ]],
-        @"stories_action_default": [UIMenu menuWithChildren:@[
-            [UICommand commandWithTitle:SCILocalized(@"Open menu") image:nil action:@selector(menuChanged:)
-                           propertyList:@{@"defaultsKey": @"stories_action_default", @"value": @"menu"}],
-            [UICommand commandWithTitle:SCILocalized(@"Expand") image:nil action:@selector(menuChanged:)
-                           propertyList:@{@"defaultsKey": @"stories_action_default", @"value": @"expand"}],
-            [UICommand commandWithTitle:SCILocalized(@"Download and share") image:nil action:@selector(menuChanged:)
-                           propertyList:@{@"defaultsKey": @"stories_action_default", @"value": @"download_share"}],
-            [UICommand commandWithTitle:SCILocalized(@"Download to Photos") image:nil action:@selector(menuChanged:)
-                           propertyList:@{@"defaultsKey": @"stories_action_default", @"value": @"download_photos"}],
-        ]],
+        @"feed_action_default":    [self defaultTapMenuForKey:@"feed_action_default"    context:@"feed"],
+        @"reels_action_default":   [self defaultTapMenuForKey:@"reels_action_default"   context:@"reels"],
+        @"stories_action_default": [self defaultTapMenuForKey:@"stories_action_default" context:@"stories"],
 
         @"default_video_quality": [UIMenu menuWithChildren:@[
             [UICommand commandWithTitle:SCILocalized(@"Always ask") image:nil action:@selector(menuChanged:)

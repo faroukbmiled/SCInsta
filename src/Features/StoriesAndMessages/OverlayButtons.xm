@@ -158,11 +158,8 @@ static void sciResumeStoryPlayback(UIView *sourceView) {
             [btn.heightAnchor constraintEqualToConstant:36]
         ]];
 
-        [SCIActionButton configureButton:btn
-                                 context:SCIActionContextStories
-                                 prefKey:@"stories_action_default"
-                           mediaProvider:^id (UIView *sourceView) {
-            // DM disappearing message — handle directly
+        SCIActionMediaProvider storyProvider = ^id (UIView *sourceView) {
+            // DM disappearing message — handle directly for tap actions
             UIViewController *dmVC = sciFindVC(sourceView, @"IGDirectVisualMessageViewerController");
             if (dmVC) {
                 sciDownloadDisappearingMedia(dmVC);
@@ -174,34 +171,40 @@ static void sciResumeStoryPlayback(UIView *sourceView) {
             id item = sciGetCurrentStoryItem(sourceView);
             if ([item isKindOfClass:NSClassFromString(@"IGMedia")]) return item;
             return sciExtractMediaFromItem(item);
-        }];
+        };
 
-        // For DM visual messages: override menu with download/share/expand
-        btn.menu = [UIMenu menuWithChildren:@[
-            [UIDeferredMenuElement elementWithUncachedProvider:^(void (^completion)(NSArray<UIMenuElement *> *)) {
-                UIViewController *dmVC = sciFindVC(btn, @"IGDirectVisualMessageViewerController");
-                if (dmVC) {
-                    completion(@[
-                        [UIAction actionWithTitle:SCILocalized(@"Expand") image:[UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right"]
-                            identifier:nil handler:^(UIAction *a) { sciExpandDisappearingMedia(dmVC); }],
-                        [UIAction actionWithTitle:SCILocalized(@"Share") image:[UIImage systemImageNamed:@"square.and.arrow.up"]
-                            identifier:nil handler:^(UIAction *a) { sciShareDisappearingMedia(dmVC); }],
-                        [UIAction actionWithTitle:SCILocalized(@"Save to Photos") image:[UIImage systemImageNamed:@"square.and.arrow.down"]
-                            identifier:nil handler:^(UIAction *a) { sciDownloadDisappearingMedia(dmVC); }],
-                    ]);
-                } else {
-                    // Story — use normal action menu
-                    id media = nil;
-                    sciPauseStoryPlayback(btn);
-                    id item = sciGetCurrentStoryItem(btn);
-                    media = [item isKindOfClass:NSClassFromString(@"IGMedia")] ? item : sciExtractMediaFromItem(item);
-                    NSArray *actions = [SCIMediaActions actionsForContext:SCIActionContextStories media:media fromView:btn];
-                    UIMenu *built = [SCIActionMenu buildMenuWithActions:actions];
-                    completion(built.children);
-                }
-            }]
-        ]];
-        btn.showsMenuAsPrimaryAction = YES;
+        [SCIActionButton configureButton:btn
+                                 context:SCIActionContextStories
+                                 prefKey:@"stories_action_default"
+                           mediaProvider:storyProvider];
+
+        // When configureButton chose "menu" mode, override with our custom
+        // deferred menu that handles both DM and story contexts.
+        if (btn.showsMenuAsPrimaryAction) {
+            btn.menu = [UIMenu menuWithChildren:@[
+                [UIDeferredMenuElement elementWithUncachedProvider:^(void (^completion)(NSArray<UIMenuElement *> *)) {
+                    UIViewController *dmVC = sciFindVC(btn, @"IGDirectVisualMessageViewerController");
+                    if (dmVC) {
+                        completion(@[
+                            [UIAction actionWithTitle:SCILocalized(@"Expand") image:[UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right"]
+                                identifier:nil handler:^(UIAction *a) { sciExpandDisappearingMedia(dmVC); }],
+                            [UIAction actionWithTitle:SCILocalized(@"Share") image:[UIImage systemImageNamed:@"square.and.arrow.up"]
+                                identifier:nil handler:^(UIAction *a) { sciShareDisappearingMedia(dmVC); }],
+                            [UIAction actionWithTitle:SCILocalized(@"Save to Photos") image:[UIImage systemImageNamed:@"square.and.arrow.down"]
+                                identifier:nil handler:^(UIAction *a) { sciDownloadDisappearingMedia(dmVC); }],
+                        ]);
+                    } else {
+                        id media = nil;
+                        sciPauseStoryPlayback(btn);
+                        id item = sciGetCurrentStoryItem(btn);
+                        media = [item isKindOfClass:NSClassFromString(@"IGMedia")] ? item : sciExtractMediaFromItem(item);
+                        NSArray *actions = [SCIMediaActions actionsForContext:SCIActionContextStories media:media fromView:btn];
+                        UIMenu *built = [SCIActionMenu buildMenuWithActions:actions];
+                        completion(built.children);
+                    }
+                }]
+            ]];
+        }
 
         // KVO highlighted → resume playback when menu dismisses.
         [btn addObserver:self forKeyPath:@"highlighted"

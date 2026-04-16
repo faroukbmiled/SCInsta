@@ -1,5 +1,6 @@
 #import "SCIActionButton.h"
 #import "SCIActionMenu.h"
+#import "SCIRepostSheet.h"
 #import "../Utils.h"
 #import <objc/runtime.h>
 
@@ -123,8 +124,18 @@ const void *kSCIDismissKey   = &kSCIDismissKey;
         [SCIMediaActions downloadAndShareMedia:media];
     } else if ([tap isEqualToString:@"download_photos"]) {
         [SCIMediaActions downloadAndSaveMedia:media];
-    } else {
-        // Fallback: user can long-press for menu.
+    } else if ([tap isEqualToString:@"copy_link"]) {
+        [SCIMediaActions copyURLForMedia:media];
+    } else if ([tap isEqualToString:@"repost"]) {
+        NSURL *vidURL = [SCIUtils getVideoUrlForMedia:(id)media];
+        NSURL *imgURL = [SCIUtils getPhotoUrlForMedia:(id)media];
+        [SCIRepostSheet repostWithVideoURL:vidURL photoURL:imgURL];
+    } else if ([tap isEqualToString:@"view_mentions"]) {
+        UIViewController *host = [SCIUtils nearestViewControllerForView:sender];
+        if (host) {
+            extern void sciShowStoryMentions(UIViewController *, UIView *);
+            sciShowStoryMentions(host, sender);
+        }
     }
 }
 
