@@ -131,7 +131,7 @@
 #pragma mark - Container VC (PageViewController-based)
 // ═══════════════════════════════════════════════════════════════════════════
 
-@interface _SCIMediaViewerContainerVC : UIViewController <UIPageViewControllerDataSource, UIPageViewControllerDelegate>
+@interface _SCIMediaViewerContainerVC : UIViewController <UIPageViewControllerDataSource, UIPageViewControllerDelegate, UIGestureRecognizerDelegate>
 @property (nonatomic, strong) NSArray<SCIMediaViewerItem *> *items;
 @property (nonatomic, assign) NSUInteger currentIndex;
 @property (nonatomic, strong) UIPageViewController *pageVC;
@@ -238,17 +238,15 @@
         [self.captionLabel.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-8],
     ]];
 
+    // Swipe down to dismiss
+    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handleDismissPan:)];
+    pan.delegate = (id<UIGestureRecognizerDelegate>)self;
+    [self.view addGestureRecognizer:pan];
+
     // Single tap toggles chrome
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(toggleChrome)];
     tap.cancelsTouchesInView = NO;
     [self.pageVC.view addGestureRecognizer:tap];
-
-    // For photos, let double-tap zoom work without triggering single-tap
-    for (UIGestureRecognizer *gr in self.pageVC.view.gestureRecognizers) {
-        if ([gr isKindOfClass:[UITapGestureRecognizer class]] && ((UITapGestureRecognizer *)gr).numberOfTapsRequired == 1) {
-            // Already have our tap
-        }
-    }
 
     [self updateChrome];
 }
@@ -288,6 +286,45 @@
         self.captionLabel.numberOfLines = self.captionExpanded ? 0 : 3;
         [self.view layoutIfNeeded];
     }];
+}
+
+- (BOOL)gestureRecognizerShouldBegin:(UIPanGestureRecognizer *)gr {
+    if (![gr isKindOfClass:[UIPanGestureRecognizer class]]) return YES;
+    CGPoint v = [gr velocityInView:self.view];
+    return fabs(v.y) > fabs(v.x) && v.y > 0;
+}
+
+- (void)handleDismissPan:(UIPanGestureRecognizer *)gr {
+    CGFloat ty = [gr translationInView:self.view].y;
+    CGFloat h = self.view.bounds.size.height;
+    CGFloat progress = fmin(fmax(ty / h, 0), 1);
+
+    switch (gr.state) {
+        case UIGestureRecognizerStateChanged: {
+            self.view.transform = CGAffineTransformMakeTranslation(0, ty);
+            self.view.alpha = 1.0 - progress * 0.5;
+            break;
+        }
+        case UIGestureRecognizerStateEnded:
+        case UIGestureRecognizerStateCancelled: {
+            CGFloat vy = [gr velocityInView:self.view].y;
+            if (progress > 0.25 || vy > 800) {
+                [UIView animateWithDuration:0.2 animations:^{
+                    self.view.transform = CGAffineTransformMakeTranslation(0, h);
+                    self.view.alpha = 0;
+                } completion:^(BOOL finished) {
+                    [self dismissViewControllerAnimated:NO completion:nil];
+                }];
+            } else {
+                [UIView animateWithDuration:0.25 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0 options:0 animations:^{
+                    self.view.transform = CGAffineTransformIdentity;
+                    self.view.alpha = 1;
+                } completion:nil];
+            }
+            break;
+        }
+        default: break;
+    }
 }
 
 - (void)closeTapped {
@@ -424,7 +461,7 @@
         _SCIMediaViewerContainerVC *vc = [[_SCIMediaViewerContainerVC alloc] init];
         vc.items = items;
         vc.currentIndex = index;
-        vc.modalPresentationStyle = UIModalPresentationFullScreen;
+        vc.modalPresentationStyle = UIModalPresentationOverFullScreen;
         vc.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
         [topMostController() presentViewController:vc animated:YES completion:nil];
     });

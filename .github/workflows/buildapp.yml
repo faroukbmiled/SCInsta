@@ -13,6 +13,11 @@ on:
                 default: true
                 required: false
                 type: boolean
+            build_tipa:
+                description: "Build tipa"
+                default: false
+                required: false
+                type: boolean
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -91,10 +96,7 @@ jobs:
                 pip install --force-reinstall https://github.com/asdfzxcvbn/pyzule-rw/archive/main.zip
 
                 cd main
-                curl -Lo ipapatch https://github.com/asdfzxcvbn/ipapatch/releases/download/v2.1.3/ipapatch.macos-arm64
-                chmod +x ipapatch
-                export PATH=.:$PATH
-
+                # ipapatch disabled — upstream issues.
                 ./build.sh sideload
                 ls -la packages
               env:
@@ -106,12 +108,18 @@ jobs:
                 IPA=$(ls -t *.ipa | grep -iv instagram | head -n1)
                 [ -n "$IPA" ] && mv "$IPA" "RyukGram_sideloaded_v${VERSION}.ipa"
 
+            - name: Duplicate as .tipa
+              if: ${{ inputs.build_tipa }}
+              run: |
+                cd main/packages
+                cp "RyukGram_sideloaded_v${VERSION}.ipa" "RyukGram_trollstore_v${VERSION}.tipa"
+
             - name: Pass package name to upload action
               id: package_name
               run: |
                 echo "package=$(ls -t main/packages/RyukGram_sideloaded_v*.ipa | head -n1 | xargs basename)" >> "$GITHUB_OUTPUT"
 
-            - name: Upload Artifact
+            - name: Upload IPA Artifact
               if: ${{ inputs.upload_artifact }}
               uses: actions/upload-artifact@v4
               with:
@@ -119,11 +127,21 @@ jobs:
                 path: ${{ github.workspace }}/main/packages/${{ steps.package_name.outputs.package }}
                 if-no-files-found: error
 
+            - name: Upload TIPA Artifact
+              if: ${{ inputs.upload_artifact && inputs.build_tipa }}
+              uses: actions/upload-artifact@v4
+              with:
+                name: RyukGram_trollstore_v${{ steps.version.outputs.version }}
+                path: ${{ github.workspace }}/main/packages/RyukGram_trollstore_v*.tipa
+                if-no-files-found: error
+
             - name: Create Release
               uses: softprops/action-gh-release@v2.0.6
               with:
                 name: RyukGram_sideloaded_v${{ steps.version.outputs.version }}
-                files: ${{ github.workspace }}/main/packages/RyukGram_sideloaded_v*.ipa
+                files: |
+                    ${{ github.workspace }}/main/packages/RyukGram_sideloaded_v*.ipa
+                    ${{ github.workspace }}/main/packages/RyukGram_trollstore_v*.tipa
                 draft: true
 
             - name: Output Release URL

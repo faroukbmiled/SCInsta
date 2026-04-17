@@ -65,6 +65,7 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 
 ### Reels
 - Modify tap controls
+- Auto-scroll reels — IG default or RyukGram mode (keeps advancing after swiping back) **\***
 - Always show progress scrubber
 - Disable auto-unmuting reels (properly blocks mute switch, volume buttons, and announcer broadcasts) **\***
 - Confirm reel refresh
@@ -133,7 +134,7 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 - Disable view-once limitations
 - Disable screenshot detection
 - Disable story seen receipt (blocks network upload, toggleable at runtime without restart) **\***
-- Keep stories visually unseen — keeps the colorful ring in the tray after viewing **\***
+- Keep stories visually seen locally — mark stories as seen locally (grey ring) while the seen receipt is still blocked on the server **\***
 - Manual mark story as seen — button on story overlay to selectively mark stories as seen (button or toggle mode) **\***
 - Long-press the story seen button for quick actions **\***
 - Per-user story seen-receipt list with blocking mode — "Block all" (exclude list) or "Block selected only" (include list). Manage via 3-dot menu, eye button long-press, or settings list **\***
@@ -191,23 +192,31 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 - Multi-language UI — every user-facing string in RyukGram flows through a central translation layer **\***
 - Built-in language picker — globe icon in the top-right of Settings; pick System default or any shipped language **\***
 - Falls back to English when a translation is missing, so nothing ever breaks **\***
-- Currently shipping: **English only** — other languages land as translators submit them (see below).
+- Currently shipping: **English**, **Spanish** — other languages land as translators submit them (see below).
 
 ### Optimization
 - Automatically clears unneeded cache folders, reducing the size of your Instagram installation
 
 # Translating RyukGram
-Want to see RyukGram in your language? Open a PR — it takes about 30 minutes of copy-paste.
+Want to see RyukGram in your language? Two ways:
 
-1. Copy `src/Localization/Resources/en.lproj/Localizable.strings` into a new folder named after the language code, e.g. `ar.lproj` (Arabic), `es.lproj` (Spanish), `fr.lproj` (French), `pt.lproj` (Portuguese), `de.lproj` (German), `tr.lproj` (Turkish)…
-2. Translate the **right-hand side** of every `"key" = "value";` line. Never touch the left-hand side — it's the lookup key and must match English.
-3. Keep format specifiers (`%@`, `%lu`, `%d`, `%1$@`…) exactly as they appear, in the same order. Use positional specifiers (`%1$@ %2$lu`) if your language needs different word order.
-4. Keep the same section banners and structure — it makes the diff easy to review.
-5. Open a pull request at <https://github.com/faroukbmiled/RyukGram/pulls>. Title it e.g. `l10n: Add Arabic translation`.
+### Option A: In-app (fastest)
+1. Open **Settings → Debug → Localization → Export English strings** — share the base `.strings` file to yourself.
+2. Translate the **right-hand side** of every `"key" = "value";` line. Never touch the left-hand side.
+3. Go to **Debug → Localization → Update → + Add new language** — enter your language code (e.g. `fr`), pick the translated file, restart.
+4. Your language now appears in the globe menu. Test it, tweak it, re-import as needed.
+5. When ready, open a pull request with the file at `src/Localization/Resources/<code>.lproj/Localizable.strings`.
 
-Partial translations are welcome — untranslated keys automatically fall back to English at runtime. Ship what you've got, iterate from there.
+### Option B: PR directly
+1. Copy `src/Localization/Resources/en.lproj/Localizable.strings` into a new folder: `<code>.lproj/Localizable.strings`
+2. Translate the right-hand side of every line.
+3. Keep format specifiers (`%@`, `%lu`, `%d`, `%1$@`…) exactly as-is. Use positional specifiers if your language needs different word order.
+4. Keep section banners and structure — makes the diff easy to review.
+5. Open a PR at <https://github.com/faroukbmiled/RyukGram/pulls>. Title it e.g. `l10n: Add French translation`.
 
-If you find a string in the app that still renders in English on a translated build, open an issue with a screenshot and we'll add the key.
+Partial translations are welcome — untranslated keys fall back to English at runtime.
+
+If you find a string that still renders in English on a translated build, open an issue with a screenshot.
 
 ## Known Issues
 - Preserved unsent messages cannot be removed using "Delete for you". Pull to refresh in the DMs tab clears all preserved messages (with optional confirmation if "Warn before clearing on refresh" is enabled).
@@ -249,3 +258,4 @@ $ ./build.sh <sideload/rootless/rootful>
 - [@euoradan](https://t.me/euoradan) (Radan) — experimental Instagram feature flag research
 - [@erupts0](https://github.com/erupts0) (John) — testing and feature suggestions
 - [BillyCurtis/OpenInstagramSafariExtension](https://github.com/BillyCurtis/OpenInstagramSafariExtension) — base for the bundled Safari extension
+- Furamako — Spanish translation

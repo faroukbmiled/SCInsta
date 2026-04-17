@@ -314,48 +314,29 @@ static void sciResumeStoryPlayback(UIView *sourceView) {
     [btn setImage:[UIImage systemImageNamed:icon withConfiguration:cfg] forState:UIControlStateNormal];
 }
 
-// Rebuilds the eye button (tag 1339) based on current owner + prefs. Idempotent.
+// Rebuilds the eye button (tag 1339). Visible only when the story is
+// actively blocked for this owner. List management lives in the hold menu
+// and the ellipsis action menu.
 %new - (void)sciRefreshSeenButton {
     BOOL seenBlockingOn = [SCIUtils getBoolPref:@"no_seen_receipt"];
-    BOOL storyBlockSelected = [SCIExcludedStoryUsers isBlockSelectedMode];
-    // In block_selected mode, show the eye for list management even if global toggle is off
-    if (!seenBlockingOn && !storyBlockSelected) return;
-    // Skip for DM visual messages inside an excluded thread
-    NSString *activeTid = [SCIExcludedThreads activeThreadId];
-    if (activeTid && [SCIExcludedThreads isInList:activeTid] && ![SCIExcludedThreads isBlockSelectedMode]) return;
+    if (!seenBlockingOn) return;
 
     NSDictionary *ownerInfo = sciOwnerInfoForView(self);
     NSString *ownerPK = ownerInfo[@"pk"] ?: @"";
-    BOOL ownerInList = ownerPK.length && [SCIExcludedStoryUsers isInList:ownerPK];
-    // block_all + in list: show remove icon (excluded user, behaves normally)
-    // block_selected + in list: show normal eye (blocked user, needs mark-seen)
-    // block_selected + not in list: show add icon
-    BOOL showExcludeIcon = ownerInList && !storyBlockSelected;
-    BOOL showAddIcon = storyBlockSelected && !ownerInList;
-    BOOL listBtnPref = [SCIUtils getBoolPref:@"story_excluded_show_unexclude_eye"];
-    BOOL hideForListedOwner = (showExcludeIcon || showAddIcon) && !listBtnPref;
-    BOOL toggleMode = [[SCIUtils getStringPref:@"story_seen_mode"] isEqualToString:@"toggle"];
+    BOOL excluded = ownerPK.length && [SCIExcludedStoryUsers isUserPKExcluded:ownerPK];
+    UIButton *existing = (UIButton *)[self viewWithTag:1339];
 
+    // Not blocked → no eye button.
+    if (excluded) { [existing removeFromSuperview]; return; }
+
+    BOOL toggleMode = [[SCIUtils getStringPref:@"story_seen_mode"] isEqualToString:@"toggle"];
     NSString *symName;
     UIColor *tint;
-    if (showExcludeIcon) {
-        // block_all + in list: remove-from-exclude icon
-        symName = @"eye.slash.fill"; tint = SCIUtils.SCIColor_Primary;
-    } else if (storyBlockSelected && !ownerInList) {
-        // block_selected + not in list: add-to-block icon
-        symName = @"eye.slash"; tint = [UIColor whiteColor];
-    } else if (toggleMode) {
+    if (toggleMode) {
         symName = sciStorySeenToggleEnabled ? @"eye.fill" : @"eye";
         tint = sciStorySeenToggleEnabled ? SCIUtils.SCIColor_Primary : [UIColor whiteColor];
     } else {
         symName = @"eye"; tint = [UIColor whiteColor];
-    }
-
-    UIButton *existing = (UIButton *)[self viewWithTag:1339];
-
-    if (hideForListedOwner) {
-        [existing removeFromSuperview];
-        return;
     }
 
     UIImageSymbolConfiguration *cfg = [UIImageSymbolConfiguration configurationWithPointSize:18 weight:UIImageSymbolWeightSemibold];
@@ -444,57 +425,6 @@ static void sciResumeStoryPlayback(UIView *sourceView) {
 // ============ Seen button tap ============
 
 %new - (void)sciSeenButtonTapped:(UIButton *)sender {
-    NSDictionary *ownerInfo = sciOwnerInfoForView(self);
-    NSString *ownerPK = ownerInfo[@"pk"];
-    BOOL inList = ownerPK && [SCIExcludedStoryUsers isInList:ownerPK];
-    BOOL bs = [SCIExcludedStoryUsers isBlockSelectedMode];
-
-    // Block selected + not in list: tap to ADD to block list (with confirmation)
-    if (bs && !inList && ownerPK) {
-        UIViewController *host = [SCIUtils nearestViewControllerForView:self];
-        UIAlertController *alert = [UIAlertController
-            alertControllerWithTitle:SCILocalized(@"Add to block list?")
-                             message:[NSString stringWithFormat:SCILocalized(@"Story seen receipts will be blocked for @%@."), ownerInfo[@"username"] ?: @""]
-                      preferredStyle:UIAlertControllerStyleAlert];
-        [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Add") style:UIAlertActionStyleDefault handler:^(UIAlertAction *_) {
-            [SCIExcludedStoryUsers addOrUpdateEntry:@{
-                @"pk": ownerPK,
-                @"username": ownerInfo[@"username"] ?: @"",
-                @"fullName": ownerInfo[@"fullName"] ?: @""
-            }];
-            [SCIUtils showToastForDuration:2.0 title:SCILocalized(@"Added to block list")];
-            sciRefreshAllVisibleOverlays(sciActiveStoryViewerVC);
-        }]];
-        [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
-        [host presentViewController:alert animated:YES completion:nil];
-        return;
-    }
-
-    // Block selected + in list: blocked story, tap = mark seen (long-press to remove)
-    if (bs && inList) {
-        ((void(*)(id, SEL, id))objc_msgSend)(self, @selector(sciMarkSeenTapped:), sender);
-        return;
-    }
-
-    // Block all + in list: tap to remove from exclude list
-    if (inList) {
-        UIViewController *host = [SCIUtils nearestViewControllerForView:self];
-        NSString *alertTitle = bs ? SCILocalized(@"Remove from block list?") : SCILocalized(@"Un-exclude story seen?");
-        NSString *alertMsg = bs ? [NSString stringWithFormat:@"@%@ will no longer have seen receipts blocked.", ownerInfo[@"username"] ?: @""]
-                                : [NSString stringWithFormat:@"@%@ will resume normal story-seen blocking.", ownerInfo[@"username"] ?: @""];
-        UIAlertController *alert = [UIAlertController
-            alertControllerWithTitle:alertTitle message:alertMsg preferredStyle:UIAlertControllerStyleAlert];
-        [alert addAction:[UIAlertAction actionWithTitle:bs ? SCILocalized(@"Unblock") : SCILocalized(@"Un-exclude") style:UIAlertActionStyleDestructive handler:^(UIAlertAction *_) {
-            [SCIExcludedStoryUsers removePK:ownerPK];
-            [SCIUtils showToastForDuration:2.0 title:bs ? SCILocalized(@"Unblocked") : SCILocalized(@"Un-excluded")];
-            if (bs) sciTriggerStoryMarkSeen(sciActiveStoryViewerVC);
-            sciRefreshAllVisibleOverlays(sciActiveStoryViewerVC);
-        }]];
-        [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
-        [host presentViewController:alert animated:YES completion:nil];
-        return;
-    }
-
     // Toggle mode
     if ([[SCIUtils getStringPref:@"story_seen_mode"] isEqualToString:@"toggle"]) {
         sciStorySeenToggleEnabled = !sciStorySeenToggleEnabled;

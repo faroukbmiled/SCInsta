@@ -197,7 +197,7 @@ static UIMenu *sciBuildThreadActionsMenu(UIView *anchor, NSString *threadId, UIW
                 if (w.isKeyWindow) { win = w; break; }
             }
         }
-        [SCIUtils showSettingsVC:win atTopLevelEntry:@"Messages"];
+        [SCIUtils showSettingsVC:win atTopLevelEntry:SCILocalized(@"Messages")];
     }];
     [items addObject:openSettings];
 

@@ -8,6 +8,11 @@ static NSBundle *gLanguageBundle = nil;
 static NSString *gLanguageBundleCode = nil;
 static dispatch_once_t gResourceOnce;
 
+NSString *SCILocalizationOverridePath(void) {
+    NSString *lib = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES).firstObject;
+    return [lib stringByAppendingPathComponent:@"RyukGram.bundle"];
+}
+
 static NSBundle *resolveResourceBundle(void) {
     // 1) Sideload: cyan copies RyukGram.bundle into the app's resource root.
     NSString *path = [[NSBundle mainBundle] pathForResource:@"RyukGram" ofType:@"bundle"];
@@ -66,9 +71,17 @@ static NSBundle *activeLanguageBundle(void) {
     NSString *code = preferredLanguageCode(resource);
     if (gLanguageBundle && [code isEqualToString:gLanguageBundleCode]) return gLanguageBundle;
 
-    NSString *lprojPath = [resource pathForResource:code ofType:@"lproj"];
-    if (!lprojPath) lprojPath = [resource pathForResource:@"en" ofType:@"lproj"];
-    gLanguageBundle = lprojPath ? [NSBundle bundleWithPath:lprojPath] : resource;
+    // User-imported overrides take priority (writable Library dir).
+    NSString *overrideLproj = [[SCILocalizationOverridePath()
+        stringByAppendingPathComponent:[code stringByAppendingString:@".lproj"]]
+        stringByAppendingPathComponent:@"Localizable.strings"];
+    if ([[NSFileManager defaultManager] fileExistsAtPath:overrideLproj]) {
+        gLanguageBundle = [NSBundle bundleWithPath:[overrideLproj stringByDeletingLastPathComponent]];
+    } else {
+        NSString *lprojPath = [resource pathForResource:code ofType:@"lproj"];
+        if (!lprojPath) lprojPath = [resource pathForResource:@"en" ofType:@"lproj"];
+        gLanguageBundle = lprojPath ? [NSBundle bundleWithPath:lprojPath] : resource;
+    }
     gLanguageBundleCode = [code copy];
     return gLanguageBundle;
 }
@@ -86,11 +99,39 @@ NSString *SCILocalizedString(NSString *key, NSString *fallback) {
 }
 
 NSArray<NSDictionary<NSString *, NSString *> *> *SCIAvailableLanguages(void) {
-    // `code` is what we persist; `native` is shown in the picker (endonyms read best).
-    return @[
-        @{ @"code": @"system", @"native": @"System", @"english": @"System default" },
-        @{ @"code": @"en",     @"native": @"English", @"english": @"English" },
-    ];
+    NSMutableArray *result = [NSMutableArray array];
+    [result addObject:@{@"code": @"system", @"native": @"System"}];
+    [result addObject:@{@"code": @"en", @"native": @"English"}];
+
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSMutableSet *seen = [NSMutableSet setWithObject:@"en"];
+
+    // Scan both shipped bundle + writable override dir for .lproj dirs.
+    NSMutableArray *searchPaths = [NSMutableArray array];
+    NSBundle *res = SCILocalizationBundle();
+    if (res) [searchPaths addObject:res.bundlePath];
+    NSString *overrides = SCILocalizationOverridePath();
+    if ([fm fileExistsAtPath:overrides]) [searchPaths addObject:overrides];
+
+    for (NSString *base in searchPaths) {
+        NSArray *contents = [fm contentsOfDirectoryAtPath:base error:nil];
+        for (NSString *name in [contents sortedArrayUsingSelector:@selector(compare:)]) {
+            if (![name hasSuffix:@".lproj"]) continue;
+            NSString *code = [name stringByDeletingPathExtension];
+            if ([code isEqualToString:@"Base"] || [seen containsObject:code]) continue;
+            NSString *stringsPath = [[base stringByAppendingPathComponent:name]
+                                      stringByAppendingPathComponent:@"Localizable.strings"];
+            if (![fm fileExistsAtPath:stringsPath]) continue;
+            [seen addObject:code];
+
+            NSLocale *loc = [NSLocale localeWithLocaleIdentifier:code];
+            NSString *native = [loc localizedStringForLanguageCode:code] ?: code;
+            if (native.length) native = [[[native substringToIndex:1] uppercaseString]
+                                          stringByAppendingString:[native substringFromIndex:1]];
+            [result addObject:@{@"code": code, @"native": native}];
+        }
+    }
+    return result;
 }
 
 void SCILocalizationReset(void) {

@@ -8,6 +8,53 @@
 #import "SCIEmbedDomainViewController.h"
 #import "SCIDateFormatPickerVC.h"
 #import "../SCIFFmpeg.h"
+#import <objc/runtime.h>
+
+// Copies imported .strings into the writable override dir.
+@interface SCILocImportHelper : NSObject <UIDocumentPickerDelegate>
+@end
+@implementation SCILocImportHelper
+- (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls {
+    if (!urls.count) return;
+    NSURL *src = urls.firstObject;
+    NSString *code = objc_getAssociatedObject(controller, "sci_lang");
+    if (!code.length) return;
+
+    // Validate it parses
+    NSDictionary *test = [NSDictionary dictionaryWithContentsOfURL:src];
+    if (!test.count) {
+        UIAlertController *a = [UIAlertController alertControllerWithTitle:@"Error"
+            message:@"File is empty or not a valid .strings file." preferredStyle:UIAlertControllerStyleAlert];
+        [a addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+        UIViewController *top = controller.presentingViewController ?: UIApplication.sharedApplication.keyWindow.rootViewController;
+        [top presentViewController:a animated:YES completion:nil];
+        return;
+    }
+
+    // Write to the writable override dir (Library/RyukGram.bundle/<code>.lproj/).
+    NSString *lproj = [NSString stringWithFormat:@"%@.lproj", code];
+    NSString *dir = [SCILocalizationOverridePath() stringByAppendingPathComponent:lproj];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    [fm createDirectoryAtPath:dir withIntermediateDirectories:YES attributes:nil error:nil];
+    NSString *dest = [dir stringByAppendingPathComponent:@"Localizable.strings"];
+    [fm removeItemAtPath:dest error:nil];
+    BOOL ok = [fm copyItemAtPath:src.path toPath:dest error:nil];
+
+    NSString *msg = ok
+        ? [NSString stringWithFormat:@"Updated %@ (%ld keys). Restart to apply.", code, (long)test.count]
+        : @"Could not write file.";
+    UIAlertController *a = [UIAlertController alertControllerWithTitle:ok ? @"Done" : @"Error"
+                                                               message:msg preferredStyle:UIAlertControllerStyleAlert];
+    if (ok) {
+        [a addAction:[UIAlertAction actionWithTitle:@"Restart now" style:UIAlertActionStyleDefault
+                                            handler:^(__unused UIAlertAction *x) { [SCIUtils showRestartConfirmation]; }]];
+    }
+    [a addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+    UIViewController *top = UIApplication.sharedApplication.keyWindow.rootViewController;
+    while (top.presentedViewController) top = top.presentedViewController;
+    [top presentViewController:a animated:YES completion:nil];
+}
+@end
 
 @implementation SCITweakSettings
 
@@ -182,7 +229,7 @@
                                             @"header": SCILocalized(@"Seen receipts"),
                                             @"rows": @[
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Disable story seen receipt") subtitle:SCILocalized(@"Hides the notification for others when you view their story") defaultsKey:@"no_seen_receipt"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Keep stories visually unseen") subtitle:SCILocalized(@"Prevents stories from visually marking as seen in the tray (keeps colorful ring)") defaultsKey:@"no_seen_visual"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Keep stories visually seen locally") subtitle:SCILocalized(@"Marks stories as seen locally (grey ring) while still blocking the seen receipt on the server") defaultsKey:@"keep_seen_visual_local"],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Mark seen on story like") subtitle:SCILocalized(@"Marks a story as seen the moment you tap the heart, even with seen blocking on") defaultsKey:@"seen_on_story_like"],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Mark seen on story reply") subtitle:SCILocalized(@"Marks a story as seen when you send a reply or emoji reaction, even with seen blocking on") defaultsKey:@"seen_on_story_reply"],
                                                 [SCISetting menuCellWithTitle:SCILocalized(@"Manual seen button mode") subtitle:SCILocalized(@"Button = single-tap mark seen. Toggle = tap toggles story read receipts on/off (eye fills blue when on)") menu:[self menus][@"story_seen_mode"]],
@@ -255,6 +302,7 @@
                                             @"header": @"",
                                             @"rows": @[
                                                 [SCISetting menuCellWithTitle:SCILocalized(@"Tap Controls") subtitle:SCILocalized(@"Change what happens when you tap on a reel") menu:[self menus][@"reels_tap_control"]],
+                                                [SCISetting menuCellWithTitle:SCILocalized(@"Auto-scroll reels") subtitle:SCILocalized(@"IG default: native behavior. RyukGram: re-advances after swiping back.") menu:[self menus][@"auto_scroll_reels_mode"]],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Always show progress scrubber") subtitle:SCILocalized(@"Forces the progress bar to appear on every reel") defaultsKey:@"reels_show_scrubber"],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Disable auto-unmuting reels") subtitle:SCILocalized(@"Prevents reels from unmuting when the volume/silent button is pressed") defaultsKey:@"disable_auto_unmuting_reels" requiresRestart:YES],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Confirm reel refresh") subtitle:SCILocalized(@"Shows an alert when you trigger a reels refresh") defaultsKey:@"refresh_reel_confirm"],
@@ -468,8 +516,10 @@
                                         navSections:@[@{
                                             @"header": @"",
                                             @"rows": @[
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Confirm like: Posts/Stories") subtitle:SCILocalized(@"Shows an alert when you click the like button on posts or stories to confirm the like") defaultsKey:@"like_confirm"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Confirm like: Reels") subtitle:SCILocalized(@"Shows an alert when you click the like button on reels to confirm the like") defaultsKey:@"like_confirm_reels"]
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Confirm like: Posts") subtitle:SCILocalized(@"Shows an alert when you click the like button on posts to confirm the like") defaultsKey:@"like_confirm"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Confirm like: Reels") subtitle:SCILocalized(@"Shows an alert when you click the like button on reels to confirm the like") defaultsKey:@"like_confirm_reels"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Confirm story like") subtitle:SCILocalized(@"Shows an alert when you click the like button on stories to confirm the like") defaultsKey:@"story_like_confirm"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Confirm story emoji reaction") subtitle:SCILocalized(@"Shows an alert before sending an emoji reaction on a story") defaultsKey:@"emoji_reaction_confirm"]
                                             ]
                                         },
                                         @{
@@ -569,6 +619,22 @@
                                            subtitle:@""
                                                icon:[SCISymbol symbolWithName:@"ladybug"]
                                         navSections:@[@{
+                                            @"header": SCILocalized(@"Localization"),
+                                            @"footer": SCILocalized(@"Import a .strings file to update a translation. Pick a language, select the file, restart."),
+                                            @"rows": @[
+                                                [SCISetting buttonCellWithTitle:SCILocalized(@"Update localization file")
+                                                                       subtitle:SCILocalized(@"Import a .strings file for a language")
+                                                                           icon:[SCISymbol symbolWithName:@"square.and.arrow.down"]
+                                                                         action:^(void) { [self presentLocalizationImport]; }
+                                                ],
+                                                [SCISetting buttonCellWithTitle:SCILocalized(@"Export English strings")
+                                                                       subtitle:SCILocalized(@"Share the base English .strings file for translating")
+                                                                           icon:[SCISymbol symbolWithName:@"square.and.arrow.up"]
+                                                                         action:^(void) { [self exportEnglishStrings]; }
+                                                ],
+                                            ]
+                                        },
+                                        @{
                                             @"header": @"FLEX",
                                             @"rows": @[
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Enable FLEX gesture") subtitle:SCILocalized(@"Hold 5 fingers on the screen to open FLEX") defaultsKey:@"flex_instagram"],
@@ -682,6 +748,102 @@
     return SCILocalized(@"settings.title");
 }
 
+// MARK: - Localization import
+
+static UIViewController *sciTopVC(void) {
+    UIViewController *top = nil;
+    for (UIWindow *w in UIApplication.sharedApplication.windows) {
+        if (!w.isKeyWindow) continue;
+        top = w.rootViewController;
+        while (top.presentedViewController) top = top.presentedViewController;
+    }
+    return top;
+}
+
+
++ (void)exportEnglishStrings {
+    NSBundle *res = SCILocalizationBundle();
+    NSString *path = [res pathForResource:@"en" ofType:@"lproj"];
+    if (path) path = [path stringByAppendingPathComponent:@"Localizable.strings"];
+    if (!path || ![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+        [SCIUtils showErrorHUDWithDescription:@"English .strings file not found"];
+        return;
+    }
+    NSURL *url = [NSURL fileURLWithPath:path];
+    UIActivityViewController *ac = [[UIActivityViewController alloc] initWithActivityItems:@[url] applicationActivities:nil];
+    UIViewController *top = sciTopVC();
+    if (!top) return;
+    if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        ac.popoverPresentationController.sourceView = top.view;
+        ac.popoverPresentationController.sourceRect = CGRectMake(CGRectGetMidX(top.view.bounds), CGRectGetMidY(top.view.bounds), 1, 1);
+    }
+    [top presentViewController:ac animated:YES completion:nil];
+}
+
++ (void)presentLocalizationImport {
+    NSArray *langs = SCIAvailableLanguages();
+
+    UIAlertController *picker = [UIAlertController alertControllerWithTitle:@"Update localization"
+                                                                    message:@"Pick a language to update, or add a new one"
+                                                             preferredStyle:UIAlertControllerStyleActionSheet];
+    for (NSDictionary *lang in langs) {
+        NSString *code = lang[@"code"];
+        if ([code isEqualToString:@"system"]) continue;
+        NSString *title = [NSString stringWithFormat:@"%@ (%@)", lang[@"native"], code];
+        [picker addAction:[UIAlertAction actionWithTitle:title
+                                                   style:UIAlertActionStyleDefault
+                                                 handler:^(__unused UIAlertAction *a) {
+            [self importStringsForLanguage:code];
+        }]];
+    }
+
+    [picker addAction:[UIAlertAction actionWithTitle:@"+ Add new language"
+                                               style:UIAlertActionStyleDefault
+                                             handler:^(__unused UIAlertAction *a) {
+        [self promptNewLanguageCode];
+    }]];
+    [picker addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+    [sciTopVC() presentViewController:picker animated:YES completion:nil];
+}
+
++ (void)promptNewLanguageCode {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Add language"
+                                                                   message:@"Enter the language code (e.g. fr, de, ja)"
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    [alert addTextFieldWithConfigurationHandler:^(UITextField *tf) { tf.placeholder = @"fr"; }];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Next" style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *a) {
+        NSString *code = [alert.textFields.firstObject.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+        if (code.length < 2 || code.length > 5) return;
+        [self importStringsForLanguage:code];
+    }]];
+    [sciTopVC() presentViewController:alert animated:YES completion:nil];
+}
+
++ (void)importStringsForLanguage:(NSString *)langCode {
+    UIViewController *top = sciTopVC();
+    if (!top) return;
+
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    UIDocumentPickerViewController *dp = [[UIDocumentPickerViewController alloc]
+        initWithDocumentTypes:@[@"public.plain-text", @"com.apple.xcode.strings-text", @"public.data"] inMode:UIDocumentPickerModeImport];
+    #pragma clang diagnostic pop
+
+    dp.allowsMultipleSelection = NO;
+    dp.delegate = (id<UIDocumentPickerDelegate>)[self sharedImportHelper];
+    objc_setAssociatedObject(dp, "sci_lang", [langCode copy], OBJC_ASSOCIATION_COPY_NONATOMIC);
+    [top presentViewController:dp animated:YES completion:nil];
+}
+
++ (id)sharedImportHelper {
+    static id helper = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        helper = [SCILocImportHelper new];
+    });
+    return helper;
+}
 
 // MARK: - Menus
 
@@ -874,6 +1036,15 @@
                                 ]
                             ]
             ]
+        ]],
+
+        @"auto_scroll_reels_mode": [UIMenu menuWithChildren:@[
+            [UICommand commandWithTitle:SCILocalized(@"Off") image:nil action:@selector(menuChanged:)
+                           propertyList:@{@"defaultsKey": @"auto_scroll_reels_mode", @"value": @"off"}],
+            [UICommand commandWithTitle:SCILocalized(@"IG default") image:nil action:@selector(menuChanged:)
+                           propertyList:@{@"defaultsKey": @"auto_scroll_reels_mode", @"value": @"ig"}],
+            [UICommand commandWithTitle:SCILocalized(@"RyukGram") image:nil action:@selector(menuChanged:)
+                           propertyList:@{@"defaultsKey": @"auto_scroll_reels_mode", @"value": @"custom"}],
         ]],
 
         @"launch_tab": [UIMenu menuWithChildren:@[

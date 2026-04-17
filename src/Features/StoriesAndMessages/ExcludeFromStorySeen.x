@@ -139,13 +139,14 @@ NSDictionary *sciOwnerInfoForView(UIView *view) {
 
 BOOL sciIsCurrentStoryOwnerExcluded(void) {
     NSDictionary *info = sciCurrentStoryOwnerInfo();
-    if (!info) return NO;
+    // Unknown owner: block_selected → don't block; block_all → block.
+    if (!info) return [SCIExcludedStoryUsers isBlockSelectedMode];
     return [SCIExcludedStoryUsers isUserPKExcluded:info[@"pk"]];
 }
 
 BOOL sciIsObjectStoryOwnerExcluded(id obj) {
     NSDictionary *info = sciOwnerInfoFromObject(obj);
-    if (!info) return NO;
+    if (!info) return [SCIExcludedStoryUsers isBlockSelectedMode];
     return [SCIExcludedStoryUsers isUserPKExcluded:info[@"pk"]];
 }
 

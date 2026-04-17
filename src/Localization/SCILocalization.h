@@ -27,6 +27,9 @@ NSString *SCIResolvedLanguageCode(void);
 // Invalidate cached bundles/strings after a language switch.
 void SCILocalizationReset(void);
 
+// Writable path for user-imported lproj overrides (Library/RyukGram.bundle/).
+NSString *SCILocalizationOverridePath(void);
+
 #ifdef __cplusplus
 }
 #endif

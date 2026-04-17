@@ -88,14 +88,12 @@ static char rowStaticRef[] = "row";
             initWithBarButtonSystemItem:UIBarButtonSystemItemClose
                                  target:self action:@selector(sciDismissSettings)];
 
-        // Compact globe button — English is the only shipped language for now,
-        // so the tap shows an info alert instead of a picker. Re-enable the
-        // menu below once additional translations land.
         UIImage *globe = [UIImage systemImageNamed:@"globe"];
         UIBarButtonItem *langItem = [[UIBarButtonItem alloc] initWithImage:globe
                                                                      style:UIBarButtonItemStylePlain
-                                                                    target:self
-                                                                    action:@selector(sciShowLanguageInfo)];
+                                                                    target:nil
+                                                                    action:nil];
+        langItem.menu = [self sciBuildLanguageMenu];
         self.navigationItem.rightBarButtonItem = langItem;
     }
 }
@@ -141,7 +139,16 @@ static char rowStaticRef[] = "row";
         [actions addObject:action];
     }
 
-    return [UIMenu menuWithTitle:SCILocalized(@"settings.language.title") children:actions];
+    UIAction *help = [UIAction actionWithTitle:[NSString stringWithFormat:@"❤️ %@", SCILocalized(@"settings.language.help_translate")]
+                                          image:nil
+                                     identifier:nil
+                                        handler:^(__unused UIAction *a) {
+        NSURL *url = [NSURL URLWithString:@"https://github.com/faroukbmiled/RyukGram#translating-ryukgram"];
+        if (url) [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+    }];
+
+    return [UIMenu menuWithTitle:SCILocalized(@"settings.language.title")
+                        children:[actions arrayByAddingObject:help]];
 }
 
 - (void)sciApplyLanguageChange {

@@ -37,7 +37,7 @@
     %orig;
 
     BOOL msgOnly = [SCIUtils getBoolPref:@"messages_only"];
-    NSString *target = msgOnly ? SCILocalized(@"direct-inbox-tab") : SCILocalized(@"mainfeed-tab");
+    NSString *target = msgOnly ? @"direct-inbox-tab" : @"mainfeed-tab";
     if (![self.accessibilityIdentifier isEqualToString:target]) return;
 
     if ([SCIUtils getBoolPref:@"settings_shortcut"]) {

@@ -7,6 +7,7 @@
 #import "../Utils.h"
 #import "../Downloader/Download.h"
 #import "../PhotoAlbum.h"
+#import "../Features/StoriesAndMessages/SCIExcludedStoryUsers.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
 #import <Photos/Photos.h>
@@ -23,9 +24,9 @@ extern BOOL sciIsStoryAudioEnabled(void);
 // Match keys used in the settings-entry title map for openSettingsForContext:
 static NSString *sciSettingsTitleForContext(SCIActionContext ctx) {
     switch (ctx) {
-        case SCIActionContextFeed: return @"Feed";
-        case SCIActionContextReels: return @"Reels";
-        case SCIActionContextStories: return @"Stories";
+        case SCIActionContextFeed: return SCILocalized(@"Feed");
+        case SCIActionContextReels: return SCILocalized(@"Reels");
+        case SCIActionContextStories: return SCILocalized(@"Stories");
     }
     return @"General";
 }
@@ -885,6 +886,36 @@ static UIView *sciFindSubviewOfClass(UIView *root, NSString *className, int maxD
             [out addObject:[SCIAction actionWithTitle:audioTitle
                                                  icon:audioIcon
                                               handler:^{ sciToggleStoryAudio(); }]];
+        }
+    }
+
+    // Story user list management (add/remove from exclusion list).
+    if (ctx == SCIActionContextStories && [SCIUtils getBoolPref:@"enable_story_user_exclusions"]) {
+        extern NSDictionary *sciOwnerInfoForView(UIView *);
+        extern void sciRefreshAllVisibleOverlays(UIViewController *);
+        extern __weak UIViewController *sciActiveStoryViewerVC;
+        NSDictionary *ownerInfo = sourceView ? sciOwnerInfoForView(sourceView) : nil;
+        NSString *ownerPK = ownerInfo[@"pk"];
+        if (ownerPK.length) {
+            BOOL inList = [SCIExcludedStoryUsers isInList:ownerPK];
+            BOOL bs = [SCIExcludedStoryUsers isBlockSelectedMode];
+            NSString *addLabel = bs ? SCILocalized(@"Add to block list") : SCILocalized(@"Exclude from seen");
+            NSString *removeLabel = bs ? SCILocalized(@"Remove from block list") : SCILocalized(@"Remove from exclude list");
+            NSString *title = inList ? removeLabel : addLabel;
+            NSString *icon = inList ? @"eye.fill" : @"eye.slash";
+            NSString *capturedPK = [ownerPK copy];
+            NSString *capturedUser = [ownerInfo[@"username"] ?: @"" copy];
+            NSString *capturedName = [ownerInfo[@"fullName"] ?: @"" copy];
+            [out addObject:[SCIAction actionWithTitle:title icon:icon handler:^{
+                if (inList) {
+                    [SCIExcludedStoryUsers removePK:capturedPK];
+                    [SCIUtils showToastForDuration:2.0 title:bs ? SCILocalized(@"Unblocked") : SCILocalized(@"Removed from list")];
+                } else {
+                    [SCIExcludedStoryUsers addOrUpdateEntry:@{@"pk": capturedPK, @"username": capturedUser, @"fullName": capturedName}];
+                    [SCIUtils showToastForDuration:2.0 title:bs ? SCILocalized(@"Added to block list") : SCILocalized(@"Added to exclude list")];
+                }
+                sciRefreshAllVisibleOverlays(sciActiveStoryViewerVC);
+            }]];
         }
     }
 

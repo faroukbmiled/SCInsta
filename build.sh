@@ -194,14 +194,7 @@ then
             echo -e '\033[0;33mOr use ./build.sh dylib to build the dylib for Feather injection.\033[0m'
             exit 1
         fi
-        if ! command -v ipapatch &> /dev/null; then
-            echo -e '\033[1m\033[0;31mipapatch not found. Install it from:\033[0m'
-            echo '  https://github.com/asdfzxcvbn/ipapatch/releases/latest'
-            echo
-            echo -e '\033[0;33mUse ./build.sh sideload --buildonly to just compile without creating the IPA.\033[0m'
-            echo -e '\033[0;33mOr use ./build.sh dylib to build the dylib for Feather injection.\033[0m'
-            exit 1
-        fi
+        # ipapatch disabled — upstream issues.
     fi
 
     echo -e '\033[1m\033[32mBuilding RyukGram tweak for sideloading (as IPA)\033[0m'
@@ -278,8 +271,7 @@ then
         rm -rf "$INJECT_TMP"
     fi
 
-    # Patch IPA for sideloading
-    ipapatch --input "packages/RyukGram-sideloaded.ipa" --inplace --noconfirm
+    # ipapatch disabled — upstream issues.
 
     echo -e "\033[1m\033[32mDone, enjoy RyukGram!\033[0m\n\nYou can find the ipa file at: $(pwd)/packages"
 
@@ -333,16 +325,119 @@ then
 
     echo -e "\033[1m\033[32mDone, enjoy RyukGram!\033[0m\n\nYou can find the deb file at: $(pwd)/packages"
 
+# TrollStore build — .tipa is a renamed .ipa. Skip sideload re-sign; TS signs on-device.
+elif [ "$1" == "trollstore" ];
+then
+
+    HAS_FLEX=1
+    if [ -z "$(ls -A modules/FLEXing 2>/dev/null)" ]; then
+        HAS_FLEX=0
+    fi
+
+    if [ "$HAS_FLEX" == "1" ]; then
+        MAKEARGS='SIDELOAD=1'
+        FLEXPATH='.theos/obj/debug/FLEXing.dylib .theos/obj/debug/libflex.dylib'
+    else
+        MAKEARGS=''
+        FLEXPATH=''
+    fi
+    COMPRESSION=9
+
+    make clean 2>/dev/null || true
+    rm -rf .theos
+
+    mkdir -p packages
+    ipaFile="$(find ./packages/ -maxdepth 1 -type f \( -iname '*com.burbn.instagram*.ipa' -o -iname 'Instagram*.ipa' -o -iname '[0-9]*.ipa' \) ! -iname 'RyukGram*.ipa' -exec basename {} \; 2>/dev/null | head -1)"
+    if [ -z "${ipaFile}" ]; then
+        cwdIpa="$(find . -maxdepth 1 -type f \( -iname '*com.burbn.instagram*.ipa' -o -iname 'Instagram*.ipa' -o -iname '[0-9]*.ipa' \) 2>/dev/null | head -1)"
+        if [ -n "$cwdIpa" ]; then
+            mv "$cwdIpa" packages/
+            ipaFile="$(basename "$cwdIpa")"
+        fi
+    fi
+    if [ -z "${ipaFile}" ]; then
+        echo -e '\033[1m\033[0;31mDecrypted Instagram IPA not found.\033[0m'
+        exit 1
+    fi
+
+    if ! command -v cyan &> /dev/null; then
+        echo -e '\033[1m\033[0;31mcyan not found. Install it with:\033[0m'
+        echo '  pip install --force-reinstall https://github.com/asdfzxcvbn/pyzule-rw/archive/main.zip'
+        exit 1
+    fi
+
+    echo -e '\033[1m\033[32mBuilding RyukGram tweak for TrollStore (.tipa)\033[0m'
+    make $MAKEARGS
+    cp .theos/obj/debug/RyukGram.dylib packages/RyukGram.dylib
+
+    BUNDLE_PATH="packages/RyukGram.bundle"
+    rm -rf "$BUNDLE_PATH"
+    mkdir -p "$BUNDLE_PATH"
+    copy_localization_into_bundle "$BUNDLE_PATH"
+    if [ -d "modules/ffmpegkit/ffmpegkit.framework" ]; then
+        for fw in modules/ffmpegkit/*.framework; do
+            cp -R "$fw" "$BUNDLE_PATH/"
+        done
+        LIBS="libavutil libavcodec libavformat libavfilter libavdevice libswresample libswscale"
+        for lib in $LIBS; do
+            mv "$BUNDLE_PATH/${lib}.framework" "$BUNDLE_PATH/${lib}_sci.framework"
+            install_name_tool -id "@rpath/${lib}_sci.framework/${lib}" \
+                "$BUNDLE_PATH/${lib}_sci.framework/${lib}"
+        done
+        for target in "$BUNDLE_PATH/ffmpegkit.framework/ffmpegkit" \
+                      "$BUNDLE_PATH"/libav*_sci.framework/libav* \
+                      "$BUNDLE_PATH"/libsw*_sci.framework/libsw*; do
+            [ -f "$target" ] || continue
+            for lib in $LIBS; do
+                install_name_tool -change \
+                    "@rpath/${lib}.framework/${lib}" \
+                    "@rpath/${lib}_sci.framework/${lib}" \
+                    "$target" 2>/dev/null || true
+            done
+        done
+        install_name_tool -add_rpath @loader_path/.. \
+            "$BUNDLE_PATH/ffmpegkit.framework/ffmpegkit" 2>/dev/null || true
+    fi
+
+    TWEAKPATH=".theos/obj/debug/RyukGram.dylib"
+    BUNDLE_ARG=""
+    [ -d "$BUNDLE_PATH" ] && BUNDLE_ARG="$BUNDLE_PATH"
+
+    echo -e '\033[1m\033[32mCreating the TIPA file...\033[0m'
+    rm -f packages/RyukGram-trollstore.tipa packages/RyukGram-trollstore.ipa
+    cyan -i "packages/${ipaFile}" -o packages/RyukGram-trollstore.ipa -f $TWEAKPATH $FLEXPATH $BUNDLE_ARG -c $COMPRESSION -m 15.0 -du
+
+    # Embed Safari extension.
+    APPEX_SRC="extensions/OpenInstagramSafariExtension.appex"
+    if [ -d "$APPEX_SRC" ]; then
+        echo -e '\033[1m\033[32mEmbedding Safari extension\033[0m'
+        INJECT_TMP=$(mktemp -d)
+        unzip -q packages/RyukGram-trollstore.ipa -d "$INJECT_TMP"
+        APP_DIR="$(find "$INJECT_TMP/Payload" -maxdepth 1 -type d -name '*.app' | head -1)"
+        if [ -n "$APP_DIR" ]; then
+            mkdir -p "$APP_DIR/PlugIns"
+            rm -rf "$APP_DIR/PlugIns/OpenInstagramSafariExtension.appex"
+            cp -R "$APPEX_SRC" "$APP_DIR/PlugIns/"
+            ( cd "$INJECT_TMP" && zip -qr -${COMPRESSION} ../repacked.ipa Payload )
+            mv "$INJECT_TMP/../repacked.ipa" packages/RyukGram-trollstore.ipa
+        fi
+        rm -rf "$INJECT_TMP"
+    fi
+
+    mv packages/RyukGram-trollstore.ipa packages/RyukGram-trollstore.tipa
+    echo -e "\033[1m\033[32mDone!\033[0m\n\nTIPA at: $(pwd)/packages/RyukGram-trollstore.tipa"
+
 else
     echo '+----------------------+'
     echo '|RyukGram Build Script |'
     echo '+----------------------+'
     echo
-    echo 'Usage: ./build.sh <dylib/sideload/rootless/rootful>'
+    echo 'Usage: ./build.sh <dylib/sideload/trollstore/rootless/rootful>'
     echo
-    echo '  dylib     - Build the dylib only (for Feather/manual injection)'
-    echo '  sideload  - Build a patched IPA (requires cyan + ipapatch + decrypted IPA)'
-    echo '  rootless  - Build a rootless .deb package (with FFmpegKit)'
-    echo '  rootful   - Build a rootful .deb package (with FFmpegKit)'
+    echo '  dylib       - Build the dylib only (for Feather/manual injection)'
+    echo '  sideload    - Build a patched IPA (requires cyan + decrypted IPA)'
+    echo '  trollstore  - Build a .tipa for TrollStore (requires cyan + decrypted IPA)'
+    echo '  rootless    - Build a rootless .deb package (with FFmpegKit)'
+    echo '  rootful     - Build a rootful .deb package (with FFmpegKit)'
     exit 1
 fi

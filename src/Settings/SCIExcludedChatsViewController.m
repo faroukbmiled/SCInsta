@@ -1,5 +1,7 @@
 #import "SCIExcludedChatsViewController.h"
 #import "../Features/StoriesAndMessages/SCIExcludedThreads.h"
+#import "../Networking/SCIInstagramAPI.h"
+#import "../Utils.h"
 
 @interface SCIExcludedChatsViewController ()
 @property (nonatomic, strong) UITableView *tableView;
@@ -52,7 +54,9 @@
                 style:UIBarButtonItemStylePlain target:self action:@selector(toggleSort)];
     self.editBtn = [[UIBarButtonItem alloc]
         initWithTitle:SCILocalized(@"Select") style:UIBarButtonItemStylePlain target:self action:@selector(toggleEdit)];
-    self.navigationItem.rightBarButtonItems = @[self.editBtn, self.sortBtn];
+    UIBarButtonItem *addBtn = [[UIBarButtonItem alloc]
+        initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addUserTapped)];
+    self.navigationItem.rightBarButtonItems = @[self.editBtn, self.sortBtn, addBtn];
 
     [self reload];
 }
@@ -109,6 +113,65 @@
     [sheet addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
     sheet.popoverPresentationController.barButtonItem = self.batchToolbar.items.lastObject;
     [self presentViewController:sheet animated:YES completion:nil];
+}
+
+- (void)addUserTapped {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:SCILocalized(@"Add chat")
+                                                                   message:SCILocalized(@"Enter username of the DM thread")
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    [alert addTextFieldWithConfigurationHandler:^(UITextField *tf) { tf.placeholder = @"username"; tf.autocapitalizationType = UITextAutocapitalizationTypeNone; }];
+    [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
+    [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Search") style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *a) {
+        NSString *q = [alert.textFields.firstObject.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+        if (!q.length) return;
+        [self lookupUsername:q];
+    }]];
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)lookupUsername:(NSString *)username {
+    // Step 1: resolve user info.
+    [SCIInstagramAPI sendRequestWithMethod:@"GET"
+        path:[NSString stringWithFormat:@"users/web_profile_info/?username=%@", username]
+        body:nil completion:^(NSDictionary *resp, NSError *err) {
+        NSDictionary *user = resp[@"data"][@"user"];
+        if (!user || err) {
+            [SCIUtils showErrorHUDWithDescription:[NSString stringWithFormat:SCILocalized(@"User '%@' not found"), username]];
+            return;
+        }
+        NSString *pk = [user[@"id"] description] ?: @"";
+        NSString *uname = user[@"username"] ?: username;
+        NSString *fullName = user[@"full_name"] ?: @"";
+        if (!pk.length) { [SCIUtils showErrorHUDWithDescription:SCILocalized(@"Could not resolve user ID")]; return; }
+
+        // Step 2: resolve DM thread with this user.
+        [SCIInstagramAPI sendRequestWithMethod:@"GET"
+            path:[NSString stringWithFormat:@"direct_v2/threads/get_by_participants/?recipient_users=[%@]", pk]
+            body:nil completion:^(NSDictionary *threadResp, NSError *tErr) {
+            NSString *threadId = threadResp[@"thread"][@"thread_id"];
+            NSString *threadName = threadResp[@"thread"][@"thread_title"] ?: uname;
+            if (!threadId.length || tErr) {
+                [SCIUtils showErrorHUDWithDescription:[NSString stringWithFormat:SCILocalized(@"No DM thread found with @%@"), uname]];
+                return;
+            }
+
+            NSString *msg = [NSString stringWithFormat:@"@%@%@", uname, fullName.length ? [NSString stringWithFormat:@" (%@)", fullName] : @""];
+            UIAlertController *confirm = [UIAlertController alertControllerWithTitle:SCILocalized(@"Add to list?")
+                                                                             message:msg
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+            [confirm addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
+            [confirm addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Add") style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *a) {
+                [SCIExcludedThreads addOrUpdateEntry:@{
+                    @"threadId": threadId,
+                    @"threadName": threadName,
+                    @"isGroup": @NO,
+                    @"users": @[@{@"pk": pk, @"username": uname, @"fullName": fullName}],
+                }];
+                [self reload];
+            }]];
+            [self presentViewController:confirm animated:YES completion:nil];
+        }];
+    }];
 }
 
 - (void)toggleSort {

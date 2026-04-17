@@ -1,5 +1,7 @@
 #import "SCIExcludedStoryUsersViewController.h"
 #import "../Features/StoriesAndMessages/SCIExcludedStoryUsers.h"
+#import "../Networking/SCIInstagramAPI.h"
+#import "../Utils.h"
 
 @interface SCIExcludedStoryUsersViewController ()
 @property (nonatomic, strong) UITableView *tableView;
@@ -52,7 +54,9 @@
                 style:UIBarButtonItemStylePlain target:self action:@selector(toggleSort)];
     self.editBtn = [[UIBarButtonItem alloc]
         initWithTitle:SCILocalized(@"Select") style:UIBarButtonItemStylePlain target:self action:@selector(toggleEdit)];
-    self.navigationItem.rightBarButtonItems = @[self.editBtn, self.sortBtn];
+    UIBarButtonItem *addBtn = [[UIBarButtonItem alloc]
+        initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addUserTapped)];
+    self.navigationItem.rightBarButtonItems = @[self.editBtn, self.sortBtn, addBtn];
 
     [self reload];
 }
@@ -80,6 +84,47 @@
     }
     [self toggleEdit];
     [self reload];
+}
+
+- (void)addUserTapped {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:SCILocalized(@"Add user")
+                                                                   message:SCILocalized(@"Enter username")
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    [alert addTextFieldWithConfigurationHandler:^(UITextField *tf) { tf.placeholder = @"username"; tf.autocapitalizationType = UITextAutocapitalizationTypeNone; }];
+    [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
+    [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Search") style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *a) {
+        NSString *q = [alert.textFields.firstObject.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+        if (!q.length) return;
+        [self lookupUsername:q];
+    }]];
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)lookupUsername:(NSString *)username {
+    [SCIInstagramAPI sendRequestWithMethod:@"GET"
+        path:[NSString stringWithFormat:@"users/web_profile_info/?username=%@", username]
+        body:nil completion:^(NSDictionary *resp, NSError *err) {
+        NSDictionary *user = resp[@"data"][@"user"];
+        if (!user || err) {
+            [SCIUtils showErrorHUDWithDescription:[NSString stringWithFormat:SCILocalized(@"User '%@' not found"), username]];
+            return;
+        }
+        NSString *pk = [user[@"id"] description] ?: @"";
+        NSString *uname = user[@"username"] ?: username;
+        NSString *fullName = user[@"full_name"] ?: @"";
+        if (!pk.length) { [SCIUtils showErrorHUDWithDescription:SCILocalized(@"Could not resolve user ID")]; return; }
+
+        NSString *msg = [NSString stringWithFormat:@"@%@%@", uname, fullName.length ? [NSString stringWithFormat:@" (%@)", fullName] : @""];
+        UIAlertController *confirm = [UIAlertController alertControllerWithTitle:SCILocalized(@"Add to list?")
+                                                                         message:msg
+                                                                  preferredStyle:UIAlertControllerStyleAlert];
+        [confirm addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
+        [confirm addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Add") style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *a) {
+            [SCIExcludedStoryUsers addOrUpdateEntry:@{@"pk": pk, @"username": uname, @"fullName": fullName}];
+            [self reload];
+        }]];
+        [self presentViewController:confirm animated:YES completion:nil];
+    }];
 }
 
 - (void)toggleSort {

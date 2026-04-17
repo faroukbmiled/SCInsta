@@ -229,6 +229,10 @@
 
 "Adds a RyukGram action button above the reel sidebar with view-cover/download/share/copy/expand/repost entries. Tap opens the menu by default; change the tap behavior below." = "Adds a RyukGram action button above the reel sidebar with view-cover/download/share/copy/expand/repost entries. Tap opens the menu by default; change the tap behavior below.";
 "Always show progress scrubber" = "Always show progress scrubber";
+"Auto-scroll reels" = "Auto-scroll reels";
+"IG default: native behavior. RyukGram: re-advances after swiping back." = "IG default: native behavior. RyukGram: re-advances after swiping back.";
+"IG default" = "IG default";
+"RyukGram" = "RyukGram";
 "Change what happens when you tap on a reel" = "Change what happens when you tap on a reel";
 "Confirm reel refresh" = "Confirm reel refresh";
 "Disable auto-unmuting reels" = "Disable auto-unmuting reels";
@@ -315,7 +319,7 @@
 "Hides the functionality to create/send instants" = "Hides the functionality to create/send instants";
 "Hides the notification for others when you view their story" = "Hides the notification for others when you view their story";
 "Inserts a button next to the seen/eye button on story overlays" = "Inserts a button next to the seen/eye button on story overlays";
-"Keep stories visually unseen" = "Keep stories visually unseen";
+"Keep stories visually seen locally" = "Keep stories visually seen locally";
 "Liking a story automatically advances to the next one after a short delay" = "Liking a story automatically advances to the next one after a short delay";
 "Manage list" = "Manage list";
 "Manage list (%lu)" = "Manage list (%lu)";
@@ -327,7 +331,7 @@
 "Master toggle. When off, the list is ignored" = "Master toggle. When off, the list is ignored";
 "Other" = "Other";
 "Playback" = "Playback";
-"Prevents stories from visually marking as seen in the tray (keeps colorful ring)" = "Prevents stories from visually marking as seen in the tray (keeps colorful ring)";
+"Marks stories as seen locally (grey ring) while still blocking the seen receipt on the server" = "Marks stories as seen locally (grey ring) while still blocking the seen receipt on the server";
 "Quick list button in stories" = "Quick list button in stories";
 "Search, sort, swipe to remove" = "Search, sort, swipe to remove";
 "Seen receipts" = "Seen receipts";
@@ -466,13 +470,18 @@
 "Confirm changing theme" = "Confirm changing theme";
 "Confirm follow" = "Confirm follow";
 "Confirm follow requests" = "Confirm follow requests";
-"Confirm like: Posts/Stories" = "Confirm like: Posts/Stories";
+"Confirm like: Posts" = "Confirm like: Posts";
 "Confirm like: Reels" = "Confirm like: Reels";
 "Confirm posting comment" = "Confirm posting comment";
 "Confirm repost" = "Confirm repost";
 "Confirm shh mode" = "Confirm shh mode";
 "Confirm sticker interaction" = "Confirm sticker interaction";
+"Confirm story emoji reaction" = "Confirm story emoji reaction";
+"Confirm story like" = "Confirm story like";
 "Confirm unfollow" = "Confirm unfollow";
+"Shows an alert before sending an emoji reaction on a story" = "Shows an alert before sending an emoji reaction on a story";
+"Shows an alert when you click the like button on posts to confirm the like" = "Shows an alert when you click the like button on posts to confirm the like";
+"Shows an alert when you click the like button on stories to confirm the like" = "Shows an alert when you click the like button on stories to confirm the like";
 "Confirm voice messages" = "Confirm voice messages";
 "Shows an alert to confirm before sending a voice message" = "Shows an alert to confirm before sending a voice message";
 "Shows an alert to confirm before toggling disappearing messages" = "Shows an alert to confirm before toggling disappearing messages";
@@ -739,15 +748,21 @@
 "Set location" = "Set location";
 "Settings…" = "Settings…";
 "Type emoji..." = "Type emoji...";
-"direct-inbox-tab" = "direct-inbox-tab";
-"mainfeed-tab" = "mainfeed-tab";
 
 //////////////////////////////////////////////////////////////////////////////
 //                         SETTINGS VIEWS & DIALOGS                         //
 // Excluded-lists managers, backup/restore flows, in-picker labels.         //
 //////////////////////////////////////////////////////////////////////////////
 
+"Add chat" = "Add chat";
 "Add custom domain" = "Add custom domain";
+"Add to list?" = "Add to list?";
+"Add user" = "Add user";
+"Could not resolve user ID" = "Could not resolve user ID";
+"Enter username" = "Enter username";
+"Enter username of the DM thread" = "Enter username of the DM thread";
+"No DM thread found with @%@" = "No DM thread found with @%@";
+"User '%@' not found" = "User '%@' not found";
 "Add preset…" = "Add preset…";
 "All RyukGram settings will be reset to defaults and the imported values applied. The app will need to restart for some changes to take effect." = "All RyukGram settings will be reset to defaults and the imported values applied. The app will need to restart for some changes to take effect.";
 "Apply" = "Apply";
@@ -902,4 +917,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 "Navigation Cell" = "Navigation Cell";
+"Localization" = "Localization";
+"Update localization file" = "Update localization file";
+"Import a .strings file for a language" = "Import a .strings file for a language";
+"Import a .strings file to update a translation. Pick a language, select the file, restart." = "Import a .strings file to update a translation. Pick a language, select the file, restart.";
+"Export English strings" = "Export English strings";
+"Share the base English .strings file for translating" = "Share the base English .strings file for translating";
 

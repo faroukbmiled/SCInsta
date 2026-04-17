@@ -14,7 +14,7 @@
 ///////////////////////////////////////////////////////////
 
 // * Tweak version *
-NSString *SCIVersionString = @"v1.2.0";
+NSString *SCIVersionString = @"v1.2.1";
 
 // Variables that work across features
 BOOL dmVisualMsgsViewedButtonEnabled = false;
@@ -86,9 +86,10 @@ BOOL dmVisualMsgsViewedButtonEnabled = false;
         @"enable_notes_customization": @(YES),
         @"custom_note_themes": @(YES),
         @"disable_auto_unmuting_reels": @(NO),
+        @"auto_scroll_reels_mode": @"off",
         @"settings_shortcut": @(YES),
         @"doom_scrolling_reel_count": @(1),
-        @"no_seen_visual": @(YES),
+        @"keep_seen_visual_local": @(NO),
         @"send_audio_as_file": @(YES),
         @"download_audio_message": @(NO),
         @"save_to_ryukgram_album": @(NO),
