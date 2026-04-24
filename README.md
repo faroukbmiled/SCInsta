@@ -104,7 +104,13 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 - Follow indicator — shows whether the user follows you **\***
 - Copy note on long press **\***
 - Fake profile stats — verified badge and follower/following/post counts **\***
-- Profile Analyzer (beta) — follower/following scans with mutuals, non-followbacks, new/lost trackers, and profile change history; searchable lists with batch follow/unfollow **\***
+
+### Profile Analyzer (beta) **\***
+- Follower and following scans with progress and cancel **\***
+- Mutuals and non-followbacks lists **\***
+- New and lost followers/following trackers across scans **\***
+- Profile change history — username, name, bio, pfp **\***
+- Searchable lists with batch follow/unfollow **\***
 
 ### Saving
 - Enhanced HD downloads up to 1080p **\***
