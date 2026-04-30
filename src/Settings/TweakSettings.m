@@ -162,7 +162,7 @@
                                         @{
                                             @"header": SCILocalized(@"Focus/distractions"),
                                             @"rows": @[
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"No suggested users") subtitle:SCILocalized(@"Hides all suggested users for you to follow, outside your feed") defaultsKey:@"no_suggested_users"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"No suggested users") subtitle:SCILocalized(@"Hides all suggested users for you to follow, outside your feed") defaultsKey:@"no_suggested_users" requiresRestart:YES],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"No suggested chats") subtitle:SCILocalized(@"Hides the suggested broadcast channels in direct messages") defaultsKey:@"no_suggested_chats"],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Hide explore posts grid") subtitle:SCILocalized(@"Hides the grid of suggested posts on the explore/search tab") defaultsKey:@"hide_explore_grid" requiresRestart:YES],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Hide trending searches") subtitle:SCILocalized(@"Hides the trending searches under the explore search bar") defaultsKey:@"hide_trending_searches" requiresRestart:YES],

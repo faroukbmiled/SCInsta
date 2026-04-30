@@ -155,10 +155,11 @@ static BOOL sciLegacyGestureEnabled() {
 %end
 
 %hook IGStoryVideoView
+
 - (void)didMoveToSuperview {
-    %orig;
-    if (!sciLegacyGestureEnabled()) return;
-    [self addLongPressGestureRecognizer];
+	%orig;
+	if (!sciLegacyGestureEnabled()) return;
+	[self addLongPressGestureRecognizer];
 }
 %new - (void)addLongPressGestureRecognizer {
     UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
@@ -167,34 +168,41 @@ static BOOL sciLegacyGestureEnabled() {
     [self addGestureRecognizer:longPress];
 }
 %new - (void)handleLongPress:(UILongPressGestureRecognizer *)sender {
-    if (sender.state != UIGestureRecognizerStateBegan) return;
-
-    NSURL *videoUrl;
-    IGStoryFullscreenSectionController *captionDelegate = self.captionDelegate;
-    if (captionDelegate) {
-        videoUrl = [SCIUtils getVideoUrlForMedia:captionDelegate.currentStoryItem];
-    } else {
-        id parentVC = [SCIUtils nearestViewControllerForView:self];
-        if (!parentVC || ![parentVC isKindOfClass:%c(IGDirectVisualMessageViewerController)]) return;
-
-        IGDirectVisualMessageViewerViewModeAwareDataSource *_dataSource = MSHookIvar<IGDirectVisualMessageViewerViewModeAwareDataSource *>(parentVC, "_dataSource");
-        if (!_dataSource) return;
-
-        IGDirectVisualMessage *_currentMessage = MSHookIvar<IGDirectVisualMessage *>(_dataSource, "_currentMessage");
-        if (!_currentMessage) return;
-
-        IGVideo *rawVideo = _currentMessage.rawVideo;
-        if (!rawVideo) return;
-
-        videoUrl = [SCIUtils getVideoUrl:rawVideo];
-    }
-
-    if (!videoUrl) { [SCIUtils showErrorHUDWithDescription:SCILocalized(@"Could not extract video url from story")]; return; }
-
-    initDownloaders();
-    [videoDownloadDelegate downloadFileWithURL:videoUrl
-                                 fileExtension:[[videoUrl lastPathComponent] pathExtension]
-                                      hudLabel:nil];
+	if (sender.state != UIGestureRecognizerStateBegan) return;
+	NSURL *videoUrl = nil;
+	id item = nil;
+	if ([self respondsToSelector:@selector(item)]) {
+		item = [self item];
+	}
+	if (item) {
+		videoUrl = [SCIUtils getVideoUrlForMedia:item];
+	}
+	if (!videoUrl) {
+		id provider = nil;
+		if ([self respondsToSelector:@selector(videoURLProvider)]) {
+			provider = [self videoURLProvider];
+		}
+		if (provider) {
+			videoUrl = [SCIUtils getVideoUrlForMedia:provider];
+		}
+	}
+	if (!videoUrl) {
+		id parentVC = [SCIUtils nearestViewControllerForView:self];
+		if (!parentVC || ![parentVC isKindOfClass:%c(IGDirectVisualMessageViewerController)]) return;
+		IGDirectVisualMessageViewerViewModeAwareDataSource *_dataSource = MSHookIvar<IGDirectVisualMessageViewerViewModeAwareDataSource *>(parentVC, "_dataSource");
+		if (!_dataSource) return;
+		IGDirectVisualMessage *_currentMessage = MSHookIvar<IGDirectVisualMessage *>(_dataSource, "_currentMessage");
+		if (!_currentMessage) return;
+		IGVideo *rawVideo = _currentMessage.rawVideo;
+		if (!rawVideo) return;
+		videoUrl = [SCIUtils getVideoUrl:rawVideo];
+	}
+	if (!videoUrl) {
+		[SCIUtils showErrorHUDWithDescription:SCILocalized(@"Could not extract video url from story")];
+		return;
+	}
+	initDownloaders();
+	[videoDownloadDelegate downloadFileWithURL:videoUrl fileExtension:[[videoUrl lastPathComponent] pathExtension] hudLabel:nil];
 }
 %end
 

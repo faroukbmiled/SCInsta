@@ -1,108 +1,109 @@
 #import "../../Utils.h"
 #import "../../InstagramHeaders.h"
 
-////////////////////////////////////////////////////////
+#define SCI_CONFIRM_FOLLOW(origCall) \
+	if ([SCIUtils getBoolPref:@"follow_confirm"]) { \
+		NSLog(@"[SCInsta] Confirm follow triggered"); \
+		[SCIUtils showConfirmation:^{ origCall; }]; \
+		return; \
+	} \
+	origCall;
 
-#define CONFIRMFOLLOW(orig)                            \
-    if ([SCIUtils getBoolPref:@"follow_confirm"]) {             \
-        NSLog(@"[SCInsta] Confirm follow triggered");  \
-                                                       \
-        [SCIUtils showConfirmation:^(void) { orig; }]; \
-    }                                                  \
-    else {                                             \
-        return orig;                                   \
-    }                                                  \
-
-////////////////////////////////////////////////////////
-
-// Follow button on profile page
 %hook IGFollowController
+
 - (void)_didPressFollowButton {
-    NSInteger status = self.user.followStatus;
-    if (status == 2) {
-        CONFIRMFOLLOW(%orig);
-    } else {
-        return %orig;
-    }
+	if (self.user.followStatus == 2) {
+		SCI_CONFIRM_FOLLOW(%orig);
+		return;
+	}
+	%orig;
 }
 
-// Unfollow from profile action sheet
 - (void)_performUnfollow {
-    if ([SCIUtils getBoolPref:@"unfollow_confirm"]) {
-        [SCIUtils showConfirmation:^(void) { %orig; } title:SCILocalized(@"Unfollow?")];
-    } else {
-        %orig;
-    }
+	if ([SCIUtils getBoolPref:@"unfollow_confirm"]) {
+		[SCIUtils showConfirmation:^{ %orig; } title:SCILocalized(@"Unfollow?")];
+		return;
+	}
+	%orig;
 }
+
 %end
 
-// Follow button on discover people page
 %hook IGDiscoverPeopleButtonGroupView
+
 - (void)_onFollowButtonTapped:(id)arg1 {
-    CONFIRMFOLLOW(%orig);
+	SCI_CONFIRM_FOLLOW(%orig);
 }
+
 - (void)_onFollowingButtonTapped:(id)arg1 {
-    CONFIRMFOLLOW(%orig);
+	SCI_CONFIRM_FOLLOW(%orig);
 }
+
 %end
 
-// Suggested for you (home feed & profile) follow button
 %hook IGHScrollAYMFCell
+
 - (void)_didTapAYMFActionButton {
-    CONFIRMFOLLOW(%orig);
+	SCI_CONFIRM_FOLLOW(%orig);
 }
+
 %end
+
 %hook IGHScrollAYMFActionButton
+
 - (void)_didTapTextActionButton {
-    CONFIRMFOLLOW(%orig);
+	SCI_CONFIRM_FOLLOW(%orig);
 }
+
 %end
 
-// Follow button on reels
 %hook IGUnifiedVideoFollowButton
+
 - (void)_hackilyHandleOurOwnButtonTaps:(id)arg1 event:(id)arg2 {
-    CONFIRMFOLLOW(%orig);
+	SCI_CONFIRM_FOLLOW(%orig);
 }
+
 %end
 
-// Follow text on profile (when collapsed into top bar) 
 %hook IGProfileViewController
+
 - (void)navigationItemsControllerDidTapHeaderFollowButton:(id)arg1 {
-    CONFIRMFOLLOW(%orig);
+	SCI_CONFIRM_FOLLOW(%orig);
 }
+
 %end
 
-// Follow button on suggested friends (in story section)
 %hook IGStorySectionController
+
 - (void)followButtonTapped:(id)arg1 cell:(id)arg2 {
-    CONFIRMFOLLOW(%orig);
+	SCI_CONFIRM_FOLLOW(%orig);
 }
+
 %end
 
-// Follow all button in group chats (3+ members) people view
 static void (*orig_listSectionController)(id, SEL, id, id);
 
 static void hooked_listSectionController(id self, SEL _cmd, id arg1, id arg2) {
-    if ([SCIUtils getBoolPref:@"follow_confirm"]) {
+	if ([SCIUtils getBoolPref:@"follow_confirm"]) {
+		[SCIUtils showConfirmation:^{
+			if (orig_listSectionController) {
+				orig_listSectionController(self, _cmd, arg1, arg2);
+			}
+		}];
+		return;
+	}
 
-        [SCIUtils showConfirmation:^{
-            orig_listSectionController(self, _cmd, arg1, arg2);
-        }];
-
-        return;
-    }
-
-    orig_listSectionController(self, _cmd, arg1, arg2);
+	if (orig_listSectionController) {
+		orig_listSectionController(self, _cmd, arg1, arg2);
+	}
 }
 
 %ctor {
-    Class cls = objc_getClass("IGDirectDetailMembersKit.IGDirectThreadDetailsMembersListViewController");
-    if (!cls) return;
+	Class cls = objc_getClass("IGDirectDetailMembersKit.IGDirectThreadDetailsMembersListViewController");
+	if (!cls) return;
 
-    MSHookMessageEx(
-        cls,
-        @selector(listSectionController:didTapHeaderButtonWithViewModel:),
-        (IMP)hooked_listSectionController,
-        (IMP *)&orig_listSectionController
-    );
+	SEL sel = @selector(listSectionController:didTapHeaderButtonWithViewModel:);
+	if (![cls instancesRespondToSelector:sel]) return;
+
+	MSHookMessageEx(cls, sel, (IMP)hooked_listSectionController, (IMP *)&orig_listSectionController);
 }

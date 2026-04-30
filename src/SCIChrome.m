@@ -2,19 +2,27 @@
 #import "Utils.h"
 #import "SCIPrefObserver.h"
 
-// MARK: - Canvas discovery
-
-static UIView *sciFindCanvasDeep(UIView *root, int depth) {
-    if (depth > 4) return nil;
-    for (UIView *sub in root.subviews) {
-        if ([NSStringFromClass([sub class]) containsString:@"CanvasView"]) return sub;
-        UIView *found = sciFindCanvasDeep(sub, depth + 1);
-        if (found) return found;
-    }
-    return nil;
+static void sciPinEdges(UIView *view, UIView *host) {
+	[NSLayoutConstraint activateConstraints:@[
+		[view.leadingAnchor constraintEqualToAnchor:host.leadingAnchor],
+		[view.trailingAnchor constraintEqualToAnchor:host.trailingAnchor],
+		[view.topAnchor constraintEqualToAnchor:host.topAnchor],
+		[view.bottomAnchor constraintEqualToAnchor:host.bottomAnchor]
+	]];
 }
 
-// MARK: - SCIChromeCanvas
+static UIView *sciFindCanvasDeep(UIView *root, NSInteger depth) {
+	if (!root || depth > 4) return nil;
+
+	for (UIView *subview in root.subviews) {
+		if ([NSStringFromClass(subview.class) containsString:@"CanvasView"]) return subview;
+
+		UIView *found = sciFindCanvasDeep(subview, depth + 1);
+		if (found) return found;
+	}
+
+	return nil;
+}
 
 @interface SCIChromeCanvas ()
 @property (nonatomic, strong) UITextField *secureField;
@@ -24,85 +32,96 @@ static UIView *sciFindCanvasDeep(UIView *root, int depth) {
 @implementation SCIChromeCanvas
 
 + (NSHashTable<SCIChromeCanvas *> *)instances {
-    static NSHashTable *t;
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{ t = [NSHashTable weakObjectsHashTable]; });
-    return t;
+	static NSHashTable *table;
+	static dispatch_once_t once;
+	dispatch_once(&once, ^{
+		table = [NSHashTable weakObjectsHashTable];
+	});
+	return table;
 }
 
 + (void)ensureObserverInstalled {
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{
-        [SCIPrefObserver observeKey:@"hide_ui_on_capture" handler:^{
-            for (SCIChromeCanvas *v in [SCIChromeCanvas instances]) [v applyPref];
-        }];
-    });
+	static dispatch_once_t once;
+	dispatch_once(&once, ^{
+		[SCIPrefObserver observeKey:@"hide_ui_on_capture" handler:^{
+			for (SCIChromeCanvas *canvas in [SCIChromeCanvas instances]) {
+				[canvas applyPref];
+			}
+		}];
+	});
 }
 
 - (instancetype)initWithFrame:(CGRect)frame {
-    self = [super initWithFrame:frame];
-    if (self) {
-        [SCIChromeCanvas ensureObserverInstalled];
-        self.translatesAutoresizingMaskIntoConstraints = NO;
-        _secureField = [UITextField new];
-        _secureField.userInteractionEnabled = NO;
-        _secureField.autocorrectionType = UITextAutocorrectionTypeNo;
-        _secureField.spellCheckingType = UITextSpellCheckingTypeNo;
-        _secureField.smartDashesType = UITextSmartDashesTypeNo;
-        _secureField.smartQuotesType = UITextSmartQuotesTypeNo;
-        _secureField.smartInsertDeleteType = UITextSmartInsertDeleteTypeNo;
-        _secureField.autocapitalizationType = UITextAutocapitalizationTypeNone;
-        [self applyPref];
-        [[SCIChromeCanvas instances] addObject:self];
-        [self attachCanvasIfPossible];
-    }
-    return self;
+	self = [super initWithFrame:frame];
+
+	if (self) {
+		[SCIChromeCanvas ensureObserverInstalled];
+
+		self.translatesAutoresizingMaskIntoConstraints = NO;
+
+		_secureField = [UITextField new];
+		_secureField.userInteractionEnabled = NO;
+		_secureField.autocorrectionType = UITextAutocorrectionTypeNo;
+		_secureField.spellCheckingType = UITextSpellCheckingTypeNo;
+		_secureField.smartDashesType = UITextSmartDashesTypeNo;
+		_secureField.smartQuotesType = UITextSmartQuotesTypeNo;
+		_secureField.smartInsertDeleteType = UITextSmartInsertDeleteTypeNo;
+		_secureField.autocapitalizationType = UITextAutocapitalizationTypeNone;
+
+		[self applyPref];
+		[[SCIChromeCanvas instances] addObject:self];
+		[self attachCanvasIfPossible];
+	}
+
+	return self;
 }
 
-- (UIView *)contentContainer { return self.canvas ?: self; }
+- (UIView *)contentContainer {
+	return self.canvas ?: self;
+}
 
 - (void)applyPref {
-    BOOL on = [SCIUtils getBoolPref:@"hide_ui_on_capture"];
-    if (self.secureField.secureTextEntry != on) self.secureField.secureTextEntry = on;
+	BOOL enabled = [SCIUtils getBoolPref:@"hide_ui_on_capture"];
+	if (_secureField.secureTextEntry != enabled) _secureField.secureTextEntry = enabled;
 }
 
-- (void)didMoveToWindow { [super didMoveToWindow]; [self attachCanvasIfPossible]; }
-- (void)layoutSubviews  { [super layoutSubviews];  [self attachCanvasIfPossible]; }
+- (void)didMoveToWindow {
+	[super didMoveToWindow];
+	[self attachCanvasIfPossible];
+}
+
+- (void)layoutSubviews {
+	[super layoutSubviews];
+	[self attachCanvasIfPossible];
+}
 
 - (void)attachCanvasIfPossible {
-    if (self.canvas && self.canvas.superview == self) return;
+	if (_canvas.superview == self) return;
 
-    [self.secureField layoutIfNeeded];
-    UIView *c = sciFindCanvasDeep(self.secureField, 0);
-    if (!c) return;
+	[_secureField layoutIfNeeded];
 
-    // Migrate anything that landed on self (contentContainer fallback) into
-    // the canvas so redaction covers it.
-    NSMutableArray<UIView *> *stashed = [NSMutableArray array];
-    for (UIView *sub in self.subviews) {
-        if (sub != c) [stashed addObject:sub];
-    }
+	UIView *canvas = sciFindCanvasDeep(_secureField, 0);
+	if (!canvas) return;
 
-    [c removeFromSuperview];
-    [self insertSubview:c atIndex:0];
-    c.translatesAutoresizingMaskIntoConstraints = NO;
-    [NSLayoutConstraint activateConstraints:@[
-        [c.leadingAnchor  constraintEqualToAnchor:self.leadingAnchor],
-        [c.trailingAnchor constraintEqualToAnchor:self.trailingAnchor],
-        [c.topAnchor      constraintEqualToAnchor:self.topAnchor],
-        [c.bottomAnchor   constraintEqualToAnchor:self.bottomAnchor],
-    ]];
-    self.canvas = c;
+	NSMutableArray<UIView *> *stashedViews = [NSMutableArray array];
+	for (UIView *subview in self.subviews) {
+		if (subview != canvas) [stashedViews addObject:subview];
+	}
 
-    for (UIView *v in stashed) {
-        [v removeFromSuperview];
-        [c addSubview:v];
-    }
+	[canvas removeFromSuperview];
+	canvas.translatesAutoresizingMaskIntoConstraints = NO;
+	[self insertSubview:canvas atIndex:0];
+	sciPinEdges(canvas, self);
+
+	_canvas = canvas;
+
+	for (UIView *view in stashedViews) {
+		[view removeFromSuperview];
+		[canvas addSubview:view];
+	}
 }
 
 @end
-
-// MARK: - SCIChromeButton
 
 @interface SCIChromeButton ()
 @property (nonatomic, strong) SCIChromeCanvas *chromeCanvas;
@@ -112,101 +131,100 @@ static UIView *sciFindCanvasDeep(UIView *root, int depth) {
 
 @implementation SCIChromeButton
 
-- (instancetype)initWithSymbol:(NSString *)symbol
-                     pointSize:(CGFloat)pointSize
-                      diameter:(CGFloat)diameter {
-    self = [super initWithFrame:CGRectMake(0, 0, diameter, diameter)];
-    if (self) {
-        _diameter = diameter;
-        _symbolName = [symbol copy];
-        _symbolPointSize = pointSize;
-        _iconTint = [UIColor whiteColor];
-        _bubbleColor = [UIColor colorWithWhite:0.0 alpha:0.4];
-        [self buildChrome];
-    }
-    return self;
+- (instancetype)initWithSymbol:(NSString *)symbol pointSize:(CGFloat)pointSize diameter:(CGFloat)diameter {
+	self = [super initWithFrame:CGRectMake(0.0, 0.0, diameter, diameter)];
+
+	if (self) {
+		_diameter = diameter;
+		_symbolName = symbol.copy;
+		_symbolPointSize = pointSize;
+		_iconTint = UIColor.whiteColor;
+		_bubbleColor = [UIColor colorWithWhite:0.0 alpha:0.4];
+
+		[self buildChrome];
+	}
+
+	return self;
 }
 
 - (void)buildChrome {
-    self.adjustsImageWhenHighlighted = NO;
-    self.translatesAutoresizingMaskIntoConstraints = NO;
+	self.adjustsImageWhenHighlighted = NO;
+	self.translatesAutoresizingMaskIntoConstraints = NO;
 
-    _chromeCanvas = [SCIChromeCanvas new];
-    _chromeCanvas.userInteractionEnabled = NO;
-    [self addSubview:_chromeCanvas];
-    [NSLayoutConstraint activateConstraints:@[
-        [_chromeCanvas.leadingAnchor  constraintEqualToAnchor:self.leadingAnchor],
-        [_chromeCanvas.trailingAnchor constraintEqualToAnchor:self.trailingAnchor],
-        [_chromeCanvas.topAnchor      constraintEqualToAnchor:self.topAnchor],
-        [_chromeCanvas.bottomAnchor   constraintEqualToAnchor:self.bottomAnchor],
-    ]];
+	_chromeCanvas = [SCIChromeCanvas new];
+	_chromeCanvas.userInteractionEnabled = NO;
+	[self addSubview:_chromeCanvas];
+	sciPinEdges(_chromeCanvas, self);
 
-    _bubbleView = [UIView new];
-    _bubbleView.userInteractionEnabled = NO;
-    _bubbleView.translatesAutoresizingMaskIntoConstraints = NO;
-    _bubbleView.backgroundColor = _bubbleColor;
-    _bubbleView.layer.cornerRadius = _diameter / 2;
-    _bubbleView.clipsToBounds = YES;
+	_bubbleView = [UIView new];
+	_bubbleView.userInteractionEnabled = NO;
+	_bubbleView.translatesAutoresizingMaskIntoConstraints = NO;
+	_bubbleView.backgroundColor = _bubbleColor;
+	_bubbleView.layer.cornerRadius = _diameter / 2.0;
+	_bubbleView.clipsToBounds = YES;
 
-    _iconView = [UIImageView new];
-    _iconView.userInteractionEnabled = NO;
-    _iconView.contentMode = UIViewContentModeCenter;
-    _iconView.translatesAutoresizingMaskIntoConstraints = NO;
-    _iconView.tintColor = _iconTint;
-    [self reloadIcon];
+	_iconView = [UIImageView new];
+	_iconView.userInteractionEnabled = NO;
+	_iconView.contentMode = UIViewContentModeCenter;
+	_iconView.translatesAutoresizingMaskIntoConstraints = NO;
+	_iconView.tintColor = _iconTint;
 
-    UIView *host = _chromeCanvas.contentContainer;
-    [host addSubview:_bubbleView];
-    [host addSubview:_iconView];
-    [NSLayoutConstraint activateConstraints:@[
-        [_bubbleView.leadingAnchor  constraintEqualToAnchor:host.leadingAnchor],
-        [_bubbleView.trailingAnchor constraintEqualToAnchor:host.trailingAnchor],
-        [_bubbleView.topAnchor      constraintEqualToAnchor:host.topAnchor],
-        [_bubbleView.bottomAnchor   constraintEqualToAnchor:host.bottomAnchor],
-        [_iconView.centerXAnchor constraintEqualToAnchor:host.centerXAnchor],
-        [_iconView.centerYAnchor constraintEqualToAnchor:host.centerYAnchor],
-    ]];
+	[self reloadIcon];
+
+	UIView *host = _chromeCanvas.contentContainer;
+	[host addSubview:_bubbleView];
+	[host addSubview:_iconView];
+
+	sciPinEdges(_bubbleView, host);
+
+	[NSLayoutConstraint activateConstraints:@[
+		[_iconView.centerXAnchor constraintEqualToAnchor:host.centerXAnchor],
+		[_iconView.centerYAnchor constraintEqualToAnchor:host.centerYAnchor]
+	]];
 }
 
-- (CGSize)intrinsicContentSize { return CGSizeMake(_diameter, _diameter); }
+- (CGSize)intrinsicContentSize {
+	return CGSizeMake(_diameter, _diameter);
+}
 
 - (void)setSymbolName:(NSString *)symbolName {
-    _symbolName = [symbolName copy];
-    [self reloadIcon];
+	_symbolName = symbolName.copy;
+	[self reloadIcon];
 }
 
 - (void)setSymbolPointSize:(CGFloat)symbolPointSize {
-    _symbolPointSize = symbolPointSize;
-    [self reloadIcon];
+	_symbolPointSize = symbolPointSize;
+	[self reloadIcon];
 }
 
 - (void)setIconTint:(UIColor *)iconTint {
-    _iconTint = [iconTint copy];
-    _iconView.tintColor = iconTint;
+	_iconTint = iconTint;
+	_iconView.tintColor = iconTint;
 }
 
 - (void)setBubbleColor:(UIColor *)bubbleColor {
-    _bubbleColor = [bubbleColor copy];
-    _bubbleView.backgroundColor = bubbleColor;
+	_bubbleColor = bubbleColor;
+	_bubbleView.backgroundColor = bubbleColor;
 }
 
 - (void)reloadIcon {
-    if (!_symbolName.length) { _iconView.image = nil; return; }
-    UIImageSymbolConfiguration *cfg = [UIImageSymbolConfiguration configurationWithPointSize:_symbolPointSize
-                                                                                       weight:UIImageSymbolWeightSemibold];
-    _iconView.image = [UIImage systemImageNamed:_symbolName withConfiguration:cfg];
+	if (!_symbolName.length) {
+		_iconView.image = nil;
+		return;
+	}
+
+	UIImageSymbolConfiguration *config = [UIImageSymbolConfiguration configurationWithPointSize:_symbolPointSize weight:UIImageSymbolWeightSemibold];
+	_iconView.image = [UIImage systemImageNamed:_symbolName withConfiguration:config];
 }
 
 - (void)layoutSubviews {
-    [super layoutSubviews];
-    // Keep the bubble circular when the caller resizes via constraints.
-    CGFloat r = MIN(self.bounds.size.width, self.bounds.size.height) / 2;
-    _bubbleView.layer.cornerRadius = r;
+	[super layoutSubviews];
+
+	CGFloat radius = MIN(self.bounds.size.width, self.bounds.size.height) / 2.0;
+	if (_bubbleView.layer.cornerRadius != radius) _bubbleView.layer.cornerRadius = radius;
 }
 
 @end
-
-// MARK: - SCIChromeLabel
 
 @interface SCIChromeLabel ()
 @property (nonatomic, strong) SCIChromeCanvas *chromeCanvas;
@@ -216,64 +234,52 @@ static UIView *sciFindCanvasDeep(UIView *root, int depth) {
 @implementation SCIChromeLabel
 
 - (instancetype)initWithText:(NSString *)text {
-    self = [super initWithFrame:CGRectZero];
-    if (self) {
-        self.translatesAutoresizingMaskIntoConstraints = NO;
+	self = [super initWithFrame:CGRectZero];
 
-        _chromeCanvas = [SCIChromeCanvas new];
-        _chromeCanvas.userInteractionEnabled = NO;
-        [self addSubview:_chromeCanvas];
-        [NSLayoutConstraint activateConstraints:@[
-            [_chromeCanvas.leadingAnchor  constraintEqualToAnchor:self.leadingAnchor],
-            [_chromeCanvas.trailingAnchor constraintEqualToAnchor:self.trailingAnchor],
-            [_chromeCanvas.topAnchor      constraintEqualToAnchor:self.topAnchor],
-            [_chromeCanvas.bottomAnchor   constraintEqualToAnchor:self.bottomAnchor],
-        ]];
+	if (self) {
+		self.translatesAutoresizingMaskIntoConstraints = NO;
 
-        _label = [UILabel new];
-        _label.translatesAutoresizingMaskIntoConstraints = NO;
-        _label.text = text;
+		_chromeCanvas = [SCIChromeCanvas new];
+		_chromeCanvas.userInteractionEnabled = NO;
+		[self addSubview:_chromeCanvas];
+		sciPinEdges(_chromeCanvas, self);
 
-        UIView *host = _chromeCanvas.contentContainer;
-        [host addSubview:_label];
-        [NSLayoutConstraint activateConstraints:@[
-            [_label.leadingAnchor  constraintEqualToAnchor:host.leadingAnchor],
-            [_label.trailingAnchor constraintEqualToAnchor:host.trailingAnchor],
-            [_label.topAnchor      constraintEqualToAnchor:host.topAnchor],
-            [_label.bottomAnchor   constraintEqualToAnchor:host.bottomAnchor],
-        ]];
-    }
-    return self;
+		_label = [UILabel new];
+		_label.translatesAutoresizingMaskIntoConstraints = NO;
+		_label.text = text;
+
+		UIView *host = _chromeCanvas.contentContainer;
+		[host addSubview:_label];
+		sciPinEdges(_label, host);
+	}
+
+	return self;
 }
 
-- (NSString *)text            { return _label.text; }
-- (void)setText:(NSString *)t { _label.text = t; }
-- (UIFont *)font              { return _label.font; }
-- (void)setFont:(UIFont *)f   { _label.font = f; }
-- (UIColor *)textColor        { return _label.textColor; }
-- (void)setTextColor:(UIColor *)c { _label.textColor = c; }
-- (NSTextAlignment)textAlignment  { return _label.textAlignment; }
-- (void)setTextAlignment:(NSTextAlignment)a { _label.textAlignment = a; }
+- (NSString *)text { return _label.text; }
+- (void)setText:(NSString *)text { _label.text = text; }
+- (UIFont *)font { return _label.font; }
+- (void)setFont:(UIFont *)font { _label.font = font; }
+- (UIColor *)textColor { return _label.textColor; }
+- (void)setTextColor:(UIColor *)textColor { _label.textColor = textColor; }
+- (NSTextAlignment)textAlignment { return _label.textAlignment; }
+- (void)setTextAlignment:(NSTextAlignment)textAlignment { _label.textAlignment = textAlignment; }
 
 @end
 
-// MARK: - Bar button helpers
+UIBarButtonItem *SCIChromeBarButtonItem(NSString *symbol, CGFloat pointSize, id target, SEL action, SCIChromeButton **outButton) {
+	SCIChromeButton *button = [[SCIChromeButton alloc] initWithSymbol:symbol pointSize:pointSize diameter:28.0];
+	button.bubbleColor = UIColor.clearColor;
 
-UIBarButtonItem *SCIChromeBarButtonItem(NSString *symbol,
-                                         CGFloat pointSize,
-                                         id target,
-                                         SEL action,
-                                         SCIChromeButton **outButton) {
-    SCIChromeButton *btn = [[SCIChromeButton alloc] initWithSymbol:symbol
-                                                         pointSize:pointSize
-                                                          diameter:28];
-    btn.bubbleColor = [UIColor clearColor];
-    if (target && action) [btn addTarget:target action:action forControlEvents:UIControlEventTouchUpInside];
-    if (outButton) *outButton = btn;
-    return [[UIBarButtonItem alloc] initWithCustomView:btn];
+	if (target && action) {
+		[button addTarget:target action:action forControlEvents:UIControlEventTouchUpInside];
+	}
+
+	if (outButton) *outButton = button;
+	return [[UIBarButtonItem alloc] initWithCustomView:button];
 }
 
 SCIChromeButton *SCIChromeButtonForBarItem(UIBarButtonItem *item) {
-    UIView *v = item.customView;
-    return [v isKindOfClass:[SCIChromeButton class]] ? (SCIChromeButton *)v : nil;
+	UIView *view = item.customView;
+	return [view isKindOfClass:SCIChromeButton.class] ? (SCIChromeButton *)view : nil;
 }
