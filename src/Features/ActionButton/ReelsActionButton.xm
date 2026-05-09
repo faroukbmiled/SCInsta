@@ -9,7 +9,34 @@
 #import "../../ActionButton/SCIMediaActions.h"
 
 static const NSInteger kReelActionBtnTag = 1337;
+static const NSInteger kReelActionHitTag = 1338;
+
 static char kReelActionDefaultKey;
+static char kReelContextInteractionKey;
+static char kReelVisibleButtonKey;
+
+@interface SCIReelHitButton : UIButton
+@end
+
+@implementation SCIReelHitButton
+
+- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event {
+	return CGRectContainsPoint(CGRectInset(self.bounds, -24.0, -24.0), point);
+}
+
+- (void)setHighlighted:(BOOL)highlighted {
+	[super setHighlighted:NO];
+	self.backgroundColor = UIColor.clearColor;
+	self.layer.backgroundColor = UIColor.clearColor.CGColor;
+}
+
+- (void)setSelected:(BOOL)selected {
+	[super setSelected:NO];
+	self.backgroundColor = UIColor.clearColor;
+	self.layer.backgroundColor = UIColor.clearColor.CGColor;
+}
+
+@end
 
 static inline BOOL SCIReelsActionEnabled(void) {
 	return [SCIUtils getBoolPref:@"reels_action_button"];
@@ -19,41 +46,37 @@ static inline NSString *SCIReelDefaultAction(void) {
 	return [SCIUtils getStringPref:@"reels_action_default"];
 }
 
+static inline NSString *SCIReelActionOrMenu(void) {
+	NSString *action = SCIReelDefaultAction();
+	return action.length ? action : @"menu";
+}
+
 static UIView *sciFindSuperviewOfClass(UIView *view, NSString *className) {
 	Class cls = NSClassFromString(className);
 	if (!view || !cls) return nil;
 
-	UIView *current = view.superview;
-
-	for (int depth = 0; current && depth < 20; depth++) {
+	for (UIView *current = view.superview; current; current = current.superview) {
 		if ([current isKindOfClass:cls]) return current;
-		current = current.superview;
 	}
 
 	return nil;
 }
 
 static id sciFindMediaIvar(UIView *view) {
-	if (!view) return nil;
-
 	Class mediaClass = NSClassFromString(@"IGMedia");
-	if (!mediaClass) return nil;
+	if (!view || !mediaClass) return nil;
 
 	unsigned int count = 0;
 	Ivar *ivars = class_copyIvarList(view.class, &count);
 	id found = nil;
 
-	for (unsigned int i = 0; i < count; i++) {
+	for (unsigned int i = 0; i < count && !found; i++) {
 		const char *type = ivar_getTypeEncoding(ivars[i]);
 		if (!type || type[0] != '@') continue;
 
 		@try {
 			id value = object_getIvar(view, ivars[i]);
-
-			if (value && [value isKindOfClass:mediaClass]) {
-				found = value;
-				break;
-			}
+			if ([value isKindOfClass:mediaClass]) found = value;
 		} @catch (__unused id e) {}
 	}
 
@@ -61,62 +84,172 @@ static id sciFindMediaIvar(UIView *view) {
 	return found;
 }
 
-static id sciCurrentCarouselChildMedia(UIView *carouselCell, id parentMedia) {
-	if (!carouselCell || !parentMedia) return parentMedia;
+static NSInteger sciCarouselIndex(UIView *cell) {
+	NSInteger index = 0;
 
-	NSInteger currentIndex = 0;
+	Ivar ivar = class_getInstanceVariable(cell.class, "_currentIndex");
+	if (ivar) index = *(NSInteger *)((char *)(__bridge void *)cell + ivar_getOffset(ivar));
 
-	Ivar idxIvar = class_getInstanceVariable(carouselCell.class, "_currentIndex");
-	if (idxIvar) {
-		currentIndex = *(NSInteger *)((char *)(__bridge void *)carouselCell + ivar_getOffset(idxIvar));
+	ivar = class_getInstanceVariable(cell.class, "_currentFractionalIndex");
+	if (ivar) {
+		NSInteger rounded = (NSInteger)round(*(double *)((char *)(__bridge void *)cell + ivar_getOffset(ivar)));
+		if (rounded > index) index = rounded;
 	}
 
-	Ivar fracIvar = class_getInstanceVariable(carouselCell.class, "_currentFractionalIndex");
-	if (fracIvar) {
-		NSInteger roundedIndex = (NSInteger)round(*(double *)((char *)(__bridge void *)carouselCell + ivar_getOffset(fracIvar)));
-		if (roundedIndex > currentIndex) currentIndex = roundedIndex;
-	}
+	ivar = class_getInstanceVariable(cell.class, "_collectionView");
+	if (ivar) {
+		UICollectionView *collectionView = object_getIvar(cell, ivar);
+		CGFloat width = collectionView.bounds.size.width;
 
-	Ivar cvIvar = class_getInstanceVariable(carouselCell.class, "_collectionView");
-	if (cvIvar) {
-		UICollectionView *collectionView = object_getIvar(carouselCell, cvIvar);
-		CGFloat pageWidth = collectionView.bounds.size.width;
-
-		if (collectionView && pageWidth > 0.0) {
-			NSInteger collectionIndex = (NSInteger)round(collectionView.contentOffset.x / pageWidth);
-			if (collectionIndex > currentIndex) currentIndex = collectionIndex;
+		if (collectionView && width > 0.0) {
+			NSInteger cvIndex = (NSInteger)round(collectionView.contentOffset.x / width);
+			if (cvIndex > index) index = cvIndex;
 		}
 	}
 
-	NSArray *children = [SCIMediaActions carouselChildrenForMedia:parentMedia];
-
-	if (currentIndex >= 0 && (NSUInteger)currentIndex < children.count) {
-		return children[currentIndex];
-	}
-
-	return parentMedia;
+	return index;
 }
 
 static id sciReelsMediaProvider(UIView *sourceView) {
-	UIView *videoCell = sciFindSuperviewOfClass(sourceView, @"IGSundialViewerVideoCell");
-	if (videoCell) {
-		id media = sciFindMediaIvar(videoCell);
+	UIView *cell = sciFindSuperviewOfClass(sourceView, @"IGSundialViewerVideoCell") ?: sciFindSuperviewOfClass(sourceView, @"IGSundialViewerPhotoCell");
+
+	if (cell) {
+		id media = sciFindMediaIvar(cell);
 		if (media) return media;
 	}
 
-	UIView *photoCell = sciFindSuperviewOfClass(sourceView, @"IGSundialViewerPhotoCell");
-	if (photoCell) {
-		id media = sciFindMediaIvar(photoCell);
-		if (media) return media;
+	UIView *carousel = sciFindSuperviewOfClass(sourceView, @"IGSundialViewerCarouselCell");
+	id parent = sciFindMediaIvar(carousel);
+	if (!parent) return nil;
+
+	NSArray *children = [SCIMediaActions carouselChildrenForMedia:parent];
+	NSInteger index = sciCarouselIndex(carousel);
+
+	return (index >= 0 && (NSUInteger)index < children.count) ? children[index] : parent;
+}
+
+static void sciClearHit(UIButton *hit) {
+	if (!hit) return;
+
+	hit.highlighted = NO;
+	hit.selected = NO;
+	hit.opaque = NO;
+	hit.alpha = 1.0;
+	hit.backgroundColor = UIColor.clearColor;
+	hit.layer.backgroundColor = UIColor.clearColor.CGColor;
+	hit.adjustsImageWhenHighlighted = NO;
+}
+
+static void sciBounceVisibleButton(UIButton *hit) {
+	UIView *button = objc_getAssociatedObject(hit, &kReelVisibleButtonKey);
+	if (button) [SCIActionButton bounceButton:button];
+}
+
+@interface SCIReelMenuTarget : NSObject <UIContextMenuInteractionDelegate>
++ (instancetype)shared;
+- (void)touchDown:(UIButton *)sender;
+- (void)tapped:(UIButton *)sender;
+@end
+
+@implementation SCIReelMenuTarget
+
++ (instancetype)shared {
+	static SCIReelMenuTarget *target;
+	static dispatch_once_t once;
+	dispatch_once(&once, ^{
+		target = [SCIReelMenuTarget new];
+	});
+	return target;
+}
+
+- (void)touchDown:(UIButton *)sender {
+	sciBounceVisibleButton(sender);
+}
+
+- (void)tapped:(UIButton *)sender {
+	UIContextMenuInteraction *interaction = objc_getAssociatedObject(sender, &kReelContextInteractionKey);
+	if (!interaction) return;
+
+	CGPoint point = CGPointMake(CGRectGetMidX(sender.bounds), CGRectGetMidY(sender.bounds));
+	SEL sel = NSSelectorFromString(@"_presentMenuAtLocation:");
+
+	if ([interaction respondsToSelector:sel]) {
+		((void (*)(id, SEL, CGPoint))objc_msgSend)(interaction, sel, point);
+		return;
 	}
 
-	UIView *carouselCell = sciFindSuperviewOfClass(sourceView, @"IGSundialViewerCarouselCell");
-	if (carouselCell) {
-		id parentMedia = sciFindMediaIvar(carouselCell);
-		if (parentMedia) return sciCurrentCarouselChildMedia(carouselCell, parentMedia);
-	}
+	sel = NSSelectorFromString(@"presentMenuAtLocation:");
 
-	return nil;
+	if ([interaction respondsToSelector:sel]) {
+		((void (*)(id, SEL, CGPoint))objc_msgSend)(interaction, sel, point);
+	}
+}
+
+- (UIContextMenuConfiguration *)contextMenuInteraction:(UIContextMenuInteraction *)interaction
+						configurationForMenuAtLocation:(CGPoint)location {
+	UIView *view = interaction.view;
+	if (!view) return nil;
+
+	return [UIContextMenuConfiguration configurationWithIdentifier:nil
+												   previewProvider:nil
+													actionProvider:^UIMenu * _Nullable(NSArray<UIMenuElement *> * _Nonnull suggested) {
+		return [SCIActionButton deferredMenuForContext:SCIActionContextReels
+											  fromView:view
+										 mediaProvider:^id (UIView *sourceView) {
+			return sciReelsMediaProvider(sourceView);
+		}];
+	}];
+}
+
+@end
+
+static void sciConfigureMenuHit(UIButton *hit, SCIChromeButton *button) {
+	if (!hit || !button) return;
+
+	objc_setAssociatedObject(hit, &kReelVisibleButtonKey, button, OBJC_ASSOCIATION_ASSIGN);
+
+	[hit addTarget:SCIReelMenuTarget.shared action:@selector(touchDown:) forControlEvents:UIControlEventTouchDown];
+	[hit addTarget:SCIReelMenuTarget.shared action:@selector(tapped:) forControlEvents:UIControlEventTouchUpInside];
+
+	UIContextMenuInteraction *interaction = [[UIContextMenuInteraction alloc] initWithDelegate:SCIReelMenuTarget.shared];
+	[hit addInteraction:interaction];
+
+	objc_setAssociatedObject(hit, &kReelContextInteractionKey, interaction, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	objc_setAssociatedObject(hit, &kReelActionDefaultKey, SCIReelDefaultAction() ?: @"", OBJC_ASSOCIATION_COPY_NONATOMIC);
+
+	sciClearHit(hit);
+}
+
+static void sciConfigureActionHit(UIButton *hit, SCIChromeButton *button) {
+	if (!hit || !button) return;
+
+	objc_setAssociatedObject(hit, &kReelVisibleButtonKey, button, OBJC_ASSOCIATION_ASSIGN);
+
+	[SCIActionButton configureButton:hit
+							 context:SCIActionContextReels
+							 prefKey:@"reels_action_default"
+					   mediaProvider:^id (UIView *sourceView) {
+		return sciReelsMediaProvider(sourceView);
+	}];
+
+	[hit addTarget:SCIReelMenuTarget.shared action:@selector(touchDown:) forControlEvents:UIControlEventTouchDown];
+
+	objc_setAssociatedObject(hit, &kReelActionDefaultKey, SCIReelDefaultAction() ?: @"", OBJC_ASSOCIATION_COPY_NONATOMIC);
+
+	sciClearHit(hit);
+}
+
+static void sciConfigureHit(UIButton *hit, SCIChromeButton *button) {
+	if ([SCIReelActionOrMenu() isEqualToString:@"menu"]) {
+		sciConfigureMenuHit(hit, button);
+	} else {
+		sciConfigureActionHit(hit, button);
+	}
+}
+
+static void sciRemoveReelButton(UIView *root) {
+	[[root viewWithTag:kReelActionHitTag] removeFromSuperview];
+	[[root viewWithTag:kReelActionBtnTag] removeFromSuperview];
 }
 
 %hook IGSundialViewerVerticalUFI
@@ -136,19 +269,22 @@ static id sciReelsMediaProvider(UIView *sourceView) {
 	if (!self.superview) return;
 
 	SCIChromeButton *button = (SCIChromeButton *)[self viewWithTag:kReelActionBtnTag];
+	UIButton *hit = (UIButton *)[self viewWithTag:kReelActionHitTag];
+
 	if (![button isKindOfClass:SCIChromeButton.class]) button = nil;
+	if (![hit isKindOfClass:UIButton.class]) hit = nil;
 
 	if (!SCIReelsActionEnabled()) {
-		[button removeFromSuperview];
+		sciRemoveReelButton(self);
 		return;
 	}
 
-	NSString *currentAction = SCIReelDefaultAction();
-	NSString *configuredAction = objc_getAssociatedObject(button, &kReelActionDefaultKey);
+	NSString *currentAction = SCIReelDefaultAction() ?: @"";
+	NSString *configuredAction = objc_getAssociatedObject(hit, &kReelActionDefaultKey);
 
-	if (button && configuredAction && ![configuredAction isEqualToString:currentAction]) {
-		[button removeFromSuperview];
-		button = nil;
+	if (hit && configuredAction && ![configuredAction isEqualToString:currentAction]) {
+		[hit removeFromSuperview];
+		hit = nil;
 	}
 
 	if (!button) {
@@ -156,12 +292,9 @@ static id sciReelsMediaProvider(UIView *sourceView) {
 		button.tag = kReelActionBtnTag;
 		button.bubbleColor = UIColor.clearColor;
 		button.adjustsImageWhenHighlighted = NO;
-
-		UIButtonConfiguration *config = [UIButtonConfiguration plainButtonConfiguration];
-		config.cornerStyle = UIButtonConfigurationCornerStyleCapsule;
-		config.background.backgroundColor = UIColor.clearColor;
-		config.contentInsets = NSDirectionalEdgeInsetsZero;
-		button.configuration = config;
+		button.userInteractionEnabled = NO;
+		button.menu = nil;
+		button.showsMenuAsPrimaryAction = NO;
 
 		self.clipsToBounds = NO;
 		[self addSubview:button];
@@ -173,17 +306,37 @@ static id sciReelsMediaProvider(UIView *sourceView) {
 			[button.heightAnchor constraintEqualToConstant:40.0]
 		]];
 
-		[SCIActionButton configureButton:button
-								 context:SCIActionContextReels
-								 prefKey:@"reels_action_default"
-						   mediaProvider:^id (UIView *sourceView) {
-			return sciReelsMediaProvider(sourceView);
-		}];
-
 		[SCIActionIcon attachAutoUpdate:button pointSize:24 style:SCIActionIconStyleShadowBaked];
-
-		objc_setAssociatedObject(button, &kReelActionDefaultKey, currentAction, OBJC_ASSOCIATION_COPY_NONATOMIC);
 	}
+
+	if (!hit) {
+		hit = [SCIReelHitButton buttonWithType:UIButtonTypeCustom];
+		hit.tag = kReelActionHitTag;
+		hit.translatesAutoresizingMaskIntoConstraints = NO;
+		sciClearHit(hit);
+
+		[self addSubview:hit];
+
+		[NSLayoutConstraint activateConstraints:@[
+			[hit.centerXAnchor constraintEqualToAnchor:button.centerXAnchor],
+			[hit.centerYAnchor constraintEqualToAnchor:button.centerYAnchor],
+			[hit.widthAnchor constraintEqualToConstant:1.0],
+			[hit.heightAnchor constraintEqualToConstant:1.0]
+		]];
+
+		sciConfigureHit(hit, button);
+	}
+
+	button.hidden = NO;
+	button.alpha = 1.0;
+	button.transform = CGAffineTransformIdentity;
+	button.userInteractionEnabled = NO;
+
+	hit.hidden = NO;
+	sciClearHit(hit);
+
+	[self bringSubviewToFront:button];
+	[self bringSubviewToFront:hit];
 }
 
 %end

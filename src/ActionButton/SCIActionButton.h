@@ -31,7 +31,8 @@ extern const void *kSCIDismissKey;
                           fromView:(UIView *)sourceView
                      mediaProvider:(SCIActionMediaProvider)provider;
 
-
+/// Haptic + scale-bounce feedback.
++ (void)bounceButton:(UIView *)view;
 @end
 
 NS_ASSUME_NONNULL_END
