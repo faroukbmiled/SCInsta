@@ -7,7 +7,6 @@
 #import "SCIBackupScopePickerVC.h"
 #import <CoreImage/CoreImage.h>
 #import <objc/runtime.h>
-#import "../../modules/JGProgressHUD/JGProgressHUD.h"
 #import "SCISearchBarStyler.h"
 
 typedef NS_OPTIONS(NSInteger, SCIBackupScope) {
@@ -194,30 +193,11 @@ static const SCIBackupScope SCIBackupScopeAll =
 }
 
 + (void)showSuccessHUD:(NSString *)message {
-    UINotificationFeedbackGenerator *fb = [[UINotificationFeedbackGenerator alloc] init];
-    [fb prepare];
-    [fb notificationOccurred:UINotificationFeedbackTypeSuccess];
-
-    UIView *host = nil;
-    for (UIWindow *w in [UIApplication sharedApplication].windows) {
-        if (w.isKeyWindow) { host = w; break; }
-    }
-    if (!host) host = topMostController().view;
-    if (!host) return;
-
-    JGProgressHUD *HUD = [[JGProgressHUD alloc] init];
-    HUD.textLabel.text = message;
-    HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-    [HUD showInView:host];
-    [HUD dismissAfterDelay:1.5];
+    SCINotifySuccess(SCI_NOTIF_SETTINGS_ACTION, message, nil);
 }
 
 + (void)showError:(NSString *)message {
-    UIAlertController *a = [UIAlertController alertControllerWithTitle:SCILocalized(@"Import failed")
-                                                               message:message
-                                                        preferredStyle:UIAlertControllerStyleAlert];
-    [a addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
-    [topMostController() presentViewController:a animated:YES completion:nil];
+    SCINotifyError(SCI_NOTIF_SETTINGS_ACTION, SCILocalized(@"Import failed"), message);
 }
 
 #pragma mark Scope picker

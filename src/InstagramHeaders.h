@@ -1,7 +1,6 @@
 #import <Foundation/Foundation.h>
 #include <objc/NSObject.h>
 #import <UIKit/UIKit.h>
-#import "../modules/JGProgressHUD/JGProgressHUD.h"
 
 #ifdef __cplusplus
 #define _Bool bool
@@ -134,7 +133,6 @@
 {
     IGImageView *_profilePictureView;
 }
-@property (nonatomic, strong) JGProgressHUD *hud;
 - (void)addHandleLongPress; // new
 - (void)handleLongPress:(UILongPressGestureRecognizer *)sender; // new
 @end
@@ -511,24 +509,20 @@
 @interface IGNotesCreationFeatureSupportModel : NSObject
 @end
 
+// Pando-backed value object — KVC routes through `setValue:forKey:` for keys
+// `backgroundColor` (UIColor) and `secondaryTextColor` (UIColor). Gradient is
+// preset-only on the schema, not exposed for free-form custom creation.
 @interface IGNotesCustomThemeCreationModel : NSObject
-+ (id)defaultModelForExpressiveEmojiType:(id)arg1;
 @end
 
 @interface IGDirectNotesComposerViewController : UIViewController
 - (void)notesBubbleEditorViewControllerDidUpdateWithCustomThemeCreationModel:(id)model;
 @end
 
-@interface _TtC20IGDirectNotesUISwift41IGDirectNotesBubbleEditorColorPaletteView : UIView
-@property (nonatomic, copy) UIColor *backgroundColor; // new
-@property (nonatomic, copy) UIColor *textColor; // new
-@property (nonatomic, copy) NSString *emojiText; // new
-
-- (void)presentColorPicker:(NSString *)target; // new
-- (void)applySCICustomTheme:(NSString *)target; // new
+@interface _TtC26IGNotesBubbleCreationSwift41IGDirectNotesBubbleEditorColorPaletteView : UIView
 @end
 
-@interface _TtC20IGDirectNotesUISwift39IGDirectNotesBubbleEditorViewController : UIViewController
+@interface _TtC26IGNotesBubbleCreationSwift39IGDirectNotesBubbleEditorViewController : UIViewController
 @property (nonatomic) IGDirectNotesComposerViewController *delegate;
 @end
 
@@ -807,4 +801,28 @@ typedef FLEXAlertAction * _Nonnull (^FLEXAlertActionHandler)(void(^handler)(NSAr
 @interface IGGenAIRestyleExperimentHelper : NSObject
 + (BOOL)isRevealStickerEnabledWithLauncherSet:(id)set;
 + (BOOL)isRevealStickerConsumptionEnabledWithLauncherSet:(id)set;
+@end
+
+// Reels audio detail. Swift class _TtC16IGAudioPageSwift26IGAudioPageHeaderActionBar — share/save header bar.
+@interface IGAudioPageHeaderActionBar : UIView
+@end
+
+// Reels audio detail VC — owns _audioAsset / _music / _originalAudio.
+@interface IGAudioPageViewController : UIViewController
+@end
+
+// Quick-reaction emoji button under an Instant. UIControl with a `text` ivar
+// holding the emoji glyph. Found via runtime view dump.
+@interface IGBouncyTextButton : UIControl
+@end
+
+// Bloks-rendered netego feed cell (e.g. "Try free AI creation tools").
+@interface IGBloksFeedCell : UICollectionViewCell
+@property (nonatomic, strong) id bloksFeedUnitModel;
+@end
+
+// IGListKit section controller backing IGBloksFeedCell.
+@interface IGBloksNetegoSectionController : NSObject
+- (NSInteger)numberOfItems;
+- (CGSize)sizeForItemAtIndex:(NSInteger)index;
 @end

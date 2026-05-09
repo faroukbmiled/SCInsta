@@ -316,6 +316,7 @@ static inline void SCIRemoveTempFiles(NSArray<NSString *> *paths) {
 
 	UIAction *copy = [UIAction actionWithTitle:SCILocalized(@"Copy video URL") image:SCIQualityIcon(@"video.fill", 18.0) identifier:nil handler:^(__unused UIAction *action) {
 		UIPasteboard.generalPasteboard.string = url.absoluteString;
+		SCINotifySuccess(SCI_NOTIF_COPY_QUALITY_URL, SCILocalized(@"Copied video URL"), nil);
 	}];
 
 	return [UIMenu menuWithTitle:@"" children:@[copy]];
@@ -327,6 +328,7 @@ static inline void SCIRemoveTempFiles(NSArray<NSString *> *paths) {
 
 	UIAction *copyVideo = [UIAction actionWithTitle:SCILocalized(@"Copy video URL") image:SCIQualityIcon(@"video.fill", 18.0) identifier:nil handler:^(__unused UIAction *action) {
 		if (videoURL) UIPasteboard.generalPasteboard.string = videoURL.absoluteString;
+		SCINotifySuccess(SCI_NOTIF_COPY_QUALITY_URL, SCILocalized(@"Copied video URL"), nil);
 	}];
 
 	NSMutableArray *items = [NSMutableArray arrayWithObject:copyVideo];
@@ -334,6 +336,7 @@ static inline void SCIRemoveTempFiles(NSArray<NSString *> *paths) {
 	if (audioURL) {
 		UIAction *copyAudio = [UIAction actionWithTitle:SCILocalized(@"Copy audio URL") image:SCIQualityIcon(@"waveform", 18.0) identifier:nil handler:^(__unused UIAction *action) {
 			UIPasteboard.generalPasteboard.string = audioURL.absoluteString;
+			SCINotifySuccess(SCI_NOTIF_COPY_AUDIO_URL, SCILocalized(@"Copied audio URL"), nil);
 		}];
 
 		[items addObject:copyAudio];
@@ -342,6 +345,7 @@ static inline void SCIRemoveTempFiles(NSArray<NSString *> *paths) {
 	UIAction *copyInfo = [UIAction actionWithTitle:SCILocalized(@"Copy quality info") image:SCIQualityIcon(@"info.circle", 18.0) identifier:nil handler:^(__unused UIAction *action) {
 		NSString *info = [NSString stringWithFormat:@"%ldp — %ld×%ld — %.1f Mbps", (long)MIN(videoRep.width, videoRep.height), (long)videoRep.width, (long)videoRep.height, videoRep.bandwidth / 1000000.0];
 		UIPasteboard.generalPasteboard.string = info;
+		SCINotifySuccess(SCI_NOTIF_COPY_QUALITY_URL, SCILocalized(@"Copied quality info"), nil);
 	}];
 
 	[items addObject:copyInfo];

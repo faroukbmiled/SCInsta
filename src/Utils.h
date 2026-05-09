@@ -4,8 +4,6 @@
 #import <os/log.h>
 #import <objc/message.h>
 
-#import "../modules/JGProgressHUD/JGProgressHUD.h"
-
 #import "InstagramHeaders.h"
 #import "QuickLook.h"
 #import "Localization/SCILocalization.h"
@@ -64,8 +62,8 @@
 + (NSError *)errorWithDescription:(NSString *)errorDesc;
 + (NSError *)errorWithDescription:(NSString *)errorDesc code:(NSInteger)errorCode;
 
-+ (JGProgressHUD *)showErrorHUDWithDescription:(NSString *)errorDesc;
-+ (JGProgressHUD *)showErrorHUDWithDescription:(NSString *)errorDesc dismissAfterDelay:(CGFloat)dismissDelay;
++ (void)showErrorHUDWithDescription:(NSString *)errorDesc;
++ (void)showErrorHUDWithDescription:(NSString *)errorDesc dismissAfterDelay:(CGFloat)dismissDelay;
 
 // Media
 // IGAPIStorableObject's snake_case Pando _fieldCache dict. Many IG fields
@@ -103,6 +101,7 @@
 // Toasts
 + (void)showToastForDuration:(double)duration title:(NSString *)title;
 + (void)showToastForDuration:(double)duration title:(NSString *)title subtitle:(NSString *)subtitle;
++ (void)showIGNativeToastForDuration:(double)duration title:(NSString *)title subtitle:(NSString *)subtitle;
 
 // Math
 + (NSUInteger)decimalPlacesInDouble:(double)value;

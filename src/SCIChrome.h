@@ -12,6 +12,18 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) UIView *contentContainer;
 @end
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/// YES if `field` is the secure-canvas helper owned by SCIChromeCanvas.
+/// Used by the Instants screenshot bypass to skip our own redaction fields.
+BOOL SCIChromeCanvasOwnsSecureField(UITextField *field);
+
+#ifdef __cplusplus
+}
+#endif
+
 // MARK: - SCIChromeButton
 
 @interface SCIChromeButton : UIButton

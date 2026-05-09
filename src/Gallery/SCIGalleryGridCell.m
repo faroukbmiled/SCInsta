@@ -227,6 +227,7 @@
         case SCIGallerySourceThumbnail: return @"photo.on.rectangle.angled";
         case SCIGallerySourceNotes:     return @"note.text";
         case SCIGallerySourceComments:  return @"text.bubble";
+        case SCIGallerySourceInstants:  return @"square.dashed";
         case SCIGallerySourceOther:
         default:                        return @"photo";
     }

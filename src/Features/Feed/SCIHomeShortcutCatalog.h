@@ -9,6 +9,11 @@ extern NSString *const kSCIHomeShortcutActionsPrefKey;
 extern NSString *const kSCIHomeShortcutEnabledPrefKey;
 extern NSString *const kSCIHomeShortcutIconPrefKey;
 
+// Posted whenever the user reorders/toggles entries or changes the icon —
+// the home top-bar hook listens and rebuilds the injected button live so
+// changes don't require a relaunch.
+extern NSNotificationName const SCIHomeShortcutConfigDidChangeNotification;
+
 @interface SCIHomeShortcutAction : NSObject
 @property (nonatomic, copy, readonly) NSString *actionID;
 @property (nonatomic, copy, readonly) NSString *title;

@@ -28,6 +28,7 @@ static NSMutableArray<NSMutableDictionary *> *sciLoadOrderedActions(void) {
 
 static void sciSaveOrderedActions(NSArray<NSDictionary *> *actions) {
     [SCIUtils setPref:[actions copy] forKey:kSCIHomeShortcutActionsPrefKey];
+    [[NSNotificationCenter defaultCenter] postNotificationName:SCIHomeShortcutConfigDidChangeNotification object:nil];
 }
 
 static NSString *sciCurrentIcon(void) {
@@ -193,6 +194,7 @@ static NSString *sciCurrentIcon(void) {
         return;
     }
     [SCIUtils setPref:picked forKey:kSCIHomeShortcutIconPrefKey];
+    [[NSNotificationCenter defaultCenter] postNotificationName:SCIHomeShortcutConfigDidChangeNotification object:nil];
     [cv reloadData];
     [[[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleLight] impactOccurred];
 }
@@ -342,7 +344,7 @@ static NSString *sciCurrentIcon(void) {
 
 - (void)masterToggleChanged:(UISwitch *)sw {
     [SCIUtils setPref:@(sw.isOn) forKey:kSCIHomeShortcutEnabledPrefKey];
-    [SCIUtils showRestartConfirmation];
+    [[NSNotificationCenter defaultCenter] postNotificationName:SCIHomeShortcutConfigDidChangeNotification object:nil];
 }
 
 - (void)actionToggleChanged:(UISwitch *)sw {

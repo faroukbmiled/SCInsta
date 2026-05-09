@@ -178,13 +178,9 @@ static UIView * _Nullable sciFindSubmitButton(UIView *root) {
     }
 
     [[UIPasteboard generalPasteboard] setString:password];
-
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:SCILocalized(@"Password")
-                                                                  message:password
-                                                           preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Copied!") style:UIAlertActionStyleCancel handler:nil]];
-    UIViewController *topVC = topMostController();
-    if (topVC) [topVC presentViewController:alert animated:YES completion:nil];
+    SCINotifySuccess(SCI_NOTIF_COPY_PASSWORD,
+                     [NSString stringWithFormat:SCILocalized(@"Copied: %@"), password],
+                     nil);
 }
 
 %end

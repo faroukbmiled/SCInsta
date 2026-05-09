@@ -61,3 +61,7 @@ PUSH.md
 # FB asset browser (extracted from FBSharedFramework — local only)
 fb_assets_dump/
 fb_assets.html
+
+# Local RE / dev tooling — Mach-O parser, Swift-symbol probe, scratch hooks
+scratch/
+.local-backups/

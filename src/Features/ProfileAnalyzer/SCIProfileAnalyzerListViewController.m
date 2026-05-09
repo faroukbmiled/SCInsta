@@ -1262,7 +1262,7 @@ typedef NS_ENUM(NSInteger, SCIPACellAction) {
         NSString *finishedSub = follow
             ? [NSString stringWithFormat:SCILocalized(@"%lu accounts followed"), (unsigned long)total]
             : [NSString stringWithFormat:SCILocalized(@"%lu accounts unfollowed"), (unsigned long)total];
-        [SCIUtils showToastForDuration:2.0 title:finishedTitle subtitle:finishedSub];
+        SCINotifySuccess(SCI_NOTIF_ANALYZER_DONE, finishedTitle, finishedSub);
         self.navigationItem.prompt = nil;
         [self toggleSelectionMode];
         [self refreshCounts];

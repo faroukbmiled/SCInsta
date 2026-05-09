@@ -11,6 +11,16 @@
 static const void *kSCIHomeShortcutBtnKey           = &kSCIHomeShortcutBtnKey;
 static const void *kSCIHomeShortcutSigKey           = &kSCIHomeShortcutSigKey;
 static const void *kSCIHomeShortcutSingleActionKey  = &kSCIHomeShortcutSingleActionKey;
+static const void *kSCIHomeShortcutLeftBadgeKey     = &kSCIHomeShortcutLeftBadgeKey;
+
+// Tracks every parent view that currently hosts an injected shortcut button so
+// the live-config observer can rebuild them in place.
+static NSHashTable<UIView *> *sciHomeShortcutHosts(void) {
+    static NSHashTable *t;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ t = [NSHashTable weakObjectsHashTable]; });
+    return t;
+}
 
 static CGFloat const kSCIHomeShortcutGap = 4.0;
 static CGFloat const kSCIHomeShortcutMinSide = 28.0;
@@ -26,10 +36,16 @@ static BOOL sciIsHomeTopbarBadge(IGBadgeButton *b) {
 
 static void sciClearInjectedButton(UIView *parent) {
     SCIChromeButton *btn = objc_getAssociatedObject(parent, kSCIHomeShortcutBtnKey);
+    [sciHomeShortcutHosts() removeObject:parent];
     if (!btn) return;
     [btn removeFromSuperview];
     objc_setAssociatedObject(parent, kSCIHomeShortcutBtnKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(parent, kSCIHomeShortcutSigKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    // Force IG to re-run the badge layout so the gap left by our button
+    // closes. Without this, badges stay at their shifted positions after a
+    // live disable until the next IG layout pass.
+    [parent setNeedsLayout];
+    [parent.superview setNeedsLayout];
 }
 
 // Sorted by window-X (parent-X fallback) so the leftmost is always the visual `+`.
@@ -143,6 +159,7 @@ static SCIChromeButton *sciPlaceButtonForCluster(UIView *parent,
         btn.bubbleColor = [UIColor clearColor];
         [parent addSubview:btn];
         objc_setAssociatedObject(parent, kSCIHomeShortcutBtnKey, btn, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        [sciHomeShortcutHosts() addObject:parent];
     }
 
     sciSyncTargetForButton(btn, parent, actionIDs, symbol, hookTarget, singleActionSel);
@@ -204,3 +221,52 @@ static SCIChromeButton *sciPlaceButtonForCluster(UIView *parent,
 }
 
 %end
+
+#pragma mark - Live config refresh
+
+// Collects every parent view that currently holds at least one home top-bar
+// IGBadgeButton. Used as the live-refresh fallback when the master toggle
+// flips on after launch — those parents aren't tracked yet because no button
+// has been injected against them.
+static NSArray<UIView *> *sciCollectHomeBadgeParents(void) {
+    NSMutableSet<UIView *> *set = [NSMutableSet set];
+    Class badgeCls = %c(IGBadgeButton);
+    NSMutableArray<UIView *> *stack = [NSMutableArray array];
+    for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) continue;
+        for (UIWindow *w in ((UIWindowScene *)scene).windows) [stack addObject:w];
+    }
+    while (stack.count) {
+        UIView *v = stack.lastObject;
+        [stack removeLastObject];
+        for (UIView *sub in v.subviews) [stack addObject:sub];
+        if (![v isKindOfClass:badgeCls]) continue;
+        UIView *parent = v.superview;
+        if (parent && sciIsHomeTopbarBadge((IGBadgeButton *)v)) [set addObject:parent];
+    }
+    return set.allObjects;
+}
+
+static void sciHomeShortcutHandleConfigChange(void) {
+    NSMutableSet<UIView *> *seen = [NSMutableSet set];
+    @synchronized (sciHomeShortcutHosts()) {
+        for (UIView *p in sciHomeShortcutHosts().allObjects) if (p) [seen addObject:p];
+    }
+    [seen addObjectsFromArray:sciCollectHomeBadgeParents()];
+    for (UIView *parent in seen) {
+        if (!parent.superview) { sciClearInjectedButton(parent); continue; }
+        NSArray<UIView *> *badges = sciSortedBadgesIn(parent);
+        UIView *leftBadge = badges.firstObject;
+        sciPlaceButtonForCluster(parent, badges, leftBadge,
+                                 NSSelectorFromString(@"sciHomeShortcutFireSingle:"));
+    }
+}
+
+%ctor {
+    [[NSNotificationCenter defaultCenter] addObserverForName:SCIHomeShortcutConfigDidChangeNotification
+                                                      object:nil
+                                                       queue:[NSOperationQueue mainQueue]
+                                                  usingBlock:^(__unused NSNotification *note) {
+        sciHomeShortcutHandleConfigChange();
+    }];
+}

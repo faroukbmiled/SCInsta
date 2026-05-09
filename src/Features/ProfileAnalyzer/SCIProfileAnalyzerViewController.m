@@ -1,4 +1,5 @@
 #import "SCIProfileAnalyzerViewController.h"
+#import "../../UI/SCIPopupChrome.h"
 #import "SCIProfileAnalyzerModels.h"
 #import "SCIProfileAnalyzerStorage.h"
 #import "SCIProfileAnalyzerService.h"
@@ -364,7 +365,7 @@ typedef NS_ENUM(NSInteger, SCIPACategory) {
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.view.backgroundColor = [UIColor systemGroupedBackgroundColor];
+    self.view.backgroundColor = [SCIPopupChrome backgroundColor];
     self.title = SCILocalized(@"Profile Analyzer");
     self.navigationItem.titleView = [self buildTitleViewWithBeta];
 
@@ -907,9 +908,10 @@ static NSInteger sciHeaderInteger(NSDictionary *d, NSString *key) {
         @"media_count": @(snapshot.mediaCount),
     } forUserPK:pk];
     [self loadCachedReport];
-    [SCIUtils showToastForDuration:2.0 title:SCILocalized(@"Analysis complete")
-                          subtitle:[NSString stringWithFormat:SCILocalized(@"%lu followers · %lu following"),
-                                    (unsigned long)snapshot.followers.count, (unsigned long)snapshot.following.count]];
+    SCINotifySuccess(SCI_NOTIF_ANALYZER_DONE,
+                     SCILocalized(@"Analysis complete"),
+                     [NSString stringWithFormat:SCILocalized(@"%lu followers · %lu following"),
+                      (unsigned long)snapshot.followers.count, (unsigned long)snapshot.following.count]);
 }
 
 - (void)resetTapped {

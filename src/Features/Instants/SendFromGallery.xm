@@ -15,6 +15,8 @@
 #import <objc/message.h>
 #import "../../Utils.h"
 #import "SCIInstantsPath.h"
+#import "../../Gallery/SCIGalleryViewController.h"
+#import "../../Gallery/SCIGalleryFile.h"
 
 
 // ============================================================================
@@ -424,6 +426,7 @@ static UIViewController *sci_topPresenter(void) {
 // ============================================================================
 
 @interface SCIInstantsGalleryPickerProxy : NSObject <PHPickerViewControllerDelegate>
+- (void)sci_presentCropForImage:(UIImage *)image;
 @end
 
 @implementation SCIInstantsGalleryPickerProxy
@@ -446,23 +449,28 @@ static UIViewController *sci_topPresenter(void) {
             UIImage *image = [obj isKindOfClass:[UIImage class]] ? (UIImage *)obj : nil;
             if (!image || err) return;
             dispatch_async(dispatch_get_main_queue(), ^{
-                SCIInstantsCropController *crop = [SCIInstantsCropController new];
-                crop.sourceImage = image;
-                crop.onConfirm = ^(UIImage *cropped) {
-                    sci_pendingImage = cropped;
-                    // Drop after 30s if the user never taps capture.
-                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(30 * NSEC_PER_SEC)),
-                                   dispatch_get_main_queue(), ^{
-                        if (sci_pendingImage == cropped) {
-                            sci_pendingImage = nil;
-                            sci_clearCache();
-                        }
-                    });
-                };
-                [sci_topPresenter() presentViewController:crop animated:YES completion:nil];
+                [self sci_presentCropForImage:image];
             });
         }];
     }];
+}
+
+- (void)sci_presentCropForImage:(UIImage *)image {
+    if (!image) return;
+    SCIInstantsCropController *crop = [SCIInstantsCropController new];
+    crop.sourceImage = image;
+    crop.onConfirm = ^(UIImage *cropped) {
+        sci_pendingImage = cropped;
+        // Drop after 30s if the user never taps capture.
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(30 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            if (sci_pendingImage == cropped) {
+                sci_pendingImage = nil;
+                sci_clearCache();
+            }
+        });
+    };
+    [sci_topPresenter() presentViewController:crop animated:YES completion:nil];
 }
 
 @end
@@ -551,15 +559,56 @@ static UIViewController *sci_topPresenter(void) {
 
 %new
 - (void)sci_instantsGalleryTapped:(UIButton *)sender {
-    PHPickerConfiguration *cfg = [[PHPickerConfiguration alloc] init];
-    cfg.filter = [PHPickerFilter imagesFilter];
-    cfg.selectionLimit = 1;
-    cfg.preferredAssetRepresentationMode = PHPickerConfigurationAssetRepresentationModeCurrent;
+    void (^presentPHPicker)(void) = ^{
+        PHPickerConfiguration *cfg = [[PHPickerConfiguration alloc] init];
+        cfg.filter = [PHPickerFilter imagesFilter];
+        cfg.selectionLimit = 1;
+        cfg.preferredAssetRepresentationMode = PHPickerConfigurationAssetRepresentationModeCurrent;
+        PHPickerViewController *pc = [[PHPickerViewController alloc] initWithConfiguration:cfg];
+        pc.delegate = [SCIInstantsGalleryPickerProxy shared];
+        pc.modalPresentationStyle = UIModalPresentationFullScreen;
+        [sci_topPresenter() presentViewController:pc animated:YES completion:nil];
+    };
 
-    PHPickerViewController *pc = [[PHPickerViewController alloc] initWithConfiguration:cfg];
-    pc.delegate = [SCIInstantsGalleryPickerProxy shared];
-    pc.modalPresentationStyle = UIModalPresentationFullScreen;
-    [sci_topPresenter() presentViewController:pc animated:YES completion:nil];
+    if (![SCIUtils getBoolPref:@"sci_gallery_enabled"]) {
+        presentPHPicker();
+        return;
+    }
+
+    UIAlertController *sheet = [UIAlertController
+        alertControllerWithTitle:SCILocalized(@"Pick from")
+                         message:nil
+                  preferredStyle:UIAlertControllerStyleActionSheet];
+
+    [sheet addAction:[UIAlertAction
+        actionWithTitle:SCILocalized(@"In-app Gallery")
+                  style:UIAlertActionStyleDefault
+                handler:^(__unused UIAlertAction *a) {
+        [SCIGalleryViewController
+            presentPickerWithMediaTypes:@[@(SCIGalleryMediaTypeImage)]
+                                  title:SCILocalized(@"Send from gallery")
+                                 fromVC:sci_topPresenter()
+                             completion:^(NSURL *pickedURL, SCIGalleryFile *pickedFile) {
+            if (!pickedURL) return;
+            UIImage *img = [UIImage imageWithContentsOfFile:pickedURL.path];
+            if (!img) return;
+            [[SCIInstantsGalleryPickerProxy shared] sci_presentCropForImage:img];
+        }];
+    }]];
+
+    [sheet addAction:[UIAlertAction
+        actionWithTitle:SCILocalized(@"Photos library")
+                  style:UIAlertActionStyleDefault
+                handler:^(__unused UIAlertAction *a) { presentPHPicker(); }]];
+
+    [sheet addAction:[UIAlertAction
+        actionWithTitle:SCILocalized(@"Cancel")
+                  style:UIAlertActionStyleCancel
+                handler:nil]];
+
+    sheet.popoverPresentationController.sourceView = sender;
+    sheet.popoverPresentationController.sourceRect = sender.bounds;
+    [sci_topPresenter() presentViewController:sheet animated:YES completion:nil];
 }
 
 // Clear the pending image when leaving the QuickSnap surface so other camera

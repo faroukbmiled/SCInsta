@@ -143,6 +143,7 @@ static void sciLoadFFmpegKit(void) {
             NSString *copyMsg = [msg copy];
             [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Copy") style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
                 [UIPasteboard generalPasteboard].string = copyMsg;
+                SCINotifySuccess(SCI_NOTIF_GENERIC, SCILocalized(@"FFmpeg log copied"), nil);
             }]];
             [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"OK") style:UIAlertActionStyleCancel handler:nil]];
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{

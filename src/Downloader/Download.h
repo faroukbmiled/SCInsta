@@ -1,6 +1,5 @@
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
-#import "../../modules/JGProgressHUD/JGProgressHUD.h"
 
 #import "../InstagramHeaders.h"
 #import "../Utils.h"
@@ -8,10 +7,6 @@
 #import "Manager.h"
 
 @interface SCIDownloadPillView : UIView
-@property (nonatomic, strong) UIProgressView *progressBar;
-@property (nonatomic, strong) UILabel *textLabel;
-@property (nonatomic, strong) UILabel *subtitleLabel;
-@property (nonatomic, strong) UIImageView *iconView;
 @property (nonatomic, copy) void (^onCancel)(void);
 
 - (void)resetState;

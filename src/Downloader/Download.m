@@ -5,37 +5,20 @@
 #import <Photos/Photos.h>
 #import <AVFoundation/AVFoundation.h>
 
-static const CGFloat kPillWidth = 220.0;
-static const CGFloat kPillHeight = 60.0;
-static const CGFloat kIconPlateSize = 32.0;
-static const CGFloat kIconSize = 19.0;
+// Compat shim — forwards the legacy ticket / non-ticket API to SCINotificationCenter.
+// Each ticket gets its own SCINotificationHandle; the non-ticket API drives one
+// shared ad-hoc handle. New code should call SCINotifyProgress directly.
 
 static inline float SCIClamp(float v) {
 	return MAX(0.0f, MIN(v, 1.0f));
 }
 
-static inline UIImage *SCIIcon(NSString *name) {
-	UIImageSymbolConfiguration *cfg = [UIImageSymbolConfiguration configurationWithPointSize:kIconSize weight:UIImageSymbolWeightSemibold];
-	return [UIImage systemImageNamed:name withConfiguration:cfg];
-}
-
-@interface SCIDownloadSlot : NSObject
-@property (nonatomic, copy) NSString *ticketId;
-@property (nonatomic, copy) NSString *title;
-@property (nonatomic, assign) float progress;
-@property (nonatomic, copy) void (^onCancel)(void);
-@property (nonatomic, assign) BOOL finished;
-@end
-
-@implementation SCIDownloadSlot @end
-
 @interface SCIDownloadPillView ()
-@property (nonatomic, strong) NSMutableArray<SCIDownloadSlot *> *slots;
-@property (nonatomic, strong) UIVisualEffectView *blurView;
-@property (nonatomic, strong) UIView *tintView;
-@property (nonatomic, strong) UIView *iconPlateView;
-@property (nonatomic, strong) UIStackView *rowStack;
-@property (nonatomic, strong) UIStackView *textStack;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, SCINotificationHandle *> *ticketHandles;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, NSString *> *ticketTitles;
+@property (nonatomic, strong) SCINotificationHandle *adHocHandle;
+@property (nonatomic, copy)   NSString *adHocTitle;
+@property (nonatomic, copy)   NSString *adHocSubtitle;
 @end
 
 @implementation SCIDownloadPillView
@@ -50,200 +33,50 @@ static inline UIImage *SCIIcon(NSString *name) {
 - (instancetype)init {
 	self = [super initWithFrame:CGRectZero];
 	if (!self) return nil;
-
-	_slots = NSMutableArray.array;
-
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_sciAppDidBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_sciAppDidEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
-
-	self.alpha = 0.0;
-	self.clipsToBounds = NO;
-	self.translatesAutoresizingMaskIntoConstraints = NO;
-	self.layer.cornerRadius = 17.0;
-	self.layer.cornerCurve = kCACornerCurveContinuous;
-	self.layer.shadowColor = UIColor.blackColor.CGColor;
-	self.layer.shadowOpacity = 0.13;
-	self.layer.shadowRadius = 12.0;
-	self.layer.shadowOffset = CGSizeMake(0.0, 5.0);
-
-	_blurView = [[UIVisualEffectView alloc] initWithEffect:nil];
-	_blurView.translatesAutoresizingMaskIntoConstraints = NO;
-	_blurView.clipsToBounds = YES;
-	_blurView.layer.cornerRadius = 17.0;
-	_blurView.layer.cornerCurve = kCACornerCurveContinuous;
-	_blurView.layer.borderWidth = 0.6;
-	[self addSubview:_blurView];
-
-	_tintView = UIView.new;
-	_tintView.translatesAutoresizingMaskIntoConstraints = NO;
-	[_blurView.contentView addSubview:_tintView];
-
-	_iconPlateView = UIView.new;
-	_iconPlateView.translatesAutoresizingMaskIntoConstraints = NO;
-	_iconPlateView.layer.cornerRadius = kIconPlateSize / 2.0;
-	_iconPlateView.layer.cornerCurve = kCACornerCurveContinuous;
-
-	_iconView = UIImageView.new;
-	_iconView.translatesAutoresizingMaskIntoConstraints = NO;
-	_iconView.contentMode = UIViewContentModeScaleAspectFit;
-	_iconView.image = SCIIcon(@"arrow.down.to.line.circle.fill");
-	[_iconPlateView addSubview:_iconView];
-
-	_textLabel = UILabel.new;
-	_textLabel.text = SCILocalized(@"Downloading...");
-	_textLabel.font = [UIFont systemFontOfSize:15.0 weight:UIFontWeightSemibold];
-	_textLabel.textAlignment = NSTextAlignmentCenter;
-	_textLabel.adjustsFontSizeToFitWidth = YES;
-	_textLabel.minimumScaleFactor = 0.75;
-
-	_subtitleLabel = UILabel.new;
-	_subtitleLabel.text = SCILocalized(@"Tap to cancel");
-	_subtitleLabel.font = [UIFont systemFontOfSize:11.5 weight:UIFontWeightMedium];
-	_subtitleLabel.textAlignment = NSTextAlignmentCenter;
-	_subtitleLabel.adjustsFontSizeToFitWidth = YES;
-	_subtitleLabel.minimumScaleFactor = 0.75;
-
-	_textStack = [[UIStackView alloc] initWithArrangedSubviews:@[_textLabel, _subtitleLabel]];
-	_textStack.axis = UILayoutConstraintAxisVertical;
-	_textStack.alignment = UIStackViewAlignmentCenter;
-	_textStack.spacing = 0.0;
-	_textStack.translatesAutoresizingMaskIntoConstraints = NO;
-
-	_rowStack = [[UIStackView alloc] initWithArrangedSubviews:@[_iconPlateView, _textStack]];
-	_rowStack.axis = UILayoutConstraintAxisHorizontal;
-	_rowStack.alignment = UIStackViewAlignmentCenter;
-	_rowStack.distribution = UIStackViewDistributionFill;
-	_rowStack.spacing = 7.0;
-	_rowStack.translatesAutoresizingMaskIntoConstraints = NO;
-	[_blurView.contentView addSubview:_rowStack];
-
-	_progressBar = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleDefault];
-	_progressBar.translatesAutoresizingMaskIntoConstraints = NO;
-	_progressBar.clipsToBounds = YES;
-	_progressBar.layer.cornerRadius = 1.25;
-	_progressBar.layer.masksToBounds = YES;
-	[_blurView.contentView addSubview:_progressBar];
-
-	[self addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap)]];
-	[self sciApplyStyle];
-
-	[NSLayoutConstraint activateConstraints:@[
-		[_blurView.topAnchor constraintEqualToAnchor:self.topAnchor],
-		[_blurView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor],
-		[_blurView.leadingAnchor constraintEqualToAnchor:self.leadingAnchor],
-		[_blurView.trailingAnchor constraintEqualToAnchor:self.trailingAnchor],
-
-		[_tintView.topAnchor constraintEqualToAnchor:_blurView.contentView.topAnchor],
-		[_tintView.bottomAnchor constraintEqualToAnchor:_blurView.contentView.bottomAnchor],
-		[_tintView.leadingAnchor constraintEqualToAnchor:_blurView.contentView.leadingAnchor],
-		[_tintView.trailingAnchor constraintEqualToAnchor:_blurView.contentView.trailingAnchor],
-
-		[_iconPlateView.widthAnchor constraintEqualToConstant:kIconPlateSize],
-		[_iconPlateView.heightAnchor constraintEqualToConstant:kIconPlateSize],
-
-		[_iconView.centerXAnchor constraintEqualToAnchor:_iconPlateView.centerXAnchor],
-		[_iconView.centerYAnchor constraintEqualToAnchor:_iconPlateView.centerYAnchor],
-		[_iconView.widthAnchor constraintEqualToConstant:kIconSize],
-		[_iconView.heightAnchor constraintEqualToConstant:kIconSize],
-
-		[_rowStack.centerXAnchor constraintEqualToAnchor:_blurView.contentView.centerXAnchor],
-		[_rowStack.topAnchor constraintEqualToAnchor:_blurView.contentView.topAnchor constant:7.0],
-		[_rowStack.bottomAnchor constraintEqualToAnchor:_progressBar.topAnchor constant:-6.0],
-		[_rowStack.leadingAnchor constraintGreaterThanOrEqualToAnchor:_blurView.contentView.leadingAnchor constant:10.0],
-		[_rowStack.trailingAnchor constraintLessThanOrEqualToAnchor:_blurView.contentView.trailingAnchor constant:-10.0],
-
-		[_progressBar.leadingAnchor constraintEqualToAnchor:_blurView.contentView.leadingAnchor constant:10.0],
-		[_progressBar.trailingAnchor constraintEqualToAnchor:_blurView.contentView.trailingAnchor constant:-10.0],
-		[_progressBar.bottomAnchor constraintEqualToAnchor:_blurView.contentView.bottomAnchor constant:-7.0],
-		[_progressBar.heightAnchor constraintEqualToConstant:2.5],
-
-		[self.heightAnchor constraintEqualToConstant:kPillHeight]
-	]];
-
+	_ticketHandles = [NSMutableDictionary new];
+	_ticketTitles = [NSMutableDictionary new];
 	return self;
 }
 
-- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
-	[super traitCollectionDidChange:previousTraitCollection];
-	[self sciApplyStyle];
+- (void)sciOnMain:(dispatch_block_t)block {
+	if (!block) return;
+	NSThread.isMainThread ? block() : dispatch_async(dispatch_get_main_queue(), block);
 }
 
-- (void)sciApplyStyle {
-	BOOL dark = self.traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark;
-
-	self.blurView.effect = [UIBlurEffect effectWithStyle:(dark ? UIBlurEffectStyleSystemUltraThinMaterialDark : UIBlurEffectStyleSystemUltraThinMaterialLight)];
-	self.blurView.layer.borderColor = (dark ? [UIColor colorWithWhite:1.0 alpha:0.10] : [UIColor colorWithWhite:0.0 alpha:0.06]).CGColor;
-	self.tintView.backgroundColor = dark ? [UIColor colorWithWhite:0.0 alpha:0.08] : [UIColor colorWithWhite:1.0 alpha:0.05];
-
-	self.iconPlateView.backgroundColor = dark ? [UIColor colorWithWhite:1.0 alpha:0.08] : [UIColor colorWithWhite:0.0 alpha:0.04];
-	self.textLabel.textColor = dark ? UIColor.whiteColor : [UIColor colorWithWhite:0.05 alpha:1.0];
-	self.subtitleLabel.textColor = dark ? [UIColor colorWithWhite:1.0 alpha:0.66] : [UIColor colorWithWhite:0.0 alpha:0.48];
-	self.iconView.tintColor = dark ? UIColor.whiteColor : [UIColor colorWithWhite:0.08 alpha:1.0];
-
-	self.progressBar.progressTintColor = dark ? UIColor.whiteColor : [UIColor colorWithWhite:0.08 alpha:0.86];
-	self.progressBar.trackTintColor = dark ? [UIColor colorWithWhite:1.0 alpha:0.12] : [UIColor colorWithWhite:0.0 alpha:0.09];
+- (void)sciEnsureAdHocStarted {
+	if (self.adHocHandle && !self.adHocHandle.isFinished) return;
+	__weak typeof(self) weakSelf = self;
+	self.adHocHandle = SCINotifyProgress(SCI_NOTIF_DOWNLOAD,
+	                                     self.adHocTitle ?: SCILocalized(@"Downloading..."),
+	                                     ^{
+		void (^cb)(void) = weakSelf.onCancel;
+		weakSelf.onCancel = nil;
+		if (cb) cb();
+	});
 }
 
-- (void)sciSetIcon:(NSString *)name color:(UIColor *)color {
-	self.iconView.image = SCIIcon(name);
-	self.iconView.tintColor = color ?: self.iconView.tintColor;
-}
+#pragma mark - Legacy non-ticket API (forwards to a single ad-hoc handle)
 
 - (void)resetState {
-	[self sciApplyStyle];
-	[self sciSetIcon:@"arrow.down.to.line.circle.fill" color:nil];
-	self.textLabel.text = SCILocalized(@"Downloading...");
-	self.subtitleLabel.text = SCILocalized(@"Tap to cancel");
-	self.subtitleLabel.hidden = NO;
-	self.progressBar.hidden = NO;
-	[self.progressBar setProgress:0.0 animated:NO];
-}
-
-- (void)handleTap {
-	SCIDownloadSlot *slot = self.slots.lastObject;
-	void (^callback)(void) = slot ? slot.onCancel : self.onCancel;
-
-	if (slot) slot.onCancel = nil;
-	else self.onCancel = nil;
-
-	if (callback) callback();
+	[self sciOnMain:^{
+		[self.adHocHandle dismiss];
+		self.adHocHandle = nil;
+		self.adHocTitle = SCILocalized(@"Downloading...");
+		self.adHocSubtitle = nil;
+	}];
 }
 
 - (void)showInView:(UIView *)view {
-	[self removeFromSuperview];
-
-	self.alpha = 0.0;
-	self.transform = CGAffineTransformMakeScale(0.96, 0.96);
-	self.translatesAutoresizingMaskIntoConstraints = NO;
-	[view addSubview:self];
-
-	[NSLayoutConstraint activateConstraints:@[
-		[self.topAnchor constraintEqualToAnchor:view.safeAreaLayoutGuide.topAnchor constant:8.0],
-		[self.centerXAnchor constraintEqualToAnchor:view.centerXAnchor],
-		[self.widthAnchor constraintEqualToConstant:kPillWidth]
-	]];
-
-	[UIView animateWithDuration:0.22 delay:0.0 usingSpringWithDamping:0.88 initialSpringVelocity:0.45 options:UIViewAnimationOptionCurveEaseOut animations:^{
-		self.alpha = 1.0;
-		self.transform = CGAffineTransformIdentity;
-	} completion:nil];
+	(void)view; // Center handles host view internally.
+	[self sciOnMain:^{ [self sciEnsureAdHocStarted]; }];
 }
 
 - (void)dismiss {
-	dispatch_async(dispatch_get_main_queue(), ^{
-		if (self.slots.count > 0) return;
-		if (self.alpha <= 0.01 && !self.superview) return;
-
+	[self sciOnMain:^{
+		[self.adHocHandle dismiss];
+		self.adHocHandle = nil;
 		self.onCancel = nil;
-
-		[UIView animateWithDuration:0.18 animations:^{
-			self.alpha = 0.0;
-			self.transform = CGAffineTransformMakeScale(0.94, 0.94);
-		} completion:^(__unused BOOL finished) {
-			[self removeFromSuperview];
-			self.transform = CGAffineTransformIdentity;
-		}];
-	});
+	}];
 }
 
 - (void)dismissAfterDelay:(NSTimeInterval)delay {
@@ -253,184 +86,112 @@ static inline UIImage *SCIIcon(NSString *name) {
 }
 
 - (void)setProgress:(float)progress {
-	self.progressBar.hidden = NO;
-	[self.progressBar setProgress:SCIClamp(progress) animated:YES];
+	[self sciOnMain:^{
+		[self sciEnsureAdHocStarted];
+		[self.adHocHandle setProgress:SCIClamp(progress)];
+	}];
 }
 
 - (void)setText:(NSString *)text {
-	self.textLabel.text = text ?: @"";
+	[self sciOnMain:^{
+		self.adHocTitle = text;
+		if (self.adHocHandle && !self.adHocHandle.isFinished) {
+			[self.adHocHandle setTitle:text ?: @""];
+		}
+	}];
 }
 
 - (void)setSubtitle:(NSString *)text {
-	self.subtitleLabel.text = text ?: @"";
-	self.subtitleLabel.hidden = text.length == 0;
+	[self sciOnMain:^{
+		self.adHocSubtitle = text;
+		if (self.adHocHandle && !self.adHocHandle.isFinished) {
+			[self.adHocHandle setSubtitle:text];
+		}
+	}];
 }
 
 - (void)showSuccess:(NSString *)text {
-	[self sciSetIcon:@"checkmark.seal.fill" color:UIColor.systemGreenColor];
-	self.textLabel.text = text ?: SCILocalized(@"Done");
-	self.subtitleLabel.hidden = YES;
-	self.progressBar.hidden = YES;
-	self.onCancel = nil;
+	[self sciOnMain:^{
+		[self sciEnsureAdHocStarted];
+		[self.adHocHandle success:text ?: SCILocalized(@"Done")];
+		self.adHocHandle = nil;
+		self.onCancel = nil;
+	}];
 }
 
 - (void)showError:(NSString *)text {
-	[self sciSetIcon:@"exclamationmark.triangle.fill" color:UIColor.systemRedColor];
-	self.textLabel.text = text ?: SCILocalized(@"Failed");
-	self.subtitleLabel.hidden = YES;
-	self.progressBar.hidden = YES;
-	self.onCancel = nil;
+	[self sciOnMain:^{
+		[self sciEnsureAdHocStarted];
+		[self.adHocHandle error:text ?: SCILocalized(@"Failed")];
+		self.adHocHandle = nil;
+		self.onCancel = nil;
+	}];
 }
 
 - (void)showBulkProgress:(NSUInteger)completed total:(NSUInteger)total {
 	NSUInteger safeTotal = MAX(total, 1);
-
-	self.textLabel.text = [NSString stringWithFormat:SCILocalized(@"Downloading %lu of %lu"), (unsigned long)MIN(completed + 1, safeTotal), (unsigned long)safeTotal];
-	self.subtitleLabel.text = SCILocalized(@"Tap to cancel");
-	self.subtitleLabel.hidden = NO;
-	self.progressBar.hidden = NO;
-
-	[self.progressBar setProgress:SCIClamp((float)completed / (float)safeTotal) animated:YES];
+	NSString *title = [NSString stringWithFormat:SCILocalized(@"Downloading %lu of %lu"),
+	                   (unsigned long)MIN(completed + 1, safeTotal), (unsigned long)safeTotal];
+	[self sciOnMain:^{
+		[self sciEnsureAdHocStarted];
+		[self.adHocHandle setTitle:title];
+		[self.adHocHandle setProgress:SCIClamp((float)completed / (float)safeTotal)];
+	}];
 }
 
-- (void)sciOnMain:(dispatch_block_t)block {
-	if (!block) return;
-	NSThread.isMainThread ? block() : dispatch_async(dispatch_get_main_queue(), block);
-}
-
-- (SCIDownloadSlot *)sciSlotForId:(NSString *)ticketId {
-	for (SCIDownloadSlot *slot in self.slots) {
-		if ([slot.ticketId isEqualToString:ticketId]) return slot;
-	}
-
-	return nil;
-}
-
-- (void)sciRenderTop {
-	SCIDownloadSlot *top = self.slots.lastObject;
-	if (!top) return;
-	[self sciApplyStyle];
-	[self sciSetIcon:@"arrow.down.to.line.circle.fill" color:nil];
-	self.textLabel.text = top.title ?: SCILocalized(@"Downloading...");
-	self.subtitleLabel.hidden = NO;
-	self.subtitleLabel.text = self.slots.count > 1 ? [NSString stringWithFormat:SCILocalized(@"%lu active • tap to cancel"), (unsigned long)self.slots.count] : SCILocalized(@"Tap to cancel");
-	self.progressBar.hidden = NO;
-	[self.progressBar setProgress:SCIClamp(top.progress) animated:YES];
-}
+#pragma mark - Ticket API (one handle per ticket)
 
 - (NSString *)beginTicketWithTitle:(NSString *)title onCancel:(void (^)(void))cancel {
 	NSString *ticketId = NSUUID.UUID.UUIDString;
+	NSString *resolvedTitle = title ?: SCILocalized(@"Downloading...");
 	void (^cancelCopy)(void) = [cancel copy];
 	[self sciOnMain:^{
-		SCIDownloadSlot *slot = SCIDownloadSlot.new;
-		slot.ticketId = ticketId;
-		slot.title = title ?: SCILocalized(@"Downloading...");
-		slot.progress = 0.0f;
-		slot.onCancel = cancelCopy;
-		[self.slots addObject:slot];
-		self.alpha = 1.0;
-		self.transform = CGAffineTransformIdentity;
-		if (!self.superview) {
-			UIWindow *window = UIApplication.sharedApplication.keyWindow;
-			UIView *host = window ?: topMostController().view;
-			if (host) [self showInView:host];
-		}
-		[self sciRenderTop];
+		SCINotificationHandle *h = SCINotifyProgress(SCI_NOTIF_DOWNLOAD, resolvedTitle, cancelCopy);
+		if (h) self.ticketHandles[ticketId] = h;
+		self.ticketTitles[ticketId] = resolvedTitle;
 	}];
 	return ticketId;
 }
 
-- (void)_sciAppDidBecomeActive {
-	[self sciOnMain:^{
-		if (self.slots.count > 0) {
-			[self sciRenderTop];
-			return;
-		}
-
-		if (self.superview || self.alpha > 0.01) {
-			self.alpha = 0.0;
-			self.transform = CGAffineTransformIdentity;
-			[self removeFromSuperview];
-		}
-	}];
-}
-
-- (void)_sciAppDidEnterBackground {
-	[self sciOnMain:^{
-		for (SCIDownloadSlot *slot in self.slots.copy) {
-			void (^callback)(void) = slot.onCancel;
-			slot.onCancel = nil;
-			if (callback) callback();
-		}
-	}];
-}
-
-- (void)dealloc {
-	[[NSNotificationCenter defaultCenter] removeObserver:self];
-}
-
 - (void)updateTicket:(NSString *)ticketId progress:(float)progress {
+	if (!ticketId.length) return;
 	[self sciOnMain:^{
-		SCIDownloadSlot *slot = [self sciSlotForId:ticketId];
-
-		if (!slot || slot.finished) return;
-
-		slot.progress = SCIClamp(progress);
-
-		if (self.slots.lastObject == slot) {
-			[self.progressBar setProgress:slot.progress animated:YES];
-		}
+		[self.ticketHandles[ticketId] setProgress:SCIClamp(progress)];
 	}];
 }
 
 - (void)updateTicket:(NSString *)ticketId text:(NSString *)text {
+	if (!ticketId.length || !text.length) return;
 	[self sciOnMain:^{
-		SCIDownloadSlot *slot = [self sciSlotForId:ticketId];
-
-		if (!slot || slot.finished) return;
-
-		if (text.length) slot.title = text;
-		if (self.slots.lastObject == slot) self.textLabel.text = slot.title;
+		[self.ticketHandles[ticketId] setTitle:text];
+		self.ticketTitles[ticketId] = text;
 	}];
 }
 
-- (void)sciRemoveSlot:(SCIDownloadSlot *)slot finalText:(NSString *)finalText finalIcon:(NSString *)finalIcon iconColor:(UIColor *)iconColor {
-	if (!slot || slot.finished) return;
-
-	slot.finished = YES;
-	slot.onCancel = nil;
-
-	[self.slots removeObject:slot];
-
-	if (self.slots.count > 0) {
-		[self sciRenderTop];
-		return;
-	}
-
-	[self sciSetIcon:finalIcon color:iconColor];
-
-	self.textLabel.text = finalText;
-	self.subtitleLabel.hidden = YES;
-	self.progressBar.hidden = YES;
-
-	[self dismissAfterDelay:1.1];
-}
-
 - (void)finishTicket:(NSString *)ticketId successMessage:(NSString *)message {
+	if (!ticketId.length) return;
 	[self sciOnMain:^{
-		[self sciRemoveSlot:[self sciSlotForId:ticketId] finalText:message ?: SCILocalized(@"Done") finalIcon:@"checkmark.seal.fill" iconColor:UIColor.systemGreenColor];
+		[self.ticketHandles[ticketId] success:message ?: SCILocalized(@"Done")];
+		[self.ticketHandles removeObjectForKey:ticketId];
+		[self.ticketTitles removeObjectForKey:ticketId];
 	}];
 }
 
 - (void)finishTicket:(NSString *)ticketId errorMessage:(NSString *)message {
+	if (!ticketId.length) return;
 	[self sciOnMain:^{
-		[self sciRemoveSlot:[self sciSlotForId:ticketId] finalText:message ?: SCILocalized(@"Failed") finalIcon:@"exclamationmark.triangle.fill" iconColor:UIColor.systemRedColor];
+		[self.ticketHandles[ticketId] error:message ?: SCILocalized(@"Failed")];
+		[self.ticketHandles removeObjectForKey:ticketId];
+		[self.ticketTitles removeObjectForKey:ticketId];
 	}];
 }
 
 - (void)finishTicket:(NSString *)ticketId cancelled:(NSString *)message {
+	if (!ticketId.length) return;
 	[self sciOnMain:^{
-		[self sciRemoveSlot:[self sciSlotForId:ticketId] finalText:message ?: SCILocalized(@"Cancelled") finalIcon:@"xmark.circle.fill" iconColor:UIColor.systemOrangeColor];
+		[self.ticketHandles[ticketId] cancelled:message ?: SCILocalized(@"Cancelled")];
+		[self.ticketHandles removeObjectForKey:ticketId];
+		[self.ticketTitles removeObjectForKey:ticketId];
 	}];
 }
 

@@ -1,5 +1,6 @@
 #import "../../Utils.h"
 #import "../../InstagramHeaders.h"
+#import <objc/runtime.h>
 
 // Direct
 
@@ -551,6 +552,104 @@ sponsoredSupportConfiguration:(id)supportConfig
     if ([SCIUtils getBoolPref:@"hide_meta_ai"]) {
         [self removeFromSuperview];
     }
+}
+%end
+
+// "Try free AI creation tools" feed unit — native IGMetaAIInFeed variant.
+// Demangled name: IGMetaAIInFeed.IGMetaAIInFeedUnitSectionController
+%hook _TtC14IGMetaAIInFeed35IGMetaAIInFeedUnitSectionController
+- (NSInteger)numberOfItems {
+    if ([SCIUtils getBoolPref:@"hide_meta_ai"]) {
+        return 0;
+    }
+    return %orig;
+}
+
+- (CGSize)sizeForItemAtIndex:(NSInteger)index {
+    if ([SCIUtils getBoolPref:@"hide_meta_ai"]) {
+        return CGSizeZero;
+    }
+    return %orig;
+}
+%end
+
+// Bloks-served variant — same unit ships through IGBloksNetegoSectionController
+// for some accounts. Match on description markers.
+static BOOL sci_objContainsMetaAIMarker(id obj) {
+    if (!obj || obj == [NSNull null]) return NO;
+    NSString *desc = nil;
+    @try { desc = [obj description]; } @catch (NSException *e) { return NO; }
+    if (![desc isKindOfClass:[NSString class]] || desc.length == 0) return NO;
+    static NSArray<NSString *> *markers = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        markers = @[ @"meta_ai_in_feed_unit", @"meta_ai", @"metaai", @"ai_creation",
+                     @"aicreation", @"AI creation tools", @"Meta AI" ];
+    });
+    for (NSString *m in markers) {
+        if ([desc rangeOfString:m options:NSCaseInsensitiveSearch].location != NSNotFound) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
+static BOOL sci_sectionControllerIsMetaAIUnit(id self) {
+    @try {
+        for (NSString *key in @[ @"bloksFeedUnitModel", @"model", @"unitModel" ]) {
+            @try {
+                id v = [self valueForKey:key];
+                if (sci_objContainsMetaAIMarker(v)) return YES;
+            } @catch (__unused NSException *e) {}
+        }
+        Class cls = [self class];
+        while (cls && cls != [NSObject class]) {
+            unsigned int count = 0;
+            Ivar *ivars = class_copyIvarList(cls, &count);
+            for (unsigned int i = 0; i < count; i++) {
+                const char *typeEnc = ivar_getTypeEncoding(ivars[i]);
+                if (typeEnc && typeEnc[0] == '@') {
+                    id v = object_getIvar(self, ivars[i]);
+                    if (sci_objContainsMetaAIMarker(v)) {
+                        free(ivars);
+                        return YES;
+                    }
+                }
+            }
+            if (ivars) free(ivars);
+            cls = class_getSuperclass(cls);
+        }
+    } @catch (__unused NSException *e) {}
+    return NO;
+}
+
+%hook IGBloksNetegoSectionController
+- (NSInteger)numberOfItems {
+    if ([SCIUtils getBoolPref:@"hide_meta_ai"] && sci_sectionControllerIsMetaAIUnit(self)) {
+        return 0;
+    }
+    return %orig;
+}
+
+- (CGSize)sizeForItemAtIndex:(NSInteger)index {
+    if ([SCIUtils getBoolPref:@"hide_meta_ai"] && sci_sectionControllerIsMetaAIUnit(self)) {
+        return CGSizeZero;
+    }
+    return %orig;
+}
+%end
+
+// Cells are reused — reset hidden state on every model assignment.
+%hook IGBloksFeedCell
+- (void)setBloksFeedUnitModel:(id)model {
+    %orig;
+    if (![SCIUtils getBoolPref:@"hide_meta_ai"]) {
+        self.hidden = NO;
+        return;
+    }
+    BOOL match = sci_objContainsMetaAIMarker(model);
+    self.hidden = match;
+    self.contentView.hidden = match;
 }
 %end
 

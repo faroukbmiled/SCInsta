@@ -1,6 +1,7 @@
 #import "Utils.h"
 #import "PhotoAlbum.h"
 #import "Settings/TweakSettings.h"
+#import "UI/SCIPopupChrome.h"
 
 @implementation SCIUtils
 
@@ -96,13 +97,8 @@ static NSDictionary *sciRegisteredDefaultsRef = nil;
     [topVC presentViewController:acVC animated:true completion:nil];
 }
 + (void)showSettingsVC:(UIWindow *)window {
-    UIViewController *rootController = [window rootViewController];
-    SCISettingsViewController *settingsViewController = [SCISettingsViewController new];
-    UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:settingsViewController];
-    if ([SCIUtils getBoolPref:@"settings_pause_playback"])
-        navigationController.modalPresentationStyle = UIModalPresentationFullScreen;
-
-    [rootController presentViewController:navigationController animated:YES completion:nil];
+    [SCIPopupChrome presentVC:[SCISettingsViewController new]
+                          from:[window rootViewController]];
 }
 
 // Open settings at a named top-level entry. Entry becomes the nav root with
@@ -135,11 +131,7 @@ static NSDictionary *sciRegisteredDefaultsRef = nil;
         navRoot = [SCISettingsViewController new];
     }
 
-    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:navRoot];
-    if ([SCIUtils getBoolPref:@"settings_pause_playback"]) {
-        nav.modalPresentationStyle = UIModalPresentationFullScreen;
-    }
-    [rootController presentViewController:nav animated:YES completion:nil];
+    [SCIPopupChrome presentVC:navRoot from:rootController];
 }
 
 // Colours
@@ -231,24 +223,12 @@ static UIColor *SCIDynIGColor(CGFloat lr, CGFloat lg, CGFloat lb, CGFloat dr, CG
     return error;
 }
 
-+ (JGProgressHUD *)showErrorHUDWithDescription:(NSString *)errorDesc {
-    return [self showErrorHUDWithDescription:errorDesc dismissAfterDelay:4.0];
++ (void)showErrorHUDWithDescription:(NSString *)errorDesc {
+    [self showErrorHUDWithDescription:errorDesc dismissAfterDelay:4.0];
 }
-+ (JGProgressHUD *)showErrorHUDWithDescription:(NSString *)errorDesc dismissAfterDelay:(CGFloat)dismissDelay {
-    JGProgressHUD *hud = [[JGProgressHUD alloc] init];
-    hud.textLabel.text = errorDesc;
-    hud.indicatorView = [[JGProgressHUDErrorIndicatorView alloc] init];
-
-    UIView *hudView = topMostController().view;
-    if (!hudView) hudView = [UIApplication sharedApplication].keyWindow;
-    if (hudView) {
-        [hud showInView:hudView];
-        [hud dismissAfterDelay:dismissDelay];
-    } else {
-        NSLog(@"[RyukGram] No valid view for error HUD: %@", errorDesc);
-    }
-
-    return hud;
++ (void)showErrorHUDWithDescription:(NSString *)errorDesc dismissAfterDelay:(CGFloat)dismissDelay {
+    (void)dismissDelay;
+    [[SCINotificationCenter shared] notifyError:SCI_NOTIF_ACTION_ERROR title:errorDesc message:nil];
 }
 
 // Media
@@ -466,31 +446,55 @@ static id sciFieldCacheValue(id obj, NSString *key) {
     [topMostController() presentViewController:alert animated:YES completion:nil];
 };
 
-// Toasts
+// Toasts — routes through SCINotificationCenter; IG-native presenter still
+// reachable via showIGNativeToastForDuration: for ig_native overrides.
 + (void)showToastForDuration:(double)duration title:(NSString *)title {
     [SCIUtils showToastForDuration:duration title:title subtitle:nil];
 }
 + (void)showToastForDuration:(double)duration title:(NSString *)title subtitle:(NSString *)subtitle {
-    // Root VC
-    Class rootVCClass = NSClassFromString(@"IGRootViewController");
+    [[SCINotificationCenter shared] notifyAction:SCI_NOTIF_GENERIC
+                                            title:title
+                                         subtitle:subtitle
+                                             icon:nil
+                                             tone:SCINotificationToneInfo
+                                         duration:duration];
+}
 
-    UIViewController *topMostVC = topMostController();
-    if (![topMostVC isKindOfClass:rootVCClass]) return;
+// Find IGRootViewController in any connected window. Topmost VC is rarely
+// IGRoot itself (it's usually a child / presented VC), so we walk down.
+static IGRootViewController *sciFindIGRootVC(void) {
+    Class rootCls = NSClassFromString(@"IGRootViewController");
+    if (!rootCls) return nil;
+    NSMutableArray<UIViewController *> *queue = [NSMutableArray new];
+    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) continue;
+        for (UIWindow *w in ((UIWindowScene *)scene).windows) {
+            if (w.rootViewController) [queue addObject:w.rootViewController];
+        }
+    }
+    while (queue.count) {
+        UIViewController *vc = queue.firstObject;
+        [queue removeObjectAtIndex:0];
+        if ([vc isKindOfClass:rootCls]) return (IGRootViewController *)vc;
+        if (vc.presentedViewController) [queue addObject:vc.presentedViewController];
+        for (UIViewController *child in vc.childViewControllers) [queue addObject:child];
+    }
+    return nil;
+}
 
-    IGRootViewController *rootVC = (IGRootViewController *)topMostVC;
++ (void)showIGNativeToastForDuration:(double)duration title:(NSString *)title subtitle:(NSString *)subtitle {
+    IGRootViewController *rootVC = sciFindIGRootVC();
+    if (!rootVC) return;
 
-    // Presenter
     IGActionableConfirmationToastPresenter *toastPresenter = [rootVC toastPresenter];
     if (toastPresenter == nil) return;
 
-    // View Model
     Class modelClass = NSClassFromString(@"IGActionableConfirmationToastViewModel");
+    if (!modelClass) return;
     IGActionableConfirmationToastViewModel *model = [modelClass new];
-    
     [model setValue:title forKey:@"text_annotatedTitleText"];
     [model setValue:subtitle forKey:@"text_annotatedSubtitleText"];
 
-    // Show new toast, after clearing existing one
     [toastPresenter hideAlert];
     [toastPresenter showAlertWithViewModel:model isAnimated:true animationDuration:duration presentationPriority:0 tapActionBlock:nil presentedHandler:nil dismissedHandler:nil];
 }

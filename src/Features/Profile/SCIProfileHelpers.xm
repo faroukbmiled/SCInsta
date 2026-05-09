@@ -342,12 +342,12 @@ static SCIDownloadDelegate *sciActivePictureDelegate = nil;
             [SCIUtils showErrorHUDWithDescription:SCILocalized(@"Picture not found")];
             return;
         }
-        [SCIMediaViewer showWithVideoURL:nil photoURL:target caption:caption];
+        SCIMediaViewerItem *item = [SCIMediaViewerItem itemWithVideoURL:nil
+                                                                photoURL:target
+                                                                 caption:caption];
+        item.metadata = sciProfileGalleryMetadata(user);
+        [SCIMediaViewer showItem:item];
     }];
-
-    // If we have a cached URL, open it immediately so the viewer is responsive
-    // while the HD fetch is in flight. The HD completion will overwrite.
-    // Disabled for now — flicker is worse than waiting; keep simple.
 }
 
 // Build gallery metadata for a profile picture save: source = profile, with

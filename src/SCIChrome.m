@@ -2,6 +2,14 @@
 #import "Utils.h"
 #import "SCIPrefObserver.h"
 #import "UI/SCIIcon.h"
+#import <objc/runtime.h>
+
+static char kSCIChromeOwnedSecureFieldKey;
+
+BOOL SCIChromeCanvasOwnsSecureField(UITextField *field) {
+    if (!field) return NO;
+    return objc_getAssociatedObject(field, &kSCIChromeOwnedSecureFieldKey) != nil;
+}
 
 static void sciPinEdges(UIView *view, UIView *host) {
 	[NSLayoutConstraint activateConstraints:@[
@@ -61,6 +69,8 @@ static UIView *sciFindCanvasDeep(UIView *root, NSInteger depth) {
 		self.translatesAutoresizingMaskIntoConstraints = NO;
 
 		_secureField = [UITextField new];
+		// Tag so the Instants screenshot bypass leaves our own redaction alone.
+		objc_setAssociatedObject(_secureField, &kSCIChromeOwnedSecureFieldKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 		_secureField.userInteractionEnabled = NO;
 		_secureField.autocorrectionType = UITextAutocorrectionTypeNo;
 		_secureField.spellCheckingType = UITextSpellCheckingTypeNo;

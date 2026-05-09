@@ -105,7 +105,8 @@ static UIMenu *sciBuildThreadActionsMenu(UIView *anchor, NSString *threadId, UIW
                 UIViewController *nearestVC = [SCIUtils nearestViewControllerForView:anchor];
                 if (dmSeenToggleEnabled && [nearestVC isKindOfClass:%c(IGDirectThreadViewController)])
                     [(IGDirectThreadViewController *)nearestVC markLastMessageAsSeen];
-                [SCIUtils showToastForDuration:2.0 title:dmSeenToggleEnabled ? SCILocalized(@"Read receipts enabled") : SCILocalized(@"Read receipts disabled")];
+                SCINotifySuccess(SCI_NOTIF_SEEN_DM,
+                                 dmSeenToggleEnabled ? SCILocalized(@"Read receipts enabled") : SCILocalized(@"Read receipts disabled"), nil);
                 sciRefreshNavBarItems(anchor);
             }];
             toggleAction.state = dmSeenToggleEnabled ? UIMenuElementStateOn : UIMenuElementStateOff;
@@ -118,7 +119,7 @@ static UIMenu *sciBuildThreadActionsMenu(UIView *anchor, NSString *threadId, UIW
                 UIViewController *nearestVC = [SCIUtils nearestViewControllerForView:anchor];
                 if ([nearestVC isKindOfClass:%c(IGDirectThreadViewController)])
                     [(IGDirectThreadViewController *)nearestVC markLastMessageAsSeen];
-                [SCIUtils showToastForDuration:2.0 title:SCILocalized(@"Marked messages as seen")];
+                SCINotifySuccess(SCI_NOTIF_SEEN_DM, SCILocalized(@"Marked messages as seen"), nil);
             }];
             [items addObject:markSeen];
         } else {
@@ -130,7 +131,7 @@ static UIMenu *sciBuildThreadActionsMenu(UIView *anchor, NSString *threadId, UIW
                 UIViewController *nearestVC = [SCIUtils nearestViewControllerForView:anchor];
                 if ([nearestVC isKindOfClass:%c(IGDirectThreadViewController)])
                     [(IGDirectThreadViewController *)nearestVC markLastMessageAsSeen];
-                [SCIUtils showToastForDuration:2.0 title:SCILocalized(@"Marked messages as seen")];
+                SCINotifySuccess(SCI_NOTIF_SEEN_DM, SCILocalized(@"Marked messages as seen"), nil);
             }];
             [items addObject:seenAction];
         }
@@ -146,7 +147,8 @@ static UIMenu *sciBuildThreadActionsMenu(UIView *anchor, NSString *threadId, UIW
         if (!threadId) return;
         if (inList) {
             [SCIExcludedThreads removeThreadId:threadId];
-            [SCIUtils showToastForDuration:2.0 title:blockSelected ? SCILocalized(@"Unblocked") : SCILocalized(@"Un-excluded")];
+            SCINotifySuccess(blockSelected ? SCI_NOTIF_BLOCK_TOGGLE : SCI_NOTIF_EXCLUDE_CHAT,
+                             blockSelected ? SCILocalized(@"Unblocked") : SCILocalized(@"Un-excluded"), nil);
             // In block_selected, removing = normal behavior → mark seen
             if (blockSelected) {
                 UIViewController *nearestVC = [SCIUtils nearestViewControllerForView:weakAnchor];
@@ -158,7 +160,8 @@ static UIMenu *sciBuildThreadActionsMenu(UIView *anchor, NSString *threadId, UIW
             NSDictionary *entry = sciEntryFromThreadVC(anchorVC);
             if (!entry) entry = @{ @"threadId": threadId, @"threadName": @"", @"isGroup": @NO, @"users": @[] };
             [SCIExcludedThreads addOrUpdateEntry:entry];
-            [SCIUtils showToastForDuration:2.0 title:blockSelected ? SCILocalized(@"Blocked") : SCILocalized(@"Excluded")];
+            SCINotifySuccess(blockSelected ? SCI_NOTIF_BLOCK_TOGGLE : SCI_NOTIF_EXCLUDE_CHAT,
+                             blockSelected ? SCILocalized(@"Blocked") : SCILocalized(@"Excluded"), nil);
             // In block_all, excluding = normal behavior → mark seen
             if (!blockSelected) {
                 UIViewController *nearestVC = [SCIUtils nearestViewControllerForView:weakAnchor];
@@ -181,8 +184,9 @@ static UIMenu *sciBuildThreadActionsMenu(UIView *anchor, NSString *threadId, UIW
         UIAction *replayAction = [UIAction actionWithTitle:replayTitle image:replayImg identifier:nil
                                                    handler:^(__kindof UIAction *_) {
             dmVisualMsgsViewedButtonEnabled = !dmVisualMsgsViewedButtonEnabled;
-            [SCIUtils showToastForDuration:2.0 title:dmVisualMsgsViewedButtonEnabled
-                ? SCILocalized(@"Visual messages will expire") : SCILocalized(@"Unlimited replay enabled")];
+            SCINotifySuccess(SCI_NOTIF_SEEN_DM,
+                             dmVisualMsgsViewedButtonEnabled ? SCILocalized(@"Visual messages will expire") : SCILocalized(@"Unlimited replay enabled"),
+                             nil);
             sciRefreshNavBarItems(anchor);
         }];
         replayAction.state = dmVisualMsgsViewedButtonEnabled ? UIMenuElementStateOff : UIMenuElementStateOn;
@@ -252,7 +256,7 @@ static NSDictionary *sciEntryFromThreadVC(UIViewController *vc) {
     __weak typeof(self) weakSelf = self;
     [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Add") style:UIAlertActionStyleDefault handler:^(UIAlertAction *_) {
         [SCIExcludedThreads addOrUpdateEntry:entry];
-        [SCIUtils showToastForDuration:2.0 title:SCILocalized(@"Added to block list")];
+        SCINotifySuccess(SCI_NOTIF_BLOCK_TOGGLE, SCILocalized(@"Added to block list"), nil);
         sciRefreshNavBarItems(weakSelf);
     }]];
     [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
@@ -273,7 +277,7 @@ static NSDictionary *sciEntryFromThreadVC(UIViewController *vc) {
     __weak typeof(self) weakSelf = self;
     [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Remove") style:UIAlertActionStyleDestructive handler:^(UIAlertAction *_) {
         [SCIExcludedThreads removeThreadId:tid];
-        [SCIUtils showToastForDuration:2.0 title:SCILocalized(@"Removed")];
+        SCINotifySuccess(SCI_NOTIF_EXCLUDE_CHAT, SCILocalized(@"Removed"), nil);
         sciRefreshNavBarItems(weakSelf);
     }]];
     [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
@@ -372,15 +376,15 @@ static NSDictionary *sciEntryFromThreadVC(UIViewController *vc) {
             UIViewController *nearestVC = [SCIUtils nearestViewControllerForView:self];
             if ([nearestVC isKindOfClass:%c(IGDirectThreadViewController)])
                 [(IGDirectThreadViewController *)nearestVC markLastMessageAsSeen];
-            [SCIUtils showToastForDuration:2.5 title:SCILocalized(@"Read receipts enabled")];
+            SCINotifySuccess(SCI_NOTIF_SEEN_DM, SCILocalized(@"Read receipts enabled"), nil);
         } else {
-            [SCIUtils showToastForDuration:2.5 title:SCILocalized(@"Read receipts disabled")];
+            SCINotifySuccess(SCI_NOTIF_SEEN_DM, SCILocalized(@"Read receipts disabled"), nil);
         }
     } else {
         UIViewController *nearestVC = [SCIUtils nearestViewControllerForView:self];
         if ([nearestVC isKindOfClass:%c(IGDirectThreadViewController)]) {
             [(IGDirectThreadViewController *)nearestVC markLastMessageAsSeen];
-            [SCIUtils showToastForDuration:2.5 title:SCILocalized(@"Marked messages as seen")];
+            SCINotifySuccess(SCI_NOTIF_SEEN_DM, SCILocalized(@"Marked messages as seen"), nil);
         }
     }
     // Rebuild menu so toggle text updates
@@ -399,8 +403,9 @@ static NSDictionary *sciEntryFromThreadVC(UIViewController *vc) {
     UIColor *tint = dmVisualMsgsViewedButtonEnabled ? UIColor.labelColor : SCIUtils.SCIColor_Primary;
     if (inner) { [inner setIconResource:sym pointSize:18]; inner.iconTint = tint; }
     else if (barItem) { barItem.image = [SCIIcon imageNamed:sym]; barItem.tintColor = tint; }
-    [SCIUtils showToastForDuration:2.0 title:dmVisualMsgsViewedButtonEnabled
-        ? SCILocalized(@"Visual messages will expire") : SCILocalized(@"Unlimited replay enabled")];
+    SCINotifySuccess(SCI_NOTIF_SEEN_DM,
+                     dmVisualMsgsViewedButtonEnabled ? SCILocalized(@"Visual messages will expire") : SCILocalized(@"Unlimited replay enabled"),
+                     nil);
 }
 
 %end

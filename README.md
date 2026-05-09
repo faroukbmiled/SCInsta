@@ -27,6 +27,7 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 - Copy comment text from long-press menu **\***
 - Download / copy GIF comments **\***
 - Custom GIF in comments — long-press the GIF button to paste any Giphy link **\***
+- Download audio from the reels audio page **\***
 - Profile copy button **\***
 - Replace domain in shared links for embeds (Discord, Telegram, etc.) **\***
 - Strip tracking params from shared links **\***
@@ -83,6 +84,7 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 - Hide repost button in reels **\***
 - Hide friends avatars on the reels Friends tab **\***
 - Hide social context overlay on reels (reposted/commented bubbles) **\***
+- Hide "Made with Edits" / "Open in Edits" promo pills on reels **\***
 - Hide reels blend button
 - Disable scrolling reels
 - Prevent doom scrolling (limit maximum viewable reels)
@@ -143,6 +145,7 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 
 ### Stories and messages
 - Keep deleted messages **\***
+- Deleted messages log — dedicated UI for unsent texts, photos, videos, voice (inline play + scrub), GIFs, stickers and shared posts; per-sender groups, search, multi-kind filter, bulk select with Save / Share / Delete **\***
 - Hide trailing action buttons on preserved messages
 - Warn before pull-to-refresh clears preserved messages **\***
 - Manually mark messages as seen (button or toggle mode) **\***
@@ -188,9 +191,15 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 - Download disappearing DM media **\***
 - Upload audio as voice message with built-in trim editor **\***
 - Disable instants creation
-- Send Instants from your photo album — gallery button on the Instants camera with a built-in square cropper, posts through IG's native capture flow
+- Send Instants from your photo album — gallery button on the Instants camera with a built-in square cropper, posts through IG's native capture flow; pick from the in-app gallery or Photos library when the gallery is enabled
+- Allow screenshots on Instants — bypasses the screenshot/screen-record block, scoped to the Instants viewer only
+- Instants action button — Expand / Save (Photos / Gallery) / Share / Save all, fully configurable through the standard action-menu config
+- Confirm Instants emoji reaction — optional confirmation before a quick-reaction sends
+- Save to Gallery from the expanded media viewer — share button surfaces a Save / Share menu when the gallery is enabled, with username / source attribution carried through
 
-### Navigation
+### Interface **\***
+- Tab bar shortcuts — Home shortcut button + Action button icon picker, grouped at the top of the page
+- Notifications — universal in-app pill (Minimal / Colorful / Glow / Island), per-action routing (custom pill / IG-native / off), top or bottom position, master kill switch, swipe-to-dismiss, multi-pill stacking
 - Modify tab bar icon order
 - Modify swiping between tabs
 - Hiding tabs
@@ -203,6 +212,7 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
   - Hide tab bar sub-toggle — floating settings gear replaces it **\***
 - Launch tab — pick which tab the app opens to **\***
 - Home shortcut button — extra button on the home top bar with a configurable multi-action menu **\***
+- Experimental flags
 
 ### Confirm actions
 - Confirm like: Posts/Stories

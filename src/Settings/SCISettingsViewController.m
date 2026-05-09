@@ -1,4 +1,5 @@
 #import "SCISettingsViewController.h"
+#import "../UI/SCIPopupChrome.h"
 #import "SCISearchBarStyler.h"
 #import "../Features/General/SCICacheManager.h"
 #import "../SCIImageCache.h"
@@ -63,13 +64,14 @@ static char rowStaticRef[] = "row";
     [super viewDidLoad];
 
     self.navigationController.navigationBar.prefersLargeTitles = NO;
-    self.view.backgroundColor = UIColor.systemBackgroundColor;
+    self.view.backgroundColor = [SCIPopupChrome backgroundColor];
 
     self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleInsetGrouped];
     self.tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     self.tableView.dataSource = self;
     self.tableView.contentInset = UIEdgeInsetsMake(self.reduceMargin ? -30 : -10, 0, 0, 0);
     self.tableView.delegate = self;
+    self.tableView.backgroundColor = self.view.backgroundColor;
 
     [self.view addSubview:self.tableView];
 
@@ -551,7 +553,10 @@ static char rowStaticRef[] = "row";
     [[NSUserDefaults standardUserDefaults] setValue:properties[@"value"] forKey:properties[@"defaultsKey"]];
 
     [self reloadCellForView:command.sender animated:YES];
+    // Preserve scroll offset — reloadData otherwise resets it.
+    CGPoint sciOffset = self.tableView.contentOffset;
     [self.tableView reloadData];
+    self.tableView.contentOffset = sciOffset;
 
     NSString *pickerKey = properties[@"presentColorPickerForKey"];
     if (pickerKey.length) {

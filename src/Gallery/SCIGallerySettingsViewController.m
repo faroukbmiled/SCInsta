@@ -4,6 +4,7 @@
 #import "SCIGalleryCoreDataStack.h"
 #import "../Utils.h"
 #import "SCIGalleryShim.h"
+#import "../UI/SCIPopupChrome.h"
 
 static NSString * const kFavoritesAtTopKey = @"show_favorites_at_top";
 
@@ -45,8 +46,8 @@ typedef NS_ENUM(NSInteger, SCIGallerySettingsSection) {
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.title = SCILocalized(@"Gallery Settings");
-    self.view.backgroundColor = [UIColor systemGroupedBackgroundColor];
-    self.tableView.backgroundColor = [UIColor systemGroupedBackgroundColor];
+    self.view.backgroundColor = [SCIPopupChrome backgroundColor];
+    self.tableView.backgroundColor = self.view.backgroundColor;
     [self.tableView registerClass:UITableViewCell.class forCellReuseIdentifier:@"value"];
     [self.tableView registerClass:UITableViewCell.class forCellReuseIdentifier:@"toggle"];
     [self.tableView registerClass:UITableViewCell.class forCellReuseIdentifier:@"action"];

@@ -82,6 +82,7 @@ static id new_commentCtxMenu(id self, SEL _cmd, id cv, id indexPath, CGPoint poi
                                             identifier:nil
                                                handler:^(__kindof UIAction *_) {
                 [UIPasteboard generalPasteboard].string = text;
+                SCINotifySuccess(SCI_NOTIF_COPY_COMMENT, SCILocalized(@"Comment copied"), nil);
             }]];
         }
 
@@ -123,7 +124,7 @@ static id new_commentCtxMenu(id self, SEL _cmd, id cv, id indexPath, CGPoint poi
                                                handler:^(__kindof UIAction *_) {
                 if (!pageURL.length) return;
                 [UIPasteboard generalPasteboard].string = pageURL;
-                [SCIUtils showToastForDuration:1.5 title:SCILocalized(@"GIF link copied") subtitle:nil];
+                SCINotifySuccess(SCI_NOTIF_COPY_GIF, SCILocalized(@"GIF link copied"), nil);
             }];
             [extra addObject:[UIMenu menuWithTitle:@"GIF"
                                              image:[SCIIcon imageNamed:@"photo"]

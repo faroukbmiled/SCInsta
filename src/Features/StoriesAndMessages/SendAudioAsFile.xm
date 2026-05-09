@@ -82,21 +82,21 @@ static void sciSendAudioFile(NSURL *audioURL, UIViewController *threadVC) {
         if ([threadVC respondsToSelector:vmSel]) {
             typedef void (*Fn)(id, SEL, id, id, double, NSInteger, id);
             ((Fn)objc_msgSend)(threadVC, vmSel, audioURL, waveform, duration, (NSInteger)2, nil);
-            [SCIUtils showToastForDuration:1.5 title:SCILocalized(@"Audio sent")];
+            SCINotifySuccess(SCI_NOTIF_VOICE_SEND, SCILocalized(@"Audio sent"), nil);
             return;
         }
         SEL s7 = @selector(voiceRecordViewController:didRecordAudioClipWithURL:waveform:duration:entryPoint:aiVoiceEffectApplied:sendButtonTypeTapped:);
         if ([threadVC respondsToSelector:s7]) {
             typedef void (*Fn)(id, SEL, id, id, id, CGFloat, NSInteger, id, id);
             ((Fn)objc_msgSend)(threadVC, s7, voiceRecordVC, audioURL, waveform, (CGFloat)duration, (NSInteger)2, nil, nil);
-            [SCIUtils showToastForDuration:1.5 title:SCILocalized(@"Audio sent")];
+            SCINotifySuccess(SCI_NOTIF_VOICE_SEND, SCILocalized(@"Audio sent"), nil);
             return;
         }
         SEL s5 = @selector(voiceRecordViewController:didRecordAudioClipWithURL:waveform:duration:entryPoint:);
         if ([threadVC respondsToSelector:s5]) {
             typedef void (*Fn)(id, SEL, id, id, id, CGFloat, NSInteger);
             ((Fn)objc_msgSend)(threadVC, s5, voiceRecordVC, audioURL, waveform, (CGFloat)duration, (NSInteger)2);
-            [SCIUtils showToastForDuration:1.5 title:SCILocalized(@"Audio sent")];
+            SCINotifySuccess(SCI_NOTIF_VOICE_SEND, SCILocalized(@"Audio sent"), nil);
             return;
         }
         [SCIUtils showErrorHUDWithDescription:SCILocalized(@"No voice send method found")];
@@ -208,7 +208,7 @@ static void sciExportAndSend(NSURL *url, UIViewController *threadVC, BOOL isVide
         return;
     }
 
-    [SCIUtils showToastForDuration:1.5 title:isVideo ? SCILocalized(@"Extracting audio...") : SCILocalized(@"Converting...")];
+    SCINotifyInfo(SCI_NOTIF_AUDIO_EXTRACT, isVideo ? SCILocalized(@"Extracting audio...") : SCILocalized(@"Converting..."), nil);
 
     // AVFoundation first, FFmpeg as fallback.
     sciAVFoundationConvertAndSend(url, threadVC, trimRange, ^(NSError *avError) {
@@ -461,7 +461,7 @@ static void sciFFmpegPreConvert(NSURL *url, UIViewController *threadVC) {
 }
 
 static void sciPrepareAndShowTrim(NSURL *url, UIViewController *threadVC) {
-    [SCIUtils showToastForDuration:1.5 title:SCILocalized(@"Converting...")];
+    SCINotifyInfo(SCI_NOTIF_AUDIO_EXTRACT, SCILocalized(@"Converting..."), nil);
 
     AVAsset *asset = [AVAsset assetWithURL:url];
     double dur = CMTimeGetSeconds(asset.duration);

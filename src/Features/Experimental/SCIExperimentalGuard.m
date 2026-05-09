@@ -51,9 +51,9 @@ static BOOL gDidReset = NO;
         gDidReset = YES;
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{
-            [SCIUtils showToastForDuration:5.0
-                                     title:SCILocalized(@"Experimental flags reset")
-                                  subtitle:SCILocalized(@"Disabled after repeated crashes.")];
+            SCINotifyWarning(SCI_NOTIF_EXPERIMENTAL_WARN,
+                             SCILocalized(@"Experimental flags reset"),
+                             SCILocalized(@"Disabled after repeated crashes."));
         });
         return;
     }

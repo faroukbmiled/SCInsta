@@ -39,7 +39,7 @@ static void sciSSPinToggle(NSString *tid) {
         [m insertObject:tid atIndex:0];
     }
     sciSSPinSave(m);
-    [SCIUtils showToastForDuration:1.2 title:wasPinned ? SCILocalized(@"Recipient unpinned") : SCILocalized(@"Recipient pinned")];
+    SCINotifySuccess(SCI_NOTIF_PIN_THREAD, wasPinned ? SCILocalized(@"Recipient unpinned") : SCILocalized(@"Recipient pinned"), nil);
 }
 
 static NSString *sciSSPinThreadIDFromVM(id vm) {
@@ -133,7 +133,7 @@ static char kSSPinHandlerKey;
     @try { model = [adapter objectAtSection:ip.section]; } @catch (__unused id e) {}
     NSString *tid = sciSSPinThreadIDFromVM(model);
     if (!tid.length) {
-        [SCIUtils showToastForDuration:1.5 title:SCILocalized(@"Couldn't resolve recipient id")];
+        SCINotifyError(SCI_NOTIF_VALIDATION_ERROR, SCILocalized(@"Couldn't resolve recipient id"), nil);
         return;
     }
 

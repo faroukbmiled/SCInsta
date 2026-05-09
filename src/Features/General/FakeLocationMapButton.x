@@ -94,6 +94,9 @@ static void sciOpenPickerForNewPreset(void) {
             [presets addObject:@{@"name": n ?: @"", @"lat": @(lat), @"lon": @(lon)}];
             [u setObject:presets forKey:@"fake_location_presets"];
             sciRefreshActiveMapButton();
+            SCINotifySuccess(SCI_NOTIF_SETTINGS_ACTION,
+                             [NSString stringWithFormat:SCILocalized(@"Saved preset \"%@\""), n ?: @""],
+                             nil);
         }]];
         [sciTopMost() presentViewController:alert animated:YES completion:nil];
     };

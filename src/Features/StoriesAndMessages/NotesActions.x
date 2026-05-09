@@ -199,7 +199,7 @@ static void hook_present(UIViewController *self, SEL _cmd, UIViewController *vc,
         @try { text = [note valueForKey:@"text"]; } @catch (__unused id e) {}
         if (text.length) {
             [[UIPasteboard generalPasteboard] setString:text];
-            [SCIUtils showToastForDuration:1.5 title:SCILocalized(@"Note text copied")];
+            SCINotifySuccess(SCI_NOTIF_COPY_NOTE, SCILocalized(@"Note text copied"), nil);
         }
     }
 
@@ -255,7 +255,7 @@ static void hook_present(UIViewController *self, SEL _cmd, UIViewController *vc,
             [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Copy text")
                 style:UIAlertActionStyleDefault handler:^(UIAlertAction *_) {
                 [[UIPasteboard generalPasteboard] setString:text];
-                [SCIUtils showToastForDuration:1.5 title:SCILocalized(@"Note text copied")];
+                SCINotifySuccess(SCI_NOTIF_COPY_NOTE, SCILocalized(@"Note text copied"), nil);
             }]];
         }
 

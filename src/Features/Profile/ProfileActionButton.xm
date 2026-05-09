@@ -35,11 +35,11 @@ static id sciSafeValue(id obj, NSString *key) {
 
 static void sciCopyAndToast(NSString *value, NSString *kind) {
     if (!value.length) {
-        [SCIUtils showToastForDuration:1.6 title:SCILocalized(@"Nothing to copy")];
+        SCINotifyWarning(SCI_NOTIF_VALIDATION_ERROR, SCILocalized(@"Nothing to copy"), nil);
         return;
     }
     UIPasteboard.generalPasteboard.string = value;
-    [SCIUtils showToastForDuration:1.4 title:[NSString stringWithFormat:SCILocalized(@"Copied %@"), kind]];
+    SCINotifySuccess(SCI_NOTIF_COPY_PROFILE, [NSString stringWithFormat:SCILocalized(@"Copied %@"), kind], nil);
 }
 
 // Build a multi-line "Username: …\nName: …\n…" payload for SCIAID_CopyAll.
@@ -216,6 +216,11 @@ static void sciProfileExecuteDefaultTap(id user, SCIActionMenuConfig *cfg) {
 
 @end
 
+// Idempotence guard — repeat configure calls during a menu interaction
+// must not reassign `button.menu`, which collapses any open submenu.
+static const void *kSCIProfileActionWireKey = &kSCIProfileActionWireKey;
+static NSInteger sciProfileActionConfigVersion = 0;
+
 static void sciConfigureProfileActionButton(SCIChromeButton *button) {
     if (!button) return;
     id user = [SCIProfileHelpers userForView:button];
@@ -227,6 +232,10 @@ static void sciConfigureProfileActionButton(SCIChromeButton *button) {
 
     SCIActionMenuConfig *cfg = [SCIActionMenuConfig configForSource:SCIActionSourceProfile];
     NSString *tap = cfg.defaultTap.length ? cfg.defaultTap : @"menu";
+    NSString *wireKey = [NSString stringWithFormat:@"%p|%@|%ld",
+                                                     user, tap, (long)sciProfileActionConfigVersion];
+    NSString *prevWire = objc_getAssociatedObject(button, kSCIProfileActionWireKey);
+    if ([prevWire isEqualToString:wireKey]) return;
 
     [button removeTarget:nil action:NULL forControlEvents:UIControlEventAllEvents];
     button.menu = sciProfileBuildMenu(user);
@@ -239,6 +248,8 @@ static void sciConfigureProfileActionButton(SCIChromeButton *button) {
                    action:@selector(tap:)
          forControlEvents:UIControlEventTouchUpInside];
     }
+
+    objc_setAssociatedObject(button, kSCIProfileActionWireKey, wireKey, OBJC_ASSOCIATION_COPY_NONATOMIC);
 }
 
 static SCIChromeButton *sciBuildProfileActionButton(void) {
@@ -341,4 +352,12 @@ static void hooked_configureHeaderView(id self, SEL _cmd, id titleView, id leftB
     SEL sel = @selector(configureWithTitleView:leftButtons:rightButtons:titleIsCentered:);
     if (![cls instancesRespondToSelector:sel]) return;
     MSHookMessageEx(cls, sel, (IMP)hooked_configureHeaderView, (IMP *)&orig_configureHeaderView);
+
+    [[NSNotificationCenter defaultCenter] addObserverForName:SCIActionMenuConfigDidChangeNotification
+                                                      object:nil
+                                                       queue:[NSOperationQueue mainQueue]
+                                                  usingBlock:^(NSNotification *n) {
+        NSNumber *src = n.userInfo[@"source"];
+        if (src.integerValue == SCIActionSourceProfile) sciProfileActionConfigVersion++;
+    }];
 }

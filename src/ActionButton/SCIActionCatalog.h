@@ -12,6 +12,7 @@ typedef NS_ENUM(NSInteger, SCIActionSource) {
     SCIActionSourceStories,
     SCIActionSourceDM,
     SCIActionSourceProfile,
+    SCIActionSourceInstants,
     SCIActionSourceCount
 };
 

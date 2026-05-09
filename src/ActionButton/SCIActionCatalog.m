@@ -125,6 +125,7 @@ static NSDictionary<NSNumber *, NSArray *> *gSCIActionCatalogCache = nil;
         case SCIActionSourceStories: return @"stories";
         case SCIActionSourceDM: return @"dm";
         case SCIActionSourceProfile: return @"profile";
+        case SCIActionSourceInstants: return @"instants";
         case SCIActionSourceCount: break;
     }
     return @"unknown";
@@ -137,6 +138,7 @@ static NSDictionary<NSNumber *, NSArray *> *gSCIActionCatalogCache = nil;
         case SCIActionSourceStories: return SCILocalized(@"Stories");
         case SCIActionSourceDM: return SCILocalized(@"DM disappearing media");
         case SCIActionSourceProfile: return SCILocalized(@"Profile");
+        case SCIActionSourceInstants: return SCILocalized(@"Instants");
         case SCIActionSourceCount: break;
     }
     return @"";
@@ -153,6 +155,7 @@ static NSDictionary<NSNumber *, NSArray *> *gSCIActionCatalogCache = nil;
         case SCIActionSourceStories: return @"stories_action_default";
         case SCIActionSourceDM:      return @"dm_visual_action_default";
         case SCIActionSourceProfile: return @"action_button_profile_default_action";
+        case SCIActionSourceInstants: return nil;  // new source, no legacy migration
         case SCIActionSourceCount: break;
     }
     return nil;
@@ -267,12 +270,24 @@ static NSDictionary<NSNumber *, NSArray *> *gSCIActionCatalogCache = nil;
             d(SCIAID_ProfileInfoFollowing,  SCILocalized(@"Following"),              @"person.crop.circle.badge.plus",      NO),
         ];
 
+        // Instants — reuses the standard download/share AIDs with Instants-
+        // specific titles ("Save to Photos" rather than "Download to Photos").
+        NSArray *instants = @[
+            d(SCIAID_Expand,              SCILocalized(@"Expand"),               @"arrow.up.left.and.arrow.down.right", YES),
+            d(SCIAID_DownloadSave,        SCILocalized(@"Save to Photos"),       @"square.and.arrow.down",              YES),
+         dOff(SCIAID_DownloadGallery,     SCILocalized(@"Save to Gallery"),      @"photo.on.rectangle.angled",          YES),
+            d(SCIAID_DownloadShare,       SCILocalized(@"Share"),                @"square.and.arrow.up",                YES),
+            d(SCIAID_BulkDownloadSave,    SCILocalized(@"Save all to Photos"),   @"square.and.arrow.down.on.square",    NO),
+         dOff(SCIAID_BulkDownloadGallery, SCILocalized(@"Save all to Gallery"),  @"rectangle.stack",                    NO),
+        ];
+
         gSCIActionCatalogCache = @{
             @(SCIActionSourceFeed):     feed,
             @(SCIActionSourceReels):    reels,
             @(SCIActionSourceStories):  stories,
             @(SCIActionSourceDM):       dm,
             @(SCIActionSourceProfile):  profile,
+            @(SCIActionSourceInstants): instants,
         };
     }
     return gSCIActionCatalogCache[@(source)] ?: @[];
@@ -366,6 +381,16 @@ static NSDictionary<NSNumber *, NSArray *> *gSCIActionCatalogCache = nil;
                 section(@"info",
                         SCILocalized(@"Info"), @"info.circle", NO,
                         @[SCIAID_ProfileInfoPrivacy, SCIAID_ProfileInfoFollowers, SCIAID_ProfileInfoFollowing]),
+            ];
+
+        case SCIActionSourceInstants:
+            return @[
+                section(@"current",
+                        SCILocalized(@"Current instant"), @"sparkles", NO,
+                        @[SCIAID_Expand, SCIAID_DownloadSave, SCIAID_DownloadGallery, SCIAID_DownloadShare]),
+                section(@"all",
+                        SCILocalized(@"All loaded instants"), @"square.stack.3d.down.right", YES,
+                        @[SCIAID_BulkDownloadSave, SCIAID_BulkDownloadGallery]),
             ];
 
         case SCIActionSourceCount: break;

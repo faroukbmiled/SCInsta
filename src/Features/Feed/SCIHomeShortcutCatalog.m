@@ -3,10 +3,14 @@
 #import "../../Gallery/SCIGalleryViewController.h"
 #import "../General/SCIChangelog.h"
 #import "../ProfileAnalyzer/SCIProfileAnalyzerViewController.h"
+#import "../DeletedMessages/SCIDeletedMessagesViewController.h"
+#import "../../UI/SCIPopupChrome.h"
 
 NSString *const kSCIHomeShortcutActionsPrefKey = @"home_shortcut_actions";
 NSString *const kSCIHomeShortcutEnabledPrefKey = @"home_shortcut_enabled";
 NSString *const kSCIHomeShortcutIconPrefKey    = @"home_shortcut_icon";
+
+NSNotificationName const SCIHomeShortcutConfigDidChangeNotification = @"SCIHomeShortcutConfigDidChangeNotification";
 
 @interface SCIHomeShortcutAction ()
 - (instancetype)initWithID:(NSString *)aid title:(NSString *)title symbol:(NSString *)sym;
@@ -36,6 +40,7 @@ NSString *const kSCIHomeShortcutIconPrefKey    = @"home_shortcut_icon";
             make(@"gallery",          SCILocalized(@"Gallery"),          @"photo.on.rectangle.angled"),
             make(@"settings",         SCILocalized(@"Settings"),         @"gearshape"),
             make(@"profile_analyzer", SCILocalized(@"Profile Analyzer"), @"person.fill.viewfinder"),
+            make(@"deleted_messages", SCILocalized(@"Deleted messages"), @"tray.full"),
             make(@"changelog",        SCILocalized(@"Changelog"),        @"doc.text"),
         ];
     });
@@ -122,11 +127,12 @@ NSString *const kSCIHomeShortcutIconPrefKey    = @"home_shortcut_icon";
     }
     if ([actionID isEqualToString:@"profile_analyzer"]) {
         UIViewController *top = [SCIUtils nearestViewControllerForView:contextView];
-        if (!top) return;
-        SCIProfileAnalyzerViewController *vc = [SCIProfileAnalyzerViewController new];
-        UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
-        nav.modalPresentationStyle = UIModalPresentationPageSheet;
-        [top presentViewController:nav animated:YES completion:nil];
+        [SCIPopupChrome presentVC:[SCIProfileAnalyzerViewController new] from:top];
+        return;
+    }
+    if ([actionID isEqualToString:@"deleted_messages"]) {
+        UIViewController *top = [SCIUtils nearestViewControllerForView:contextView];
+        [SCIDeletedMessagesViewController presentFromViewController:top];
         return;
     }
     if ([actionID isEqualToString:@"changelog"]) {

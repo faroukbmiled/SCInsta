@@ -264,7 +264,7 @@ void sciDMMarkCurrentAsViewed(UIViewController *dmVC) {
         dmVisualMsgsViewedButtonEnabled = wasEnabled;
     });
 
-    [SCIUtils showToastForDuration:1.5 title:SCILocalized(@"Marked as viewed")];
+    SCINotifySuccess(SCI_NOTIF_SEEN_DM, SCILocalized(@"Marked as viewed"), nil);
 }
 
 // MARK: - Settings shortcut

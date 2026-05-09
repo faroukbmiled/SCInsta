@@ -538,7 +538,9 @@ static void SCIConfigureStoryActionButton(SCIChromeButton *button) {
 		[sender setIconResource:(sciStorySeenToggleEnabled ? @"eye.fill" : @"eye") pointSize:18.0];
 		sender.iconTint = sciStorySeenToggleEnabled ? SCIUtils.SCIColor_Primary : UIColor.whiteColor;
 
-		[SCIUtils showToastForDuration:2.0 title:sciStorySeenToggleEnabled ? SCILocalized(@"Story read receipts enabled") : SCILocalized(@"Story read receipts disabled")];
+		SCINotifySuccess(SCI_NOTIF_SEEN_STORY,
+		                 sciStorySeenToggleEnabled ? SCILocalized(@"Story read receipts enabled") : SCILocalized(@"Story read receipts disabled"),
+		                 nil);
 		return;
 	}
 
@@ -574,14 +576,16 @@ static void SCIConfigureStoryActionButton(SCIChromeButton *button) {
 			UIAction *exclude = [UIAction actionWithTitle:title image:[SCIIcon imageNamed:image] identifier:nil handler:^(__unused UIAction *action) {
 				if (inList) {
 					[SCIExcludedStoryUsers removePK:pk];
-					[SCIUtils showToastForDuration:2.0 title:blockSelected ? SCILocalized(@"Unblocked") : SCILocalized(@"Un-excluded")];
+					SCINotifySuccess(blockSelected ? SCI_NOTIF_BLOCK_TOGGLE : SCI_NOTIF_EXCLUDE_STORY,
+					                 blockSelected ? SCILocalized(@"Unblocked") : SCILocalized(@"Un-excluded"), nil);
 
 					if (blockSelected) {
 						sciTriggerStoryMarkSeen(sciActiveStoryViewerVC);
 					}
 				} else {
 					[SCIExcludedStoryUsers addOrUpdateEntry:@{ @"pk": pk, @"username": username, @"fullName": fullName }];
-					[SCIUtils showToastForDuration:2.0 title:blockSelected ? SCILocalized(@"Blocked") : SCILocalized(@"Excluded")];
+					SCINotifySuccess(blockSelected ? SCI_NOTIF_BLOCK_TOGGLE : SCI_NOTIF_EXCLUDE_STORY,
+					                 blockSelected ? SCILocalized(@"Blocked") : SCILocalized(@"Excluded"), nil);
 
 					if (!blockSelected) {
 						sciTriggerStoryMarkSeen(sciActiveStoryViewerVC);
@@ -689,7 +693,7 @@ static void SCIConfigureStoryActionButton(SCIChromeButton *button) {
 
 		sciSeenBypassActive = NO;
 
-		[SCIUtils showToastForDuration:2.0 title:SCILocalized(@"Marked as seen") subtitle:SCILocalized(@"Will sync when leaving stories")];
+		SCINotifySuccess(SCI_NOTIF_SEEN_STORY, SCILocalized(@"Story marked as seen"), nil);
 
 		if (sender && [SCIUtils getBoolPref:@"advance_on_mark_seen"] && sectionController) {
 			__weak __typeof(self) weakSelf = self;

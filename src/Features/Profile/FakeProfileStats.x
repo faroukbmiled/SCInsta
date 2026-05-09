@@ -62,27 +62,57 @@ static NSString *sciFakeValue(NSString *valueKey) {
 
 // ============ Fake counts — IGStatButton label rewrite ============
 
-static BOOL sciButtonIsOnOwnProfile(UIView *btn) {
-	Class selfCellCls = NSClassFromString(@"IGProfileSimpleAvatarStatsCell");
-	if (!selfCellCls) return NO;
+// IG 428+: ObjC class `IGProfileSimpleAvatarStatsCell` was replaced by Swift
+// `_TtC21IGProfileDetailHeader30IGProfileSimpleAvatarStatsCell`. Swift stored
+// props also dropped the leading underscore on the ivar name.
+static Class sciStatsCellClass(void) {
+	static Class cached;
+	if (cached) return cached;
 
-	UIView *cur = btn;
+	Class c = NSClassFromString(@"IGProfileSimpleAvatarStatsCell");
+	if (!c) c = NSClassFromString(@"_TtC21IGProfileDetailHeader30IGProfileSimpleAvatarStatsCell");
 
-	while (cur && ![cur isKindOfClass:selfCellCls]) {
-		cur = cur.superview;
+	if (!c) {
+		unsigned int n = 0;
+		Class *list = objc_copyClassList(&n);
+		for (unsigned int i = 0; i < n; i++) {
+			const char *nm = class_getName(list[i]);
+			if (nm && strstr(nm, "IGProfileSimpleAvatarStatsCell")) {
+				c = list[i];
+				break;
+			}
+		}
+		free(list);
 	}
 
-	if (!cur) return NO;
+	cached = c;
+	return c;
+}
 
+static BOOL sciCellIsCurrentUser(UIView *cell) {
 	@try {
-		id value = [cur valueForKey:@"isCurrentUser"];
+		id value = [cell valueForKey:@"isCurrentUser"];
 		if (value) return [value boolValue];
 	} @catch (__unused id e) {}
 
-	Ivar iv = class_getInstanceVariable([cur class], "_isCurrentUser");
+	Ivar iv = class_getInstanceVariable([cell class], "_isCurrentUser");
+	if (!iv) iv = class_getInstanceVariable([cell class], "isCurrentUser");
 	if (!iv) return NO;
 
-	return *(BOOL *)((uint8_t *)(__bridge void *)cur + ivar_getOffset(iv));
+	return *(BOOL *)((uint8_t *)(__bridge void *)cell + ivar_getOffset(iv));
+}
+
+static BOOL sciButtonIsOnOwnProfile(UIView *btn) {
+	Class selfCellCls = sciStatsCellClass();
+	if (!selfCellCls) return NO;
+
+	UIView *cur = btn;
+	while (cur && ![cur isKindOfClass:selfCellCls]) {
+		cur = cur.superview;
+	}
+	if (!cur) return NO;
+
+	return sciCellIsCurrentUser(cur);
 }
 
 static NSString *sciFakeTextForName(NSString *name) {
@@ -137,7 +167,7 @@ static void sciApplyFakeToButton(id btn) {
 		} @catch (__unused id e) {}
 	}
 
-	if ([lbl isKindOfClass:[UILabel class]]) {
+	if ([lbl isKindOfClass:[UILabel class]] && ![fake isEqualToString:lbl.text]) {
 		lbl.text = fake;
 	}
 }

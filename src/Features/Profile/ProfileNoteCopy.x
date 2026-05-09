@@ -34,7 +34,7 @@
     if (!text.length) return;
 
     [[UIPasteboard generalPasteboard] setString:text];
-    [SCIUtils showToastForDuration:1.5 title:SCILocalized(@"Note copied")];
+    SCINotifySuccess(SCI_NOTIF_COPY_NOTE, SCILocalized(@"Note copied"), nil);
 }
 
 %end

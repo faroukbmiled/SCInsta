@@ -2,6 +2,9 @@
 #import "../Utils.h"
 #import "../PhotoAlbum.h"
 #import "../SCIImageCache.h"
+#import "../Gallery/SCIGalleryFile.h"
+#import "../Gallery/SCIGallerySaveMetadata.h"
+#import "../UI/Notification/SCINotificationActions.h"
 #import <AVFoundation/AVFoundation.h>
 #import <AVKit/AVKit.h>
 
@@ -103,9 +106,8 @@
 #pragma mark - Single video page
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Apple's AVPlayerViewController owns the entire video chrome here. The
-// container hides its own top + bottom bars while a video page is on screen
-// (see updateChrome) so the two UIs never fight.
+// AVPlayerViewController owns the chrome. Container hides its own bars while a
+// video page is on screen (see updateChrome) so the two don't fight.
 
 @interface _SCIVideoPageVC : UIViewController
 @property (nonatomic, strong) NSURL *videoURL;
@@ -120,7 +122,7 @@
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor blackColor];
 
-    // Audio plays even when the silent switch is on.
+    // Plays through the silent switch.
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback
                                             mode:AVAudioSessionModeMoviePlayback
                                          options:0
@@ -166,13 +168,26 @@
 
 @interface _SCIAudioPageVC : UIViewController
 @property (nonatomic, strong) NSURL *audioURL;
-@property (nonatomic, strong) AVPlayerViewController *playerVC;
 @property (nonatomic, strong) AVPlayer *player;
+@property (nonatomic, strong) id timeObserver;
 @property (nonatomic, strong) UIImageView *glyphView;
 @property (nonatomic, strong) UILabel *titleLabel;
+@property (nonatomic, strong) UIButton *playButton;
+@property (nonatomic, strong) UISlider *slider;
+@property (nonatomic, strong) UILabel *elapsedLabel;
+@property (nonatomic, strong) UILabel *totalLabel;
+@property (nonatomic, assign) BOOL scrubbing;
+@property (nonatomic, assign) BOOL wasPlayingBeforeScrub;
+@property (nonatomic, assign) double durationSeconds;
 @end
 
 @implementation _SCIAudioPageVC
+
++ (NSString *)formatTime:(double)seconds {
+    if (!isfinite(seconds) || seconds < 0) seconds = 0;
+    NSInteger s = (NSInteger)round(seconds);
+    return [NSString stringWithFormat:@"%ld:%02ld", (long)(s / 60), (long)(s % 60)];
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -185,13 +200,6 @@
     [[AVAudioSession sharedInstance] setActive:YES error:nil];
 
     self.player = [AVPlayer playerWithURL:self.audioURL];
-
-    self.playerVC = [AVPlayerViewController new];
-    self.playerVC.player = self.player;
-    self.playerVC.showsPlaybackControls = YES;
-    self.playerVC.allowsPictureInPicturePlayback = NO;
-    self.playerVC.view.backgroundColor = [UIColor clearColor];
-    [self addChildViewController:self.playerVC];
 
     self.glyphView = [UIImageView new];
     self.glyphView.translatesAutoresizingMaskIntoConstraints = NO;
@@ -209,13 +217,50 @@
     self.titleLabel.text = self.audioURL.lastPathComponent;
     [self.view addSubview:self.titleLabel];
 
-    self.playerVC.view.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.view addSubview:self.playerVC.view];
-    [self.playerVC didMoveToParentViewController:self];
+    // AVPlayerViewController hides the scrubber for audio-only assets,
+    // so we drive AVPlayer ourselves.
+    UIColor *tint = [UIColor whiteColor];
+
+    self.playButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.playButton.translatesAutoresizingMaskIntoConstraints = NO;
+    self.playButton.tintColor = tint;
+    UIImageSymbolConfiguration *btnCfg = [UIImageSymbolConfiguration configurationWithPointSize:44 weight:UIImageSymbolWeightSemibold];
+    [self.playButton setPreferredSymbolConfiguration:btnCfg forImageInState:UIControlStateNormal];
+    [self.playButton setImage:[UIImage systemImageNamed:@"pause.circle.fill"] forState:UIControlStateNormal];
+    [self.playButton addTarget:self action:@selector(togglePlay) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.playButton];
+
+    self.elapsedLabel = [UILabel new];
+    self.elapsedLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    self.elapsedLabel.font = [UIFont monospacedDigitSystemFontOfSize:12 weight:UIFontWeightMedium];
+    self.elapsedLabel.textColor = tint;
+    self.elapsedLabel.text = @"0:00";
+    [self.view addSubview:self.elapsedLabel];
+
+    self.totalLabel = [UILabel new];
+    self.totalLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    self.totalLabel.font = [UIFont monospacedDigitSystemFontOfSize:12 weight:UIFontWeightMedium];
+    self.totalLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.7];
+    self.totalLabel.textAlignment = NSTextAlignmentRight;
+    self.totalLabel.text = @"--:--";
+    [self.view addSubview:self.totalLabel];
+
+    self.slider = [UISlider new];
+    self.slider.translatesAutoresizingMaskIntoConstraints = NO;
+    self.slider.minimumValue = 0;
+    self.slider.maximumValue = 1;
+    self.slider.value = 0;
+    self.slider.minimumTrackTintColor = tint;
+    self.slider.maximumTrackTintColor = [UIColor colorWithWhite:1.0 alpha:0.25];
+    self.slider.thumbTintColor = tint;
+    [self.slider addTarget:self action:@selector(scrubBegan:) forControlEvents:UIControlEventTouchDown];
+    [self.slider addTarget:self action:@selector(scrubChanged:) forControlEvents:UIControlEventValueChanged];
+    [self.slider addTarget:self action:@selector(scrubEnded:) forControlEvents:UIControlEventTouchUpInside | UIControlEventTouchUpOutside | UIControlEventTouchCancel];
+    [self.view addSubview:self.slider];
 
     [NSLayoutConstraint activateConstraints:@[
         [self.glyphView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
-        [self.glyphView.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor constant:-60],
+        [self.glyphView.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor constant:-80],
         [self.glyphView.widthAnchor constraintEqualToConstant:220],
         [self.glyphView.heightAnchor constraintEqualToConstant:220],
 
@@ -223,17 +268,103 @@
         [self.titleLabel.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-24],
         [self.titleLabel.topAnchor constraintEqualToAnchor:self.glyphView.bottomAnchor constant:12],
 
-        [self.playerVC.view.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:24],
-        [self.playerVC.view.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-24],
-        [self.playerVC.view.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-32],
-        [self.playerVC.view.heightAnchor constraintEqualToConstant:120],
+        [self.playButton.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+        [self.playButton.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-72],
+        [self.playButton.widthAnchor constraintEqualToConstant:60],
+        [self.playButton.heightAnchor constraintEqualToConstant:60],
+
+        [self.slider.leadingAnchor constraintEqualToAnchor:self.elapsedLabel.trailingAnchor constant:8],
+        [self.slider.trailingAnchor constraintEqualToAnchor:self.totalLabel.leadingAnchor constant:-8],
+        [self.slider.centerYAnchor constraintEqualToAnchor:self.elapsedLabel.centerYAnchor],
+
+        [self.elapsedLabel.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:24],
+        [self.elapsedLabel.bottomAnchor constraintEqualToAnchor:self.playButton.topAnchor constant:-16],
+        [self.elapsedLabel.widthAnchor constraintGreaterThanOrEqualToConstant:36],
+
+        [self.totalLabel.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-24],
+        [self.totalLabel.centerYAnchor constraintEqualToAnchor:self.elapsedLabel.centerYAnchor],
+        [self.totalLabel.widthAnchor constraintGreaterThanOrEqualToConstant:36],
     ]];
 
-    [self.player play];
+    __weak typeof(self) weakSelf = self;
+    self.timeObserver = [self.player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(0.1, 600)
+                                                                  queue:dispatch_get_main_queue()
+                                                             usingBlock:^(CMTime t) {
+        [weakSelf tickWithTime:t];
+    }];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(playbackEnded:)
+                                                 name:AVPlayerItemDidPlayToEndTimeNotification
+                                               object:self.player.currentItem];
+}
+
+- (void)tickWithTime:(CMTime)t {
+    if (self.durationSeconds <= 0) {
+        CMTime d = self.player.currentItem.duration;
+        if (CMTIME_IS_NUMERIC(d)) {
+            double dur = CMTimeGetSeconds(d);
+            if (isfinite(dur) && dur > 0) {
+                self.durationSeconds = dur;
+                self.slider.maximumValue = (float)dur;
+                self.totalLabel.text = [_SCIAudioPageVC formatTime:dur];
+            }
+        }
+    }
+    if (self.scrubbing) return;
+    double current = CMTimeGetSeconds(t);
+    if (!isfinite(current)) current = 0;
+    self.slider.value = (float)current;
+    self.elapsedLabel.text = [_SCIAudioPageVC formatTime:current];
+}
+
+- (void)togglePlay {
+    if (self.player.timeControlStatus == AVPlayerTimeControlStatusPlaying) {
+        [self.player pause];
+        [self.playButton setImage:[UIImage systemImageNamed:@"play.circle.fill"] forState:UIControlStateNormal];
+    } else {
+        if (CMTimeGetSeconds(self.player.currentTime) >= self.durationSeconds && self.durationSeconds > 0) {
+            [self.player seekToTime:kCMTimeZero];
+        }
+        [self.player play];
+        [self.playButton setImage:[UIImage systemImageNamed:@"pause.circle.fill"] forState:UIControlStateNormal];
+    }
+}
+
+- (void)scrubBegan:(UISlider *)s {
+    self.scrubbing = YES;
+    self.wasPlayingBeforeScrub = (self.player.timeControlStatus == AVPlayerTimeControlStatusPlaying);
+    [self.player pause];
+}
+
+- (void)scrubChanged:(UISlider *)s {
+    self.elapsedLabel.text = [_SCIAudioPageVC formatTime:s.value];
+    // Loose tolerance — sample-accurate seek triggers a decoder rewind on ogg.
+    CMTime target = CMTimeMakeWithSeconds(s.value, 600);
+    [self.player seekToTime:target toleranceBefore:kCMTimePositiveInfinity toleranceAfter:kCMTimePositiveInfinity];
+}
+
+- (void)scrubEnded:(UISlider *)s {
+    CMTime target = CMTimeMakeWithSeconds(s.value, 600);
+    __weak typeof(self) weakSelf = self;
+    [self.player seekToTime:target toleranceBefore:kCMTimePositiveInfinity toleranceAfter:kCMTimePositiveInfinity
+          completionHandler:^(BOOL finished) {
+        weakSelf.scrubbing = NO;
+        if (weakSelf.wasPlayingBeforeScrub) [weakSelf.player play];
+    }];
+}
+
+- (void)playbackEnded:(NSNotification *)n {
+    [self.playButton setImage:[UIImage systemImageNamed:@"play.circle.fill"] forState:UIControlStateNormal];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
+    if (self.timeObserver) {
+        [self.player removeTimeObserver:self.timeObserver];
+        self.timeObserver = nil;
+    }
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [self.player pause];
     self.player = nil;
 }
@@ -252,7 +383,6 @@
 
 @implementation _SCIAnimatedPageVC
 
-// ImageIO frame extraction with per-frame delay → UIImageView.animationImages.
 + (void)loadAnimatedURL:(NSURL *)url completion:(void (^)(NSArray<UIImage *> *frames, NSTimeInterval duration))completion {
     if (!url) { completion(nil, 0); return; }
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
@@ -343,6 +473,7 @@
 @property (nonatomic, strong) CAGradientLayer *topShadeLayer;
 @property (nonatomic, assign) BOOL chromeVisible;
 @property (nonatomic, assign) BOOL captionExpanded;
+@property (nonatomic, assign) BOOL shareSheetOnly;
 @end
 
 @implementation _SCIMediaViewerContainerVC
@@ -369,7 +500,7 @@
     [self.view addSubview:self.pageVC.view];
     [self.pageVC didMoveToParentViewController:self];
 
-    // Top bar — subtle dark gradient so white icons stay readable over light photos.
+    // Top bar shaded so white icons stay readable over light photos.
     self.topBar = [[UIView alloc] init];
     self.topBar.translatesAutoresizingMaskIntoConstraints = NO;
     self.topBar.userInteractionEnabled = YES;
@@ -408,7 +539,19 @@
     [self.shareBtn setImage:[UIImage systemImageNamed:@"square.and.arrow.up" withConfiguration:cfg] forState:UIControlStateNormal];
     self.shareBtn.tintColor = [UIColor whiteColor];
     self.shareBtn.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.shareBtn addTarget:self action:@selector(shareTapped) forControlEvents:UIControlEventTouchUpInside];
+    // Gallery on → menu (Save to Gallery / Share). shareSheetOnly skips the
+    // menu (items already in gallery would just duplicate).
+    if (!self.shareSheetOnly && [SCIUtils getBoolPref:@"sci_gallery_enabled"]) {
+        self.shareBtn.showsMenuAsPrimaryAction = YES;
+        __weak typeof(self) weakSelfMenu = self;
+        UIDeferredMenuElement *deferredShare = [UIDeferredMenuElement
+            elementWithUncachedProvider:^(void (^completion)(NSArray<UIMenuElement *> * _Nonnull)) {
+            completion([weakSelfMenu shareMenuChildren]);
+        }];
+        self.shareBtn.menu = [UIMenu menuWithChildren:@[deferredShare]];
+    } else {
+        [self.shareBtn addTarget:self action:@selector(shareTapped) forControlEvents:UIControlEventTouchUpInside];
+    }
     [self.topBar addSubview:self.shareBtn];
 
     self.counterLabel = [[UILabel alloc] init];
@@ -431,7 +574,6 @@
         [self.counterLabel.centerYAnchor constraintEqualToAnchor:self.topBar.centerYAnchor],
     ]];
 
-    // Bottom bar (caption — tap to expand/collapse)
     self.bottomBar = [[UIView alloc] init];
     self.bottomBar.backgroundColor = [UIColor colorWithWhite:0 alpha:0.6];
     self.bottomBar.translatesAutoresizingMaskIntoConstraints = NO;
@@ -459,12 +601,10 @@
         [self.captionLabel.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-8],
     ]];
 
-    // Swipe down to dismiss
     UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handleDismissPan:)];
     pan.delegate = (id<UIGestureRecognizerDelegate>)self;
     [self.view addGestureRecognizer:pan];
 
-    // Single tap toggles chrome
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(toggleChrome)];
     tap.cancelsTouchesInView = NO;
     [self.pageVC.view addGestureRecognizer:tap];
@@ -481,8 +621,6 @@
     SCIMediaViewerItem *item = self.items[self.currentIndex];
     BOOL isVideo = (item.videoURL != nil);
 
-    // Counter — always visible when there's more than one item, including
-    // on video pages so the user always knows where they are.
     if (self.items.count > 1) {
         self.counterLabel.text = [NSString stringWithFormat:@"%lu / %lu",
                                    (unsigned long)(self.currentIndex + 1),
@@ -492,8 +630,7 @@
         self.counterLabel.hidden = YES;
     }
 
-    // On video pages, hide our close + share buttons + gradient shade so
-    // AVPlayerViewController's chrome doesn't fight us. The counter stays.
+    // Hide our chrome on video pages so AVPlayerViewController's controls own the screen.
     BOOL hideForVideo = isVideo;
     [UIView animateWithDuration:0.18 animations:^{
         self.closeBtn.alpha = hideForVideo ? 0.0 : 1.0;
@@ -570,16 +707,29 @@
 }
 
 - (void)closeTapped {
-    // Pause any playing video before tearing down.
     UIViewController *current = self.pageVC.viewControllers.firstObject;
     if ([current isKindOfClass:[_SCIVideoPageVC class]]) {
         [((_SCIVideoPageVC *)current).queuePlayer pause];
+    } else if ([current isKindOfClass:[_SCIAudioPageVC class]]) {
+        [((_SCIAudioPageVC *)current).player pause];
     }
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
-// Sniff container format from magic bytes. WebP routes through a PNG transcode
-// because Save-to-Photos rejects .webp on most iOS versions.
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    // Autoplay for the first visible page only. Pre-loaded adjacent pages
+    // don't get viewDidAppear, so they stay paused until swiped to.
+    UIViewController *current = self.pageVC.viewControllers.firstObject;
+    if ([current isKindOfClass:[_SCIAudioPageVC class]]) {
+        _SCIAudioPageVC *a = (_SCIAudioPageVC *)current;
+        if (a.player.timeControlStatus != AVPlayerTimeControlStatusPlaying) {
+            [a.player play];
+        }
+    }
+}
+
+// WebP routes through a PNG transcode — Save-to-Photos rejects .webp on most iOS versions.
 static NSString *sciSniffImageExt(NSData *data, BOOL *needsTranscode) {
     if (needsTranscode) *needsTranscode = NO;
     if (data.length < 12) return @"jpg";
@@ -599,12 +749,104 @@ static NSString *sciSniffImageExt(NSData *data, BOOL *needsTranscode) {
     return @"jpg";
 }
 
+- (NSArray<UIMenuElement *> *)shareMenuChildren {
+    __weak typeof(self) weakSelf = self;
+    UIAction *save = [UIAction actionWithTitle:SCILocalized(@"Save to Gallery")
+                                         image:[UIImage systemImageNamed:@"photo.on.rectangle.angled"]
+                                    identifier:nil
+                                       handler:^(__unused UIAction *a) {
+        [weakSelf saveCurrentToGallery];
+    }];
+    UIAction *share = [UIAction actionWithTitle:SCILocalized(@"Share")
+                                          image:[UIImage systemImageNamed:@"square.and.arrow.up"]
+                                     identifier:nil
+                                        handler:^(__unused UIAction *a) {
+        [weakSelf shareTapped];
+    }];
+    return @[save, share];
+}
+
+- (void)saveCurrentToGallery {
+    SCIMediaViewerItem *item = self.items[self.currentIndex];
+    NSURL *src = item.photoURL ?: item.videoURL ?: item.audioURL ?: item.animatedImageURL;
+    if (!src) {
+        SCINotifyError(SCI_NOTIF_GALLERY_SAVE,
+                       SCILocalized(@"Save failed"),
+                       SCILocalized(@"Nothing to save"));
+        return;
+    }
+
+    SCIGallerySaveMetadata *meta = item.metadata ?: [SCIGallerySaveMetadata new];
+    SCIGallerySource source = (SCIGallerySource)meta.source;
+
+    NSString *ext = src.pathExtension.lowercaseString ?: @"";
+    SCIGalleryMediaType mediaType = SCIGalleryMediaTypeForExtension(ext);
+    if (item.audioURL) mediaType = SCIGalleryMediaTypeAudio;
+    else if (item.videoURL) mediaType = SCIGalleryMediaTypeVideo;
+    else if (item.animatedImageURL) mediaType = SCIGalleryMediaTypeGIF;
+
+    if (src.isFileURL) {
+        NSError *err = nil;
+        SCIGalleryFile *f = [SCIGalleryFile saveFileToGallery:src
+                                                       source:source
+                                                    mediaType:mediaType
+                                                   folderPath:nil
+                                                     metadata:meta
+                                                        error:&err];
+        if (f) {
+            NSString *uname = meta.sourceUsername;
+            NSString *sub = uname.length ? [@"@" stringByAppendingString:uname] : nil;
+            SCINotifySuccess(SCI_NOTIF_GALLERY_SAVE, SCILocalized(@"Saved to Gallery"), sub);
+        } else {
+            SCINotifyError(SCI_NOTIF_GALLERY_SAVE,
+                           SCILocalized(@"Save failed"),
+                           err.localizedDescription ?: SCILocalized(@"Failed to save"));
+        }
+        return;
+    }
+
+    [SCIImageCache loadDataFromURL:src completion:^(NSData *data) {
+        if (!data.length) {
+            SCINotifyError(SCI_NOTIF_GALLERY_SAVE,
+                           SCILocalized(@"Save failed"),
+                           SCILocalized(@"Nothing to save"));
+            return;
+        }
+        NSString *useExt = ext.length ? ext : @"jpg";
+        NSString *name = [NSString stringWithFormat:@"sci_save_%@.%@", [[NSUUID UUID] UUIDString], useExt];
+        NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:name];
+        if (![data writeToFile:path atomically:YES]) {
+            SCINotifyError(SCI_NOTIF_GALLERY_SAVE,
+                           SCILocalized(@"Save failed"),
+                           SCILocalized(@"Failed to save"));
+            return;
+        }
+        NSURL *fileURL = [NSURL fileURLWithPath:path];
+        NSError *err = nil;
+        SCIGalleryFile *f = [SCIGalleryFile saveFileToGallery:fileURL
+                                                       source:source
+                                                    mediaType:mediaType
+                                                   folderPath:nil
+                                                     metadata:meta
+                                                        error:&err];
+        [[NSFileManager defaultManager] removeItemAtURL:fileURL error:nil];
+        if (f) {
+            NSString *uname = meta.sourceUsername;
+            NSString *sub = uname.length ? [@"@" stringByAppendingString:uname] : nil;
+            SCINotifySuccess(SCI_NOTIF_GALLERY_SAVE, SCILocalized(@"Saved to Gallery"), sub);
+        } else {
+            SCINotifyError(SCI_NOTIF_GALLERY_SAVE,
+                           SCILocalized(@"Save failed"),
+                           err.localizedDescription ?: SCILocalized(@"Failed to save"));
+        }
+    }];
+}
+
 - (void)shareTapped {
     SCIMediaViewerItem *item = self.items[self.currentIndex];
     UIViewController *current = self.pageVC.viewControllers.firstObject;
     BOOL isPhoto = [current isKindOfClass:[_SCIPhotoPageVC class]];
 
-    // Audio + animated GIF — local file URL passes straight to the share sheet.
     if (item.audioURL || item.animatedImageURL) {
         NSURL *url = item.audioURL ?: item.animatedImageURL;
         UIActivityViewController *vc = [[UIActivityViewController alloc] initWithActivityItems:@[url] applicationActivities:nil];
@@ -623,8 +865,8 @@ static NSString *sciSniffImageExt(NSData *data, BOOL *needsTranscode) {
         return;
     }
 
-    // Share original bytes in a temp file with the correct extension — sharing a
-    // raw UIImage breaks Save-to-Photos for WebP-sourced images (e.g. profile pics).
+    // Share via temp file with correct extension — sharing a raw UIImage breaks
+    // Save-to-Photos for WebP-sourced images (e.g. profile pics).
     if (!item.photoURL) return;
     UIImage *fallbackImg = [(_SCIPhotoPageVC *)current currentImage];
     __weak typeof(self) weakSelf = self;
@@ -719,7 +961,12 @@ static NSString *sciSniffImageExt(NSData *data, BOOL *needsTranscode) {
         if ([p isKindOfClass:[_SCIVideoPageVC class]]) {
             [((_SCIVideoPageVC *)p).queuePlayer pause];
         } else if ([p isKindOfClass:[_SCIAudioPageVC class]]) {
-            [((_SCIAudioPageVC *)p).player pause];
+            _SCIAudioPageVC *a = (_SCIAudioPageVC *)p;
+            [a.player pause];
+            [a.player seekToTime:kCMTimeZero];
+            [a.playButton setImage:[UIImage systemImageNamed:@"play.circle.fill"] forState:UIControlStateNormal];
+            a.slider.value = 0;
+            a.elapsedLabel.text = @"0:00";
         } else if ([p isKindOfClass:[_SCIAnimatedPageVC class]]) {
             [((_SCIAnimatedPageVC *)p).imageView stopAnimating];
         }
@@ -727,7 +974,9 @@ static NSString *sciSniffImageExt(NSData *data, BOOL *needsTranscode) {
     if ([current isKindOfClass:[_SCIVideoPageVC class]]) {
         [((_SCIVideoPageVC *)current).queuePlayer play];
     } else if ([current isKindOfClass:[_SCIAudioPageVC class]]) {
-        [((_SCIAudioPageVC *)current).player play];
+        _SCIAudioPageVC *a = (_SCIAudioPageVC *)current;
+        [a.player play];
+        [a.playButton setImage:[UIImage systemImageNamed:@"pause.circle.fill"] forState:UIControlStateNormal];
     } else if ([current isKindOfClass:[_SCIAnimatedPageVC class]]) {
         [((_SCIAnimatedPageVC *)current).imageView startAnimating];
     }
@@ -761,22 +1010,21 @@ static NSString *sciSniffImageExt(NSData *data, BOOL *needsTranscode) {
 
 + (void)showItem:(SCIMediaViewerItem *)item {
     if (!item) { [SCIUtils showErrorHUDWithDescription:SCILocalized(@"No media to show")]; return; }
-
-    // Single video → native AVPlayerViewController directly (no wrapper)
     if (item.videoURL) {
         [self presentNativeVideoPlayer:item.videoURL];
         return;
     }
-
-    // Single photo → use our photo viewer container
     [self showItems:@[item] startIndex:0];
 }
 
 + (void)showItems:(NSArray<SCIMediaViewerItem *> *)items startIndex:(NSUInteger)index {
+    [self showItems:items startIndex:index shareSheetOnly:NO];
+}
+
++ (void)showItems:(NSArray<SCIMediaViewerItem *> *)items startIndex:(NSUInteger)index shareSheetOnly:(BOOL)shareSheetOnly {
     if (!items.count) { [SCIUtils showErrorHUDWithDescription:SCILocalized(@"No media to show")]; return; }
     if (index >= items.count) index = 0;
 
-    // Single video item → native player
     if (items.count == 1 && items[0].videoURL) {
         [self presentNativeVideoPlayer:items[0].videoURL];
         return;
@@ -786,6 +1034,7 @@ static NSString *sciSniffImageExt(NSData *data, BOOL *needsTranscode) {
         _SCIMediaViewerContainerVC *vc = [[_SCIMediaViewerContainerVC alloc] init];
         vc.items = items;
         vc.currentIndex = index;
+        vc.shareSheetOnly = shareSheetOnly;
         vc.modalPresentationStyle = UIModalPresentationOverFullScreen;
         vc.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
         [topMostController() presentViewController:vc animated:YES completion:nil];

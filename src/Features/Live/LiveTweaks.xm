@@ -118,9 +118,9 @@ static void sciAttachLongPressToView(UIView *v);
     if (![SCIUtils getBoolPref:@"live_hide_comments"]) return;
     gCommentsHidden = !gCommentsHidden;
     sciRefreshLiveCommentsHidden();
-    [SCIUtils showToastForDuration:1.0
-                              title:gCommentsHidden ? SCILocalized(@"Comments hidden")
-                                                    : SCILocalized(@"Comments shown")];
+    SCINotifySuccess(SCI_NOTIF_LIVE_TOGGLE,
+                     gCommentsHidden ? SCILocalized(@"Comments hidden") : SCILocalized(@"Comments shown"),
+                     nil);
 }
 @end
 

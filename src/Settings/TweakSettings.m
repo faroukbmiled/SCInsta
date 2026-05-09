@@ -1,9 +1,11 @@
 #import "TweakSettings.h"
 #import <objc/message.h>
+#import "../UI/Notification/SCINotificationSettings.h"
 #import "SCILinksSheet.h"
 #import "SCISettingsBackup.h"
 #import "SCIFakeLocationSettingsVC.h"
 #import "../Features/ProfileAnalyzer/SCIProfileAnalyzerViewController.h"
+#import "../Features/DeletedMessages/SCIDeletedMessagesViewController.h"
 #import "../Gallery/SCIGalleryViewController.h"
 #import "SCIExcludedChatsViewController.h"
 #import "SCIHomeShortcutConfigViewController.h"
@@ -23,7 +25,6 @@
 #import "SCIActionMenuConfigViewController.h"
 #import "../UI/SCIIconPicker.h"
 #import "SCISettingsViewController.h"
-#import "../../modules/JGProgressHUD/JGProgressHUD.h"
 #import <objc/runtime.h>
 
 // Copies imported .strings into the writable override dir.
@@ -121,12 +122,6 @@
                                             ]
                                         },
                                         @{
-                                            @"header": SCILocalized(@"Action buttons"),
-                                            @"rows": @[
-                                                [self actionIconNavCell],
-                                            ]
-                                        },
-                                        @{
                                             @"header": SCILocalized(@"Browser"),
                                             @"rows": @[
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Open links in external browser") subtitle:SCILocalized(@"Opens links in Safari instead of Instagram's in-app browser") defaultsKey:@"open_links_external"],
@@ -156,6 +151,12 @@
                                                     s;
                                                 }),
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Strip tracking params") subtitle:SCILocalized(@"Removes igsh, utm_source, and other tracking parameters from shared links") defaultsKey:@"strip_tracking_params"],
+                                            ]
+                                        },
+                                        @{
+                                            @"header": SCILocalized(@"Audio page"),
+                                            @"rows": @[
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Download audio") subtitle:SCILocalized(@"Adds a download button next to share/save on the reels audio page") defaultsKey:@"audio_page_download"],
                                             ]
                                         },
                                         @{
@@ -189,21 +190,7 @@
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Hide UI on capture") subtitle:SCILocalized(@"Redacts RyukGram buttons from screenshots, screen recordings, and mirroring") defaultsKey:@"hide_ui_on_capture"],
                                             ]
                                         },
-                                        @{
-                                            @"header": SCILocalized(@"Experimental features"),
-                                            @"footer": SCILocalized(@"These features rely on hidden Instagram flags and may not work on all accounts or versions."),
-                                            @"rows": @[
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Enable liquid glass buttons") subtitle:SCILocalized(@"Enables experimental liquid glass buttons") defaultsKey:@"liquid_glass_buttons" requiresRestart:YES],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Enable liquid glass surfaces") subtitle:SCILocalized(@"Enables liquid glass tab bar, floating navigation, and other UI elements") defaultsKey:@"liquid_glass_surfaces" requiresRestart:YES],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Enable teen app icons") subtitle:SCILocalized(@"Hold down on the Instagram logo to change the app icon") defaultsKey:@"teen_app_icons" requiresRestart:YES],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Disable app haptics") subtitle:SCILocalized(@"Disables haptics/vibrations within the app") defaultsKey:@"disable_haptics"],
-                                                [SCISetting buttonCellWithTitle:SCILocalized(@"Open app icon picker")
-                                                                        subtitle:@""
-                                                                            icon:nil
-                                                                          action:^{ sciPresentTeenIconPicker(); }],
-                                                [self advancedExperimentalShortcutCell],
-                                            ]
-                                        }]
+                                        ]
                 ],
                 [SCISetting navigationCellWithTitle:SCILocalized(@"Feed")
                                            subtitle:@""
@@ -383,7 +370,8 @@
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Hide reels header") subtitle:SCILocalized(@"Hides the top navigation bar when watching reels") defaultsKey:@"hide_reels_header"],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Hide repost button") subtitle:SCILocalized(@"Hides the repost button on the reels sidebar") defaultsKey:@"hide_reels_repost" requiresRestart:YES],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Hide friends avatars") subtitle:SCILocalized(@"Hides the avatar bubbles next to the Friends tab in reels") defaultsKey:@"hide_reels_friends_bubbles"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Hide social context overlay") subtitle:SCILocalized(@"Hides the floating overlay showing who reposted or commented on reels") defaultsKey:@"hide_reels_floating_social_context"]
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Hide social context overlay") subtitle:SCILocalized(@"Hides the floating overlay showing who reposted or commented on reels") defaultsKey:@"hide_reels_floating_social_context"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Hide \"Made with Edits\" badge") subtitle:SCILocalized(@"Hides the Edits app promo pill on reels") defaultsKey:@"hide_made_with_edits"]
                                             ]
                                         },
                                         @{
@@ -439,6 +427,23 @@
                                                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Indicate unsent messages") subtitle:SCILocalized(@"Shows an \"Unsent\" label on preserved messages") defaultsKey:@"indicate_unsent_messages"],
                                                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Unsent message notification") subtitle:SCILocalized(@"Shows a notification pill when a message is unsent") defaultsKey:@"unsent_message_toast"],
                                                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Warn before clearing on refresh") subtitle:SCILocalized(@"Confirmation dialog before clearing preserved messages") defaultsKey:@"warn_refresh_clears_preserved"],
+                                                                            ]
+                                                                        }]
+                                                ],
+                                                [SCISetting navigationCellWithTitle:SCILocalized(@"Deleted messages log")
+                                                                           subtitle:SCILocalized(@"Records every message someone unsends, grouped by sender")
+                                                                               icon:nil
+                                                                        navSections:@[@{
+                                                                            @"header": @"",
+                                                                            @"footer": SCILocalized(@"When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history."),
+                                                                            @"rows": @[
+                                                                                [SCISetting switchCellWithTitle:SCILocalized(@"Enable deleted messages log") subtitle:SCILocalized(@"Captures unsent messages with their text or media") defaultsKey:@"deleted_messages_log_enabled"],
+                                                                                [SCISetting buttonCellWithTitle:SCILocalized(@"Open log")
+                                                                                                       subtitle:SCILocalized(@"Browse, filter and search recorded messages")
+                                                                                                           icon:[SCISymbol symbolWithName:@"tray.full"]
+                                                                                                         action:^(void) {
+                                                                                    [SCIDeletedMessagesViewController presentFromViewController:nil];
+                                                                                }],
                                                                             ]
                                                                         }]
                                                 ],
@@ -524,7 +529,7 @@
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Note actions") subtitle:SCILocalized(@"Adds copy text, download GIF/audio to the note long-press menu") defaultsKey:@"note_actions"],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Copy text on hold") subtitle:SCILocalized(@"Copies note text directly on long press without opening the menu") defaultsKey:@"note_copy_on_hold"],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Enable note theming") subtitle:SCILocalized(@"Enables the notes theme picker") defaultsKey:@"enable_notes_customization"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Custom note themes") subtitle:SCILocalized(@"Custom emojis and background/text colors") defaultsKey:@"custom_note_themes"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Custom note themes") subtitle:SCILocalized(@"Adds a paintbrush button and long-press shortcut to pick custom background and text colors") defaultsKey:@"custom_note_themes"],
                                             ]
                                         },
                                         @{
@@ -548,6 +553,12 @@
                                             @"rows": @[
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Disable instants creation") subtitle:SCILocalized(@"Hides the functionality to create/send instants") defaultsKey:@"disable_instants_creation" requiresRestart:YES],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Send from gallery") subtitle:SCILocalized(@"Adds a gallery button to the instants camera so you can send a photo from your album") defaultsKey:@"instants_send_from_gallery" requiresRestart:YES],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Allow screenshots") subtitle:SCILocalized(@"Bypasses the Instants screenshot block") defaultsKey:@"instants_allow_screenshot"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Instants action button") subtitle:SCILocalized(@"Adds a RyukGram action button to the instants viewer header with expand, save, share, and bulk-save entries") defaultsKey:@"instants_download_btn"],
+                                                [SCISetting navigationCellWithTitle:SCILocalized(@"Configure menu")
+                                                                            subtitle:SCILocalized(@"Reorder, enable/disable, set default tap, show date")
+                                                                                icon:nil
+                                                                      viewController:[[SCIActionMenuConfigViewController alloc] initForSource:SCIActionSourceInstants]],
                                             ]
                                         }]
                 ],
@@ -599,24 +610,33 @@
                                             ]
                                         }]
                 ],
-                [SCISetting navigationCellWithTitle:SCILocalized(@"Navigation")
+                [SCISetting navigationCellWithTitle:SCILocalized(@"Interface")
                                            subtitle:@""
                                                icon:[SCISymbol symbolWithIGName:@"layout" fallback:@"hand.draw.fill"]
                                         navSections:@[@{
-                                            @"header": @"",
+                                            @"header": SCILocalized(@"Tab bar shortcuts"),
+                                            @"footer": SCILocalized(@"Configure the home shortcut button (extra icon on the home top bar) and the system-wide action button icon."),
+                                            @"rows": @[
+                                                [SCISetting navigationCellWithTitle:SCILocalized(@"Home shortcut button")
+                                                                           subtitle:SCILocalized(@"Configure the extra button on the home top bar")
+                                                                               icon:[SCISymbol symbolWithIGName:@"home" fallback:@"house"]
+                                                                     viewController:[SCIHomeShortcutConfigViewController new]],
+                                                [self actionIconNavCell],
+                                            ]
+                                        },
+                                        @{
+                                            @"header": SCILocalized(@"Notifications"),
+                                            @"footer": SCILocalized(@"Universal in-app notifications. Pick style, position, per-action routing (custom pill / IG-native / off)."),
+                                            @"rows": @[
+                                                [SCINotificationSettings notificationsNavCell],
+                                            ]
+                                        },
+                                        @{
+                                            @"header": SCILocalized(@"Tab bar"),
                                             @"rows": @[
                                                 [SCISetting menuCellWithTitle:SCILocalized(@"Icon order") subtitle:SCILocalized(@"The order of the icons on the bottom navigation bar") menu:[self menus][@"nav_icon_ordering"]],
                                                 [SCISetting menuCellWithTitle:SCILocalized(@"Swipe between tabs") subtitle:SCILocalized(@"Lets you swipe to switch between navigation bar tabs") menu:[self menus][@"swipe_nav_tabs"]],
                                                 [SCISetting menuCellWithTitle:SCILocalized(@"Launch tab") subtitle:SCILocalized(@"Tab the app opens to. Ignored when Messages-only is on") menu:[self menus][@"launch_tab"]],
-                                            ]
-                                        },
-                                        @{
-                                            @"header": SCILocalized(@"Home shortcut button"),
-                                            @"rows": @[
-                                                [SCISetting navigationCellWithTitle:SCILocalized(@"Home shortcut button")
-                                                                           subtitle:SCILocalized(@"Configure the extra button on the home top bar")
-                                                                               icon:nil
-                                                                     viewController:[SCIHomeShortcutConfigViewController new]],
                                             ]
                                         },
                                         @{
@@ -635,6 +655,21 @@
                                             @"rows": @[
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Messages only") subtitle:SCILocalized(@"Turn IG into a DM-only client") defaultsKey:@"messages_only" requiresRestart:YES],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Hide tab bar") subtitle:SCILocalized(@"Also hide the bottom tab bar — only the inbox is visible") defaultsKey:@"messages_only_hide_tabbar" requiresRestart:YES],
+                                            ]
+                                        },
+                                        @{
+                                            @"header": SCILocalized(@"Experimental features"),
+                                            @"footer": SCILocalized(@"These features rely on hidden Instagram flags and may not work on all accounts or versions."),
+                                            @"rows": @[
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Enable liquid glass buttons") subtitle:SCILocalized(@"Enables experimental liquid glass buttons") defaultsKey:@"liquid_glass_buttons" requiresRestart:YES],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Enable liquid glass surfaces") subtitle:SCILocalized(@"Enables liquid glass tab bar, floating navigation, and other UI elements") defaultsKey:@"liquid_glass_surfaces" requiresRestart:YES],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Enable teen app icons") subtitle:SCILocalized(@"Hold down on the Instagram logo to change the app icon") defaultsKey:@"teen_app_icons" requiresRestart:YES],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Disable app haptics") subtitle:SCILocalized(@"Disables haptics/vibrations within the app") defaultsKey:@"disable_haptics"],
+                                                [SCISetting buttonCellWithTitle:SCILocalized(@"Open app icon picker")
+                                                                        subtitle:@""
+                                                                            icon:nil
+                                                                          action:^{ sciPresentTeenIconPicker(); }],
+                                                [self advancedExperimentalShortcutCell],
                                             ]
                                         }]
                 ],
@@ -680,7 +715,8 @@
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Confirm like: Posts") subtitle:SCILocalized(@"Shows an alert when you click the like button on posts to confirm the like") defaultsKey:@"like_confirm"],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Confirm like: Reels") subtitle:SCILocalized(@"Shows an alert when you click the like button on reels to confirm the like") defaultsKey:@"like_confirm_reels"],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Confirm story like") subtitle:SCILocalized(@"Shows an alert when you click the like button on stories to confirm the like") defaultsKey:@"story_like_confirm"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Confirm story emoji reaction") subtitle:SCILocalized(@"Shows an alert before sending an emoji reaction on a story") defaultsKey:@"emoji_reaction_confirm"]
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Confirm story emoji reaction") subtitle:SCILocalized(@"Shows an alert before sending an emoji reaction on a story") defaultsKey:@"emoji_reaction_confirm"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Confirm Instants emoji reaction") subtitle:SCILocalized(@"Shows an alert before sending an emoji reaction on an Instant") defaultsKey:@"instants_emoji_reaction_confirm"]
                                             ]
                                         },
                                         @{
@@ -1222,25 +1258,17 @@
 + (void)presentClearCacheConfirmation {
     void (^showResult)(uint64_t) = ^(uint64_t bytes) {
         if (bytes == 0) {
-            UIAlertController *a = [UIAlertController alertControllerWithTitle:SCILocalized(@"Nothing to clear") message:nil preferredStyle:UIAlertControllerStyleAlert];
-            [a addAction:[UIAlertAction actionWithTitle:SCILocalized(@"OK") style:UIAlertActionStyleCancel handler:nil]];
-            [sciTopVC() presentViewController:a animated:YES completion:nil];
+            SCINotifyInfo(SCI_NOTIF_CACHE_CLEAR, SCILocalized(@"Nothing to clear"), nil);
             return;
         }
-        NSString *msg = [NSString stringWithFormat:SCILocalized(@"Free %@ of Instagram cache. A restart is recommended."), [SCICacheManager formattedSize:bytes]];
+        NSString *msg = [NSString stringWithFormat:SCILocalized(@"Free %@ of Instagram cache."), [SCICacheManager formattedSize:bytes]];
         UIAlertController *a = [UIAlertController alertControllerWithTitle:SCILocalized(@"Clear cache") message:msg preferredStyle:UIAlertControllerStyleAlert];
         [a addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Clear") style:UIAlertActionStyleDestructive handler:^(__unused UIAlertAction *x) {
-            JGProgressHUD *hud = [[JGProgressHUD alloc] init];
-            hud.textLabel.text = SCILocalized(@"Clearing cache…");
-            UIView *host = sciTopVC().view ?: UIApplication.sharedApplication.keyWindow;
-            if (host) [hud showInView:host];
+            SCINotificationHandle *h = SCINotifyLoading(SCI_NOTIF_CACHE_CLEAR, SCILocalized(@"Clearing cache…"), nil);
             [SCICacheManager clearCacheWithCompletion:^(uint64_t cleared) {
-                [hud dismissAnimated:YES];
-                NSString *done = [NSString stringWithFormat:SCILocalized(@"Freed %@. Restart to apply."), [SCICacheManager formattedSize:cleared]];
-                UIAlertController *r = [UIAlertController alertControllerWithTitle:SCILocalized(@"Cache cleared") message:done preferredStyle:UIAlertControllerStyleAlert];
-                [r addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Restart") style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *y) { exit(0); }]];
-                [r addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Later") style:UIAlertActionStyleCancel handler:nil]];
-                [sciTopVC() presentViewController:r animated:YES completion:nil];
+                NSString *done = [NSString stringWithFormat:SCILocalized(@"Freed %@"), [SCICacheManager formattedSize:cleared]];
+                if (h) [h success:SCILocalized(@"Cache cleared") subtitle:done];
+                else   SCINotifySuccess(SCI_NOTIF_CACHE_CLEAR, SCILocalized(@"Cache cleared"), done);
             }];
         }]];
         [a addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
@@ -1251,12 +1279,10 @@
     uint64_t cached = [SCICacheManager cachedSize];
     if (autoCheck && cached > 0) { showResult(cached); return; }
 
-    UIAlertController *calc = [UIAlertController alertControllerWithTitle:SCILocalized(@"Calculating cache size…")
-                                                                   message:nil
-                                                            preferredStyle:UIAlertControllerStyleAlert];
-    [sciTopVC() presentViewController:calc animated:YES completion:nil];
+    SCINotificationHandle *calc = SCINotifyLoading(SCI_NOTIF_CACHE_CLEAR, SCILocalized(@"Calculating cache size…"), nil);
     void (^onScan)(uint64_t) = ^(uint64_t bytes) {
-        [calc dismissViewControllerAnimated:YES completion:^{ showResult(bytes); }];
+        if (calc) [calc dismiss];
+        showResult(bytes);
     };
     if (autoCheck) [SCICacheManager getCacheSizeWithCompletion:onScan];
     else           [SCICacheManager getCacheSizeTransientWithCompletion:onScan];
@@ -1267,7 +1293,7 @@
 + (SCISetting *)actionIconNavCell {
     return [SCISetting navigationCellWithTitle:SCILocalized(@"Action button icon")
                                       subtitle:SCILocalized(@"Used across feed, stories, reels and DMs")
-                                          icon:nil
+                                          icon:[SCISymbol symbolWithIGName:@"more_horizontal" fallback:@"ellipsis.circle"]
                                 viewController:[SCIIconPickerViewController new]];
 }
 
@@ -1767,6 +1793,12 @@ static void sciPresentTeenIconPicker(void) {
         @"reels_action_default":   [self defaultTapMenuForKey:@"reels_action_default"   context:@"reels"],
         @"stories_action_default": [self defaultTapMenuForKey:@"stories_action_default" context:@"stories"],
         @"dm_visual_action_default": [self defaultTapMenuForKey:@"dm_visual_action_default" context:@"dm_visual"],
+        @"dm_log_date_format": [UIMenu menuWithChildren:@[
+            [UICommand commandWithTitle:SCILocalized(@"Relative (1m / 3h / 3d ago)") image:nil action:@selector(menuChanged:)
+                           propertyList:@{@"defaultsKey": @"dm_log_date_format", @"value": @"relative"}],
+            [UICommand commandWithTitle:SCILocalized(@"Absolute date + time") image:nil action:@selector(menuChanged:)
+                           propertyList:@{@"defaultsKey": @"dm_log_date_format", @"value": @"absolute"}],
+        ]],
         @"main_feed_mode": [UIMenu menuWithChildren:@[
             [UICommand commandWithTitle:SCILocalized(@"Default") image:nil action:@selector(menuChanged:)
                            propertyList:@{@"defaultsKey": @"main_feed_mode", @"value": @"default", @"requiresRestart": @YES}],

@@ -1,5 +1,14 @@
 #import "SCIGalleryChip.h"
 #import "../Utils.h"
+#import "../UI/SCIIcon.h"
+
+// SF Symbol first, FB catalog fallback.
+static UIImage *SCIGalleryChipGlyph(NSString *name, CGFloat pointSize) {
+    if (name.length == 0) return nil;
+    UIImage *sf = [UIImage systemImageNamed:name];
+    if (sf) return sf;
+    return [SCIIcon fbImageNamed:name pointSize:pointSize];
+}
 
 @implementation SCIGalleryChip
 
@@ -24,7 +33,7 @@
     if (@available(iOS 15.0, *)) {
         UIButtonConfiguration *cfg = [UIButtonConfiguration plainButtonConfiguration];
         cfg.title = title ?: @"";
-        if (sfSymbol.length) cfg.image = [UIImage systemImageNamed:sfSymbol];
+        if (sfSymbol.length) cfg.image = SCIGalleryChipGlyph(sfSymbol, ceil(fontSize * 1.7));
         cfg.imagePadding = MAX(4.0, fontSize * 0.4);
         cfg.contentInsets = NSDirectionalEdgeInsetsMake(padding.top, padding.left, padding.bottom, padding.right);
         cfg.titleAlignment = UIButtonConfigurationTitleAlignmentCenter;
@@ -39,7 +48,7 @@
         chip.titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
     } else {
         [chip setTitle:title forState:UIControlStateNormal];
-        if (sfSymbol.length) [chip setImage:[UIImage systemImageNamed:sfSymbol] forState:UIControlStateNormal];
+        if (sfSymbol.length) [chip setImage:SCIGalleryChipGlyph(sfSymbol, ceil(fontSize * 1.7)) forState:UIControlStateNormal];
         chip.contentEdgeInsets = padding;
         chip.imageEdgeInsets = UIEdgeInsetsMake(0, -3, 0, 3);
         chip.titleLabel.font = [UIFont systemFontOfSize:fontSize weight:UIFontWeightSemibold];

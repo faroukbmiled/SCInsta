@@ -230,14 +230,16 @@ NSArray *sciMaybeAppendStoryExcludeMenuItem(NSArray *items) {
     void (^handler)(void) = ^{
         if (inList) {
             [SCIExcludedStoryUsers removePK:pk];
-            [SCIUtils showToastForDuration:2.0 title:blockSelected ? SCILocalized(@"Unblocked") : SCILocalized(@"Un-excluded")];
+            SCINotifySuccess(blockSelected ? SCI_NOTIF_BLOCK_TOGGLE : SCI_NOTIF_EXCLUDE_STORY,
+                             blockSelected ? SCILocalized(@"Unblocked") : SCILocalized(@"Un-excluded"), nil);
             // Removing in block_selected = normal behavior → mark seen
             if (blockSelected) sciTriggerStoryMarkSeen(weakVC);
         } else {
             [SCIExcludedStoryUsers addOrUpdateEntry:@{
                 @"pk": pk, @"username": username, @"fullName": fullName
             }];
-            [SCIUtils showToastForDuration:2.0 title:blockSelected ? SCILocalized(@"Blocked") : SCILocalized(@"Excluded")];
+            SCINotifySuccess(blockSelected ? SCI_NOTIF_BLOCK_TOGGLE : SCI_NOTIF_EXCLUDE_STORY,
+                             blockSelected ? SCILocalized(@"Blocked") : SCILocalized(@"Excluded"), nil);
             // Adding in block_all = normal behavior → mark seen
             if (!blockSelected) sciTriggerStoryMarkSeen(weakVC);
         }

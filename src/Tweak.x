@@ -38,6 +38,8 @@ static NSDictionary *sciDefaultsDictionary(void) {
         @"voice_call_confirm": @(NO),
         @"video_call_confirm": @(NO),
         @"keep_deleted_message": @(NO),
+        @"deleted_messages_log_enabled": @(NO),
+        @"dm_log_date_format": @"relative",
         @"hide_suggested_stories": @(NO),
         @"profile_analyzer_accumulate": @(NO),
         @"profile_analyzer_track_visits": @(NO),
@@ -62,6 +64,7 @@ static NSDictionary *sciDefaultsDictionary(void) {
         @"share_sheet_pinned_thread_ids": @[],
         @"hide_reels_friends_bubbles": @(NO),
         @"hide_reels_floating_social_context": @(NO),
+        @"hide_made_with_edits": @(NO),
         @"fake_follower_count": @(NO),
         @"fake_following_count": @(NO),
         @"fake_post_count": @(NO),
@@ -158,6 +161,7 @@ static NSDictionary *sciDefaultsDictionary(void) {
         @"keep_seen_visual_local": @(NO),
         @"send_audio_as_file": @(YES),
         @"download_audio_message": @(NO),
+        @"audio_page_download": @(NO),
         @"save_to_ryukgram_album": @(NO),
         @"unlock_password_reels": @(YES),
         @"seen_mode": @"button",
@@ -227,14 +231,28 @@ static NSDictionary *sciDefaultsDictionary(void) {
         @"igt_directnotes_photo_reply": @(NO),
         @"sci_exp_warning_seen": @(NO),
         @"custom_music_sticker_color": @(NO),
-        @"instants_send_from_gallery": @(NO)
+        @"instants_send_from_gallery": @(NO),
+        @"instants_allow_screenshot": @(NO),
+        @"instants_download_btn": @(NO),
+        @"instants_emoji_reaction_confirm": @(NO),
+
+        // Universal notification pill — see SCINotificationCenter.
+        @"notif_master_enabled": @(YES),
+        @"notif_style": @"colorful",           // minimal | colorful | glow | island
+        @"notif_position": @"top",             // top | bottom
+        @"notif_default_surface": @"pill",     // pill | ig_native
+        @"notif_max_visible": @(2),            // 1..3
+        @"notif_haptics": @(YES),
+        @"notif_duration": @(1.0),             // multiplier (0.5 / 1.0 / 2.0 / 3.0)
     };
 }
 
 static void sciRegisterDefaultsOnce(void) {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        NSDictionary *defaults = sciDefaultsDictionary();
+        NSMutableDictionary *defaults = [sciDefaultsDictionary() mutableCopy];
+        // notif_action_<id> per-action defaults — generated from the action registry.
+        [defaults addEntriesFromDictionary:[SCINotificationCenter defaultPerActionPrefs]];
         [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
         [SCIUtils setSciRegisteredDefaults:defaults];
     });

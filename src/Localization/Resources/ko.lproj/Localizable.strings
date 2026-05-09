@@ -82,7 +82,9 @@
 "Action button icon" = "동작 버튼 아이콘";
 "Action buttons" = "동작 버튼";
 "Adds a copy option to the comment long-press menu" = "댓글을 길게 누를 때 복사 옵션을 추가합니다";
+"Adds a download button next to share/save on the reels audio page" = "릴스 오디오 페이지의 공유/저장 옆에 다운로드 버튼을 추가합니다";
 "Adds download and copy options to GIF comments" = "GIF 댓글에 다운로드와 복사 옵션을 추가합니다";
+"Audio page" = "오디오 페이지";
 "Auto-reveals sensitive media" = "민감한 콘텐츠를 자동으로 표시합니다";
 "Anonymous live viewing" = "익명 라이브 시청";
 "Blocks the viewer-count heartbeat so the broadcaster doesn't see you — you also won't see the viewer count" = "시청자 수 하트비트를 차단하여 방송자가 당신을 보지 못하게 합니다 — 당신도 시청자 수를 볼 수 없습니다";
@@ -277,9 +279,11 @@
 "Doom scrolling limit" = "둠스크롤링 제한";
 "Forces the progress bar to appear on every reel" = "모든 릴스에 재생 진행 바를 강제로 표시합니다";
 "Hide friends avatars" = "친구 아바타 숨기기";
+"Hide \"Made with Edits\" badge" = "\"Made with Edits\" 배지 숨기기";
 "Hide reels header" = "릴스 헤더 숨기기";
 "Hide social context overlay" = "소셜 컨텍스트 오버레이 숨기기";
 "Hides the avatar bubbles next to the Friends tab in reels" = "릴스의 친구 탭 옆에 표시되는 아바타 버블을 숨깁니다";
+"Hides the Edits app promo pill on reels" = "릴스에서 Edits 앱 홍보 알약 배너를 숨깁니다";
 "Hides the floating overlay showing who reposted or commented on reels" = "릴스에서 누가 리포스트하거나 댓글을 달았는지 표시하는 플로팅 오버레이를 숨깁니다";
 "Hides the repost button on the reels sidebar" = "릴스 사이드바에서 리포스트 버튼을 숨깁니다";
 "Hides the top navigation bar when watching reels" = "릴스를 시청할 때 상단 내비게이션 바를 숨깁니다";
@@ -447,7 +451,7 @@
 "Confirmation dialog before clearing preserved messages" = "보존된 메시지를 지우기 전 확인 대화 상자";
 "Copies note text directly on long press without opening the menu" = "메뉴를 열지 않고 길게 누르면 노트 텍스트를 바로 복사합니다";
 "Copy text on hold" = "길게 눌러 텍스트 복사";
-"Custom emojis and background/text colors" = "사용자 지정 이모티콘 및 배경/텍스트 색상";
+"Adds a paintbrush button and long-press shortcut to pick custom background and text colors" = "사용자 지정 배경 및 텍스트 색상을 선택하는 페인트 브러시 버튼과 길게 누르기 단축키를 추가합니다";
 "Custom note themes" = "사용자 지정 노트 테마";
 "Disable vanish mode swipe" = "배니시 모드 스와이프 비활성화";
 "Disable screenshot detection" = "스크린샷 감지 비활성화";
@@ -511,8 +515,25 @@
 //////////////////////////////////////////////////////////////////////////////
 
 "Adds a gallery button to the instants camera so you can send a photo from your album" = "인스턴트 카메라에 갤러리 버튼을 추가하여 앨범의 사진을 보낼 수 있습니다";
+"All loaded instants" = "로드된 모든 인스턴트";
+"Allow screenshots" = "스크린샷 허용";
+"Bypasses the Instants screenshot block" = "Instants 스크린샷 차단 우회";
+"Could not locate the instant on screen" = "화면에서 인스턴트를 찾지 못했습니다";
+"Current instant" = "현재 인스턴트";
+"Instants action button" = "Instants 액션 버튼";
+"Adds a RyukGram action button to the instants viewer header with expand, save, share, and bulk-save entries" = "Instants 뷰어 헤더에 RyukGram 액션 버튼을 추가하며 확대, 저장, 공유, 일괄 저장 항목을 제공합니다";
+"Instant" = "인스턴트";
 "Instants" = "인스턴트";
+"No instants currently loaded" = "로드된 인스턴트 없음";
+"No media available to save" = "저장할 미디어가 없습니다";
+"Queued %lu instants" = "인스턴트 %lu개 대기 중";
+"Save all to Gallery" = "모두 갤러리에 저장";
+"Save all to Photos" = "모두 사진에 저장";
+"Save to Gallery" = "갤러리에 저장";
 "Send from gallery" = "갤러리에서 보내기";
+"Pick from" = "선택 위치";
+"In-app Gallery" = "내장 갤러리";
+"Photos library" = "사진 보관함";
 "Use" = "사용";
 "Tweaks for the QuickSnap / Instants camera surface." = "QuickSnap / 인스턴트 카메라 화면 조정";
 
@@ -570,6 +591,8 @@
 "Reaction stickers only" = "반응 스티커만";
 "All" = "모두";
 "Confirm story emoji reaction" = "스토리 이모티콘 반응 확인";
+"Confirm Instants emoji reaction" = "Instants 이모티콘 반응 확인";
+"Shows an alert before sending an emoji reaction on an Instant" = "Instant에 이모티콘 반응을 보내기 전에 알림 표시";
 "Confirm story like" = "스토리 좋아요 확인";
 "Confirm unfollow" = "언팔로우 확인";
 "Confirm voice messages" = "음성 메시지 확인";
@@ -621,8 +644,8 @@
 "Daily" = "매일";
 "Disable safe mode" = "안전 모드 비활성화";
 "Enable tweak settings quick-access" = "트윅 설정 빠른 접근 활성화";
-"Free %@ of Instagram cache. A restart is recommended." = "Instagram 캐시에서 %@을(를) 확보합니다. 재시작을 권장합니다.";
-"Freed %@. Restart to apply." = "%@ 확보됨. 적용하려면 재시작하세요.";
+"Free %@ of Instagram cache." = "Instagram 캐시에서 %@을(를) 확보합니다.";
+"Freed %@" = "%@ 확보됨";
 "Hold on the home tab to open RyukGram settings" = "홈 탭을 길게 눌러 RyukGram 설정을 엽니다";
 "Instagram" = "Instagram";
 "Monthly" = "매월";
@@ -734,6 +757,7 @@
 "Copy caption" = "캡션 복사";
 "Copy download URL" = "다운로드 URL 복사";
 "Could not extract any URLs" = "URL을 추출할 수 없습니다";
+"Could not extract audio URL" = "오디오 URL을 추출할 수 없습니다";
 "Could not extract media URL" = "미디어 URL을 추출할 수 없습니다";
 "Could not extract photo URL" = "사진 URL을 추출할 수 없습니다";
 "Could not extract video URL" = "동영상 URL을 추출할 수 없습니다";
@@ -891,8 +915,8 @@
 
 "Add location" = "위치 추가";
 "Add preset" = "프리셋 추가";
+"Background color" = "배경 색상";
 "Change location" = "위치 변경";
-"Click the Apply button after this to see the emoji" = "이모티콘을 보려면 이후에 적용 버튼을 클릭하세요";
 "Clipboard is not an Instagram URL" = "클립보드가 Instagram URL이 아닙니다";
 "Comments hidden" = "댓글 숨김";
 "Comments shown" = "댓글 표시됨";
@@ -907,7 +931,6 @@
 "Dropped pin" = "놓은 핀";
 "Enable" = "활성화";
 "Enable Location Services for Instagram in Settings to use your current location." = "현재 위치를 사용하려면 설정에서 Instagram의 위치 서비스를 활성화하세요.";
-"Enter Emoji Text" = "이모티콘 텍스트 입력";
 "Fake location" = "가짜 위치";
 "Location access denied" = "위치 접근이 거부됨";
 "Location Services off" = "위치 서비스 꺼짐";
@@ -920,8 +943,8 @@
 "Saved locations" = "저장된 위치";
 "Select color" = "색상 선택";
 "Set location" = "위치 설정";
+"Text color" = "텍스트 색상";
 "Turn Location Services on in Settings → Privacy to use your current location." = "현재 위치를 사용하려면 설정 → 개인정보에서 위치 서비스를 켜세요.";
-"Type emoji..." = "이모티콘 입력...";
 
 "Theme" = "테마";
 "Light" = "라이트";
@@ -1490,3 +1513,198 @@
 "Icon" = "아이콘";
 "Drag the ≡ handle to reorder. Toggle a row off to hide that destination. With one action enabled tapping fires it; with two or more, tapping presents a menu." = "≡ 핸들을 끌어 순서를 바꿉니다. 행을 끄면 해당 대상이 숨겨집니다. 한 동작이 켜져 있으면 탭으로 바로 실행하고, 두 개 이상이면 탭하면 메뉴를 표시합니다.";
 "Changelog" = "변경 사항";
+
+//////////////////////////////////////////////////////////////////////////////
+//                              INTERFACE PAGE                              //
+// Settings → Interface (renamed Navigation tab)                            //
+//////////////////////////////////////////////////////////////////////////////
+
+"Interface" = "인터페이스";
+"Tab bar shortcuts" = "탭 바 단축키";
+"Configure the home shortcut button (extra icon on the home top bar) and the system-wide action button icon." = "홈 단축 버튼과 시스템 전체 액션 버튼 아이콘을 구성합니다.";
+"Universal in-app notifications. Pick style, position, per-action routing (custom pill / IG-native / off)." = "앱 내 통합 알림. 스타일, 위치, 작업별 라우팅을 선택하세요.";
+
+//////////////////////////////////////////////////////////////////////////////
+//                              NOTIFICATIONS                               //
+// Settings → Interface → Notifications + the universal pill / toast system //
+//////////////////////////////////////////////////////////////////////////////
+
+// ───── Top-level + appearance section ─────
+"Notifications" = "알림";
+"Appearance" = "모양";
+"Routing" = "라우팅";
+"Style" = "스타일";
+"Position" = "위치";
+"Stack size" = "스택 크기";
+"Duration" = "지속 시간";
+"Default surface" = "기본 화면";
+"Enable notifications" = "알림 활성화";
+"Haptic feedback" = "햅틱 피드백";
+"Preview pill" = "알약 미리보기";
+"Preview download pill" = "다운로드 알약 미리보기";
+"Preview loading pill" = "로딩 알약 미리보기";
+"Master switch. When off, no RyukGram pills or IG-native toasts are emitted." = "마스터 스위치. 끄면 어떤 알림도 표시되지 않습니다.";
+"Universal in-app notifications. All RyukGram feedback (downloads, copies, errors, success messages) routes through here." = "앱 내 통합 알림. 모든 RyukGram 피드백이 여기를 거칩니다.";
+"Minimal: flat blur. Colorful: tinted by tone. Glow: colored halo. Island: dynamic-island capsule." = "Minimal: 단순 블러. Colorful: 톤별 색조. Glow: 컬러 후광. Island: 다이내믹 아일랜드 캡슐.";
+"Top slides down, bottom slides up." = "위는 아래로, 아래는 위로 슬라이드합니다.";
+"How many pills can show at once before queueing." = "대기열로 보내기 전에 동시에 표시할 알약 수.";
+"Multiplies how long toasts stay on screen." = "토스트가 화면에 머무르는 시간을 곱합니다.";
+"Vibration on success/error pills." = "성공/오류 알약에서 진동.";
+"For toast-style actions you can choose between our pill and IG's native bottom toast. Per-action overrides live below." = "토스트형 작업은 알약 또는 IG 기본 토스트 중 선택할 수 있습니다. 작업별 재정의는 아래에 있습니다.";
+"What to use when an action doesn't have its own override." = "작업에 자체 재정의가 없을 때 사용할 항목입니다.";
+"Tap to cycle: info → success → warning → error" = "탭하여 순환: 정보 → 성공 → 경고 → 오류";
+"Tap to cycle between success and failure" = "성공과 실패 사이를 탭하여 전환";
+"Progress UI — pill or off only." = "진행 UI — 알약 또는 끄기만 가능.";
+
+// ───── Style / position / surface menus ─────
+"Minimal" = "Minimal";
+"Colorful" = "Colorful";
+"Glow" = "Glow";
+"Island" = "Island";
+"Top" = "위";
+"Bottom" = "아래";
+"Custom pill" = "사용자 지정 알약";
+"IG native toast" = "IG 기본 토스트";
+"Short" = "짧음";
+"Normal" = "보통";
+"Long" = "길게";
+"Very long" = "매우 길게";
+
+// ───── Per-action category headers ─────
+"Downloads & saving" = "다운로드 및 저장";
+"Copy to clipboard" = "클립보드에 복사";
+"Read receipts & seen" = "읽음 확인 및 보임";
+"Block, exclude & pin" = "차단, 제외 및 고정";
+"Stories & messages" = "스토리 및 메시지";
+"Voice & audio" = "음성 및 오디오";
+"Errors" = "오류";
+
+// ───── Per-action display names ─────
+"Download progress" = "다운로드 진행";
+"Bulk download progress" = "대량 다운로드 진행";
+"Copied post / reel URL" = "게시물 / 릴스 URL 복사됨";
+"Copied comment text" = "댓글 텍스트 복사됨";
+"Copied note text" = "노트 텍스트 복사됨";
+"Copied profile info" = "프로필 정보 복사됨";
+"Copied audio URL" = "오디오 URL 복사됨";
+"Copied quality picker URL" = "품질 선택기 URL 복사됨";
+"Copied unlocked password" = "잠금 해제된 비밀번호 복사됨";
+"Copied description text" = "설명 텍스트 복사됨";
+"DM seen / read receipts" = "DM 보임 / 읽음 확인";
+"Story seen / read receipts" = "스토리 보임 / 읽음 확인";
+"User blocked / unblocked" = "사용자 차단 / 차단 해제";
+"Chat added / removed from exclude" = "채팅 제외 추가 / 제거";
+"Story user added / removed from exclude" = "스토리 사용자 제외 추가 / 제거";
+"Share-sheet recipient pinned" = "공유 시트 수신자 고정됨";
+"Unsent message detected" = "전송 취소된 메시지 감지됨";
+"Live comments toggled" = "라이브 댓글 전환됨";
+"Custom GIF sent" = "사용자 지정 GIF 전송됨";
+"Voice DM sent" = "음성 DM 전송됨";
+"Audio extraction status" = "오디오 추출 상태";
+"Profile Analyzer complete" = "프로필 분석기 완료";
+"Media extraction failed" = "미디어 추출 실패";
+"Permission denied" = "권한 거부됨";
+"Validation error" = "유효성 검사 오류";
+"Network / API error" = "네트워크 / API 오류";
+"Action error fallback" = "동작 오류 대체";
+"Invalid clipboard link" = "잘못된 클립보드 링크";
+"Experimental flag warning" = "실험 플래그 경고";
+"Settings action confirmed" = "설정 작업 확인됨";
+"Cache clearing progress" = "캐시 지우기 진행";
+"Other / uncategorized" = "기타 / 미분류";
+
+// ───── Live runtime strings (toast titles / subtitles) ─────
+"Comment copied" = "댓글 복사됨";
+"Copied: %@" = "복사됨: %@";
+"FFmpeg log copied" = "FFmpeg 로그 복사됨";
+"GIF inserted" = "GIF 삽입됨";
+"Story marked as seen" = "스토리가 보임으로 표시됨";
+"Saved" = "저장됨";
+"Tap to retry" = "재시도하려면 탭";
+"Looks great" = "멋져 보입니다";
+"Something broke" = "문제가 발생했습니다";
+"Just so you know" = "참고하세요";
+"Success preview" = "성공 미리보기";
+"Error preview" = "오류 미리보기";
+"Warning preview" = "경고 미리보기";
+"Info preview" = "정보 미리보기";
+"Preview download…" = "다운로드 미리보기…";
+
+//////////////////////////////////////////////////////////////////////////////
+//                       MESSAGES — DELETED MESSAGES LOG                    //
+//////////////////////////////////////////////////////////////////////////////
+
+"Deleted messages" = "Deleted messages";
+"Deleted messages log" = "Deleted messages log";
+"Records every message someone unsends, grouped by sender" = "Records every message someone unsends, grouped by sender";
+"When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history." = "When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history.";
+"Enable deleted messages log" = "Enable deleted messages log";
+"Captures unsent messages with their text or media" = "Captures unsent messages with their text or media";
+"Open log" = "Open log";
+"Browse, filter and search recorded messages" = "Browse, filter and search recorded messages";
+"Search senders or messages" = "Search senders or messages";
+"Search messages" = "Search messages";
+"All time" = "All time";
+"Last 7 days" = "Last 7 days";
+"Last 30 days" = "Last 30 days";
+"Date range" = "Date range";
+"Most recent" = "Most recent";
+"Oldest first" = "Oldest first";
+"Most messages" = "Most messages";
+"Clear log" = "Clear log";
+"Clear deleted-message log?" = "Clear deleted-message log?";
+"Removes every preserved deleted message and its captured media for this account." = "Removes every preserved deleted message and its captured media for this account.";
+"No deleted messages yet" = "No deleted messages yet";
+"Logging is off" = "Logging is off";
+"When someone unsends a message, it will appear here grouped by sender." = "When someone unsends a message, it will appear here grouped by sender.";
+"Enable Settings → Messages → Deleted messages log to start recording." = "Enable Settings → Messages → Deleted messages log to start recording.";
+"No matches" = "No matches";
+"Adjust the filters or clear the search to see more." = "Adjust the filters or clear the search to see more.";
+"%lu messages from %lu users" = "%lu messages from %lu users";
+"Text" = "Text";
+"Video" = "Video";
+"Voice" = "Voice";
+"GIF" = "GIF";
+"Sticker" = "Sticker";
+"Link" = "Link";
+"Unknown" = "Unknown";
+"%@ deleted" = "%@ deleted";
+"Clear from this user" = "Clear from this user";
+"Clear log for this user?" = "Clear log for this user?";
+"Removes every preserved deleted message from this sender." = "Removes every preserved deleted message from this sender.";
+"%ld deleted messages • %@ → %@" = "%ld deleted messages • %@ → %@";
+"%ld deleted messages" = "%ld deleted messages";
+"Close" = "Close";
+"Kind: %@\n" = "Kind: %@\n";
+"Deleted: %@\n" = "Deleted: %@\n";
+"Source URL recorded but media not stored.\n" = "Source URL recorded but media not stored.\n";
+
+"This account" = "This account";
+"Media on disk" = "Media on disk";
+"Empty" = "Empty";
+"Clear media files" = "Clear media files";
+"Clear log for this account" = "Clear log for this account";
+"Playback failed" = "Playback failed";
+"View" = "View";
+"Play" = "Play";
+"Shared post" = "Shared post";
+"Shared link" = "Shared link";
+"Content unavailable" = "Content unavailable";
+"Copied" = "Copied";
+"Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account." = "Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account.";
+"Clear media files?" = "Clear media files?";
+"Removes every saved photo, video and voice clip. Records keep their text and sender info." = "Removes every saved photo, video and voice clip. Records keep their text and sender info.";
+"Clear log for this account?" = "Clear log for this account?";
+"Removes every preserved deleted message and its captured media for the current account. This cannot be undone." = "Removes every preserved deleted message and its captured media for the current account. This cannot be undone.";
+"See how much disk the log uses and clear it" = "See how much disk the log uses and clear it";
+
+"now" = "now";
+"Relative (1m / 3h / 3d ago)" = "Relative (1m / 3h / 3d ago)";
+"Absolute date + time" = "Absolute date + time";
+"How timestamps render in the log" = "How timestamps render in the log";
+
+"Select messages to download" = "Select messages to download";
+"%lu selected" = "%lu selected";
+"Nothing to save" = "Nothing to save";
+"%@%lu deleted" = "%@%lu deleted";
+"Photos" = "Photos";

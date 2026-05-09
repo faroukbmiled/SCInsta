@@ -868,7 +868,7 @@ static void sciConfirmThen(NSString *title, void(^block)(void)) {
     [pill resetState];
     UIView *host = [UIApplication sharedApplication].keyWindow ?: topMostController().view;
     if (host) [pill showInView:host];
-    pill.textLabel.text = SCILocalized(@"Saving to Gallery...");
+    [pill setText:SCILocalized(@"Saving to Gallery...")];
     [pill showBulkProgress:0 total:files.count];
 
     [self _bulkGallerySaveStep:files
@@ -923,14 +923,14 @@ static void sciConfirmThen(NSString *title, void(^block)(void)) {
     NSURL *url = [self bestURLForMedia:media];
     if (!url) { [SCIUtils showErrorHUDWithDescription:SCILocalized(@"Could not extract media URL")]; return; }
     [[UIPasteboard generalPasteboard] setString:url.absoluteString];
-    [SCIUtils showToastForDuration:1.5 title:SCILocalized(@"Copied download URL")];
+    SCINotifySuccess(SCI_NOTIF_COPY_URL, SCILocalized(@"Copied download URL"), nil);
 }
 
 + (void)copyCaptionForMedia:(id)media {
     NSString *caption = [self captionForMedia:media];
     if (!caption.length) { [SCIUtils showErrorHUDWithDescription:SCILocalized(@"No caption on this post")]; return; }
     [[UIPasteboard generalPasteboard] setString:caption];
-    [SCIUtils showToastForDuration:1.5 title:SCILocalized(@"Copied caption")];
+    SCINotifySuccess(SCI_NOTIF_COPY_CAPTION, SCILocalized(@"Copied caption"), nil);
 }
 
 // BFS search for a view of a given class within a subtree (bounded depth).
@@ -1145,8 +1145,8 @@ static UIView *sciFindSubviewOfClass(UIView *root, NSString *className, int maxD
             __block void (^saveNext)(void) = ^{
                 if (idx >= files.count) {
                     dispatch_async(dispatch_get_main_queue(), ^{
-                        [SCIUtils showToastForDuration:2.0
-                                                 title:[NSString stringWithFormat:SCILocalized(@"Saved %lu items"), (unsigned long)saved]];
+                        SCINotifySuccess(SCI_NOTIF_GALLERY_SAVE,
+                                         [NSString stringWithFormat:SCILocalized(@"Saved %lu items"), (unsigned long)saved], nil);
                     });
                     saveNext = nil; // break retain cycle
                     return;
@@ -1186,7 +1186,7 @@ static UIView *sciFindSubviewOfClass(UIView *root, NSString *className, int maxD
     }
     if (!urls.count) { [SCIUtils showErrorHUDWithDescription:SCILocalized(@"No URLs found")]; return; }
     [[UIPasteboard generalPasteboard] setString:[urls componentsJoinedByString:@"\n"]];
-    [SCIUtils showToastForDuration:1.5 title:[NSString stringWithFormat:SCILocalized(@"Copied %lu URLs"), (unsigned long)urls.count]];
+    SCINotifySuccess(SCI_NOTIF_COPY_URL, [NSString stringWithFormat:SCILocalized(@"Copied %lu URLs"), (unsigned long)urls.count], nil);
 }
 
 
@@ -1454,10 +1454,12 @@ static id sciCarouselParentMedia(id media, UIView *sourceView) {
             return [SCIAction actionWithTitle:title icon:icon handler:^{
                 if (inList) {
                     [SCIExcludedStoryUsers removePK:capturedPK];
-                    [SCIUtils showToastForDuration:2.0 title:bs ? SCILocalized(@"Unblocked") : SCILocalized(@"Removed from list")];
+                    SCINotifySuccess(bs ? SCI_NOTIF_BLOCK_TOGGLE : SCI_NOTIF_EXCLUDE_STORY,
+                                     bs ? SCILocalized(@"Unblocked") : SCILocalized(@"Removed from list"), nil);
                 } else {
                     [SCIExcludedStoryUsers addOrUpdateEntry:@{@"pk": capturedPK, @"username": capturedUser, @"fullName": capturedName}];
-                    [SCIUtils showToastForDuration:2.0 title:bs ? SCILocalized(@"Added to block list") : SCILocalized(@"Added to exclude list")];
+                    SCINotifySuccess(bs ? SCI_NOTIF_BLOCK_TOGGLE : SCI_NOTIF_EXCLUDE_STORY,
+                                     bs ? SCILocalized(@"Added to block list") : SCILocalized(@"Added to exclude list"), nil);
                 }
                 sciRefreshAllVisibleOverlays(sciActiveStoryViewerVC);
             }];
@@ -1529,7 +1531,7 @@ static id sciCarouselParentMedia(id media, UIView *sourceView) {
                 }
                 if (!urls.count) { [SCIUtils showErrorHUDWithDescription:SCILocalized(@"No URLs found")]; return; }
                 [[UIPasteboard generalPasteboard] setString:[urls componentsJoinedByString:@"\n"]];
-                [SCIUtils showToastForDuration:1.5 title:[NSString stringWithFormat:SCILocalized(@"Copied %lu URLs"), (unsigned long)urls.count]];
+                SCINotifySuccess(SCI_NOTIF_COPY_URL, [NSString stringWithFormat:SCILocalized(@"Copied %lu URLs"), (unsigned long)urls.count], nil);
             }];
         }
 
@@ -1765,8 +1767,8 @@ static BOOL sciFireActionWithIDInList(NSArray<SCIAction *> *items, NSString *aid
         __block void (^saveNext)(void) = ^{
             if (idx >= files.count) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    [SCIUtils showToastForDuration:2.0
-                                             title:[NSString stringWithFormat:SCILocalized(@"Saved %lu items"), (unsigned long)saved]];
+                    SCINotifySuccess(SCI_NOTIF_GALLERY_SAVE,
+                                     [NSString stringWithFormat:SCILocalized(@"Saved %lu items"), (unsigned long)saved], nil);
                 });
                 saveNext = nil;
                 return;

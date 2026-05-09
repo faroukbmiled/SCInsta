@@ -82,7 +82,9 @@
 "Action button icon" = "‏أيقونة زر الإجراءات‏";
 "Action buttons" = "‏أزرار الإجراءات‏";
 "Adds a copy option to the comment long-press menu" = "‏إضافة خيار النسخ إلى قائمة الضغط المطول للتعليقات‏";
+"Adds a download button next to share/save on the reels audio page" = "‏يضيف زر تنزيل بجانب المشاركة/الحفظ في صفحة الصوت بالريلز‏";
 "Adds download and copy options to GIF comments" = "‏يضيف خيارات التنزيل والنسخ لتعليقات GIF‏";
+"Audio page" = "‏صفحة الصوت‏";
 "Auto-reveals sensitive media" = "‏يكشف تلقائيًا عن المحتوى الحساس‏";
 "Anonymous live viewing" = "‏مشاهدة البث المباشر مجهول الهوية‏";
 "Blocks the viewer-count heartbeat so the broadcaster doesn't see you — you also won't see the viewer count" = "‏يمنع نبض عدّاد المشاهدين فلا يراك المذيع — ولن ترى عدّاد المشاهدين أيضاً‏";
@@ -277,9 +279,11 @@
 "Doom scrolling limit" = "‏حد التمرير المفرط‏";
 "Forces the progress bar to appear on every reel" = "‏يفرض ظهور شريط التقدم على كل مقطع ريلز‏";
 "Hide friends avatars" = "‏إخفاء صور الأصدقاء‏";
+"Hide \"Made with Edits\" badge" = "‏إخفاء شارة \"تم الإنشاء باستخدام Edits\"‏";
 "Hide reels header" = "‏إخفاء ترويسة ريلز‏";
 "Hide social context overlay" = "‏إخفاء طبقة السياق الاجتماعي‏";
 "Hides the avatar bubbles next to the Friends tab in reels" = "‏يخفي صور الأصدقاء بجانب علامة تبويب الأصدقاء في ريلز‏";
+"Hides the Edits app promo pill on reels" = "‏يخفي شارة الترويج لتطبيق Edits في الريلز‏";
 "Hides the floating overlay showing who reposted or commented on reels" = "‏يخفي الطبقة العائمة التي تظهر من أعاد النشر أو علّق على الريلز‏";
 "Hides the repost button on the reels sidebar" = "‏إخفاء زر إعادة النشر على الشريط الجانبي لمقاطع ريلز‏";
 "Hides the top navigation bar when watching reels" = "‏إخفاء شريط التنقل العلوي عند مشاهدة ريلز‏";
@@ -447,7 +451,7 @@
 "Confirmation dialog before clearing preserved messages" = "‏نافذة تأكيد قبل مسح الرسائل المحفوظة‏";
 "Copies note text directly on long press without opening the menu" = "‏ينسخ نص الملاحظة مباشرة عند الضغط المطول دون فتح القائمة‏";
 "Copy text on hold" = "‏نسخ النص عند التوقف‏";
-"Custom emojis and background/text colors" = "‏إيموجي مخصصة وألوان للخلفية والنص‏";
+"Adds a paintbrush button and long-press shortcut to pick custom background and text colors" = "‏يضيف زر فرشاة واختصار ضغط مطوّل لاختيار ألوان مخصّصة للخلفية والنص‏";
 "Custom note themes" = "‏سمات ملاحظات مخصصة‏";
 "Disable vanish mode swipe" = "‏تعطيل سحب وضع الاختفاء‏";
 "Disable screenshot detection" = "‏تعطيل الكشف عن لقطات الشاشة‏";
@@ -511,8 +515,25 @@
 //////////////////////////////////////////////////////////////////////////////
 
 "Adds a gallery button to the instants camera so you can send a photo from your album" = "‏يضيف زر المعرض إلى كاميرا اللحظات السريعة لإرسال صورة من ألبومك‏";
+"All loaded instants" = "‏جميع اللحظات المحمّلة‏";
+"Allow screenshots" = "‏السماح بلقطات الشاشة‏";
+"Bypasses the Instants screenshot block" = "‏يتجاوز حظر لقطات الشاشة على اللحظات السريعة‏";
+"Could not locate the instant on screen" = "‏تعذّر تحديد موقع اللحظة على الشاشة‏";
+"Current instant" = "‏اللحظة الحالية‏";
+"Instants action button" = "‏زر إجراء إنستنت‏";
+"Adds a RyukGram action button to the instants viewer header with expand, save, share, and bulk-save entries" = "‏يضيف زر إجراء RyukGram إلى رأس عارض إنستنت مع خيارات التوسيع والحفظ والمشاركة والحفظ المجمّع‏";
+"Instant" = "‏لحظة‏";
 "Instants" = "‏اللحظات السريعة‏";
+"No instants currently loaded" = "‏لا توجد لحظات محمّلة حاليًا‏";
+"No media available to save" = "‏لا توجد وسائط لحفظها‏";
+"Queued %lu instants" = "‏تم إدراج %lu لحظة في قائمة الانتظار‏";
+"Save all to Gallery" = "‏حفظ الكل في المعرض‏";
+"Save all to Photos" = "‏حفظ الكل في الصور‏";
+"Save to Gallery" = "‏حفظ في المعرض‏";
 "Send from gallery" = "‏إرسال من المعرض‏";
+"Pick from" = "‏اختر من‏";
+"In-app Gallery" = "‏معرض التطبيق‏";
+"Photos library" = "‏مكتبة الصور‏";
 "Use" = "‏استخدام‏";
 "Tweaks for the QuickSnap / Instants camera surface." = "‏تعديلات على واجهة كاميرا QuickSnap / اللحظات السريعة.‏";
 
@@ -570,6 +591,8 @@
 "Reaction stickers only" = "‏ملصقات التفاعل فقط‏";
 "All" = "‏الكل‏";
 "Confirm story emoji reaction" = "‏تأكيد تفاعل الإيموجي في القصة‏";
+"Confirm Instants emoji reaction" = "‏تأكيد تفاعل الإيموجي في الإنستنت‏";
+"Shows an alert before sending an emoji reaction on an Instant" = "‏يعرض تنبيهًا قبل إرسال تفاعل إيموجي على إنستنت‏";
 "Confirm story like" = "‏تأكيد الإعجاب بالقصة‏";
 "Confirm unfollow" = "‏تأكيد إلغاء المتابعة‏";
 "Confirm voice messages" = "‏تأكيد الرسائل الصوتية‏";
@@ -621,8 +644,8 @@
 "Daily" = "‏يومياً‏";
 "Disable safe mode" = "‏تعطيل الوضع الآمن‏";
 "Enable tweak settings quick-access" = "‏تفعيل الوصول السريع لإعدادات الأداة‏";
-"Free %@ of Instagram cache. A restart is recommended." = "‏تحرير %@ من ذاكرة إنستغرام. يُنصح بإعادة التشغيل.‏";
-"Freed %@. Restart to apply." = "‏تم تحرير %@. أعد التشغيل للتطبيق.‏";
+"Free %@ of Instagram cache." = "‏تحرير %@ من ذاكرة إنستغرام.‏";
+"Freed %@" = "‏تم تحرير %@‏";
 "Hold on the home tab to open RyukGram settings" = "‏اضغط مطولاً على تبويب الصفحة الرئيسية لفتح إعدادات ريوك غرام‏";
 "Instagram" = "‏إنستغرام‏";
 "Monthly" = "‏شهرياً‏";
@@ -734,6 +757,7 @@
 "Copy caption" = "‏نسخ الوصف‏";
 "Copy download URL" = "‏نسخ رابط التنزيل‏";
 "Could not extract any URLs" = "‏تعذر استخراج أي روابط‏";
+"Could not extract audio URL" = "‏تعذر استخراج رابط الصوت‏";
 "Could not extract media URL" = "‏تعذر استخراج رابط الوسائط‏";
 "Could not extract photo URL" = "‏تعذر استخراج رابط الصورة‏";
 "Could not extract video URL" = "‏تعذر استخراج رابط الفيديو‏";
@@ -891,8 +915,8 @@
 
 "Add location" = "‏إضافة موقع‏";
 "Add preset" = "‏إضافة إعداد مسبق‏";
+"Background color" = "‏لون الخلفية‏";
 "Change location" = "‏تغيير الموقع‏";
-"Click the Apply button after this to see the emoji" = "‏انقر على زر تطبيق بعد هذا لرؤية الإيموجي‏";
 "Clipboard is not an Instagram URL" = "الحافظة لا تحتوي على رابط إنستغرام";
 "Comments hidden" = "‏تم إخفاء التعليقات‏";
 "Comments shown" = "‏تم إظهار التعليقات‏";
@@ -907,7 +931,6 @@
 "Dropped pin" = "‏دبوس الموقع‏";
 "Enable" = "‏تفعيل‏";
 "Enable Location Services for Instagram in Settings to use your current location." = "‏فعّل خدمات الموقع لإنستغرام من الإعدادات لاستخدام موقعك الحالي.‏";
-"Enter Emoji Text" = "‏أدخل نص الإيموجي‏";
 "Fake location" = "‏موقع وهمي‏";
 "Location access denied" = "‏تم رفض الوصول إلى الموقع‏";
 "Location Services off" = "‏خدمات الموقع متوقفة‏";
@@ -920,8 +943,8 @@
 "Saved locations" = "‏المواقع المحفوظة‏";
 "Select color" = "‏اختيار اللون‏";
 "Set location" = "‏تعيين الموقع‏";
+"Text color" = "‏لون النص‏";
 "Turn Location Services on in Settings → Privacy to use your current location." = "‏فعّل خدمات الموقع من الإعدادات ← الخصوصية لاستخدام موقعك الحالي.‏";
-"Type emoji..." = "‏اكتب إيموجي...‏";
 
 "Theme" = "‏السمة‏";
 "Light" = "‏فاتح‏";
@@ -1490,3 +1513,198 @@
 "Icon" = "‫الأيقونة‬";
 "Drag the ≡ handle to reorder. Toggle a row off to hide that destination. With one action enabled tapping fires it; with two or more, tapping presents a menu." = "‫اسحب مقبض ≡ لإعادة الترتيب. أوقف صفًا لإخفاء تلك الوجهة. عند تفعيل إجراء واحد ينفذه الضغط؛ عند تفعيل اثنين أو أكثر يعرض الضغط قائمة.‬";
 "Changelog" = "‫سجل التغييرات‬";
+
+//////////////////////////////////////////////////////////////////////////////
+//                              INTERFACE PAGE                              //
+// Settings → Interface (renamed Navigation tab)                            //
+//////////////////////////////////////////////////////////////////////////////
+
+"Interface" = "الواجهة";
+"Tab bar shortcuts" = "اختصارات شريط التبويبات";
+"Configure the home shortcut button (extra icon on the home top bar) and the system-wide action button icon." = "اضبط زر اختصار الصفحة الرئيسية (الأيقونة الإضافية في الشريط العلوي) وأيقونة زر الإجراء على مستوى التطبيق.";
+"Universal in-app notifications. Pick style, position, per-action routing (custom pill / IG-native / off)." = "إشعارات داخل التطبيق موحدة. اختر النمط والموضع والتوجيه لكل إجراء (كبسولة / إنستغرام أصلي / إيقاف).";
+
+//////////////////////////////////////////////////////////////////////////////
+//                              NOTIFICATIONS                               //
+// Settings → Interface → Notifications + the universal pill / toast system //
+//////////////////////////////////////////////////////////////////////////////
+
+// ───── Top-level + appearance section ─────
+"Notifications" = "الإشعارات";
+"Appearance" = "المظهر";
+"Routing" = "التوجيه";
+"Style" = "النمط";
+"Position" = "الموضع";
+"Stack size" = "حجم الكومة";
+"Duration" = "المدة";
+"Default surface" = "السطح الافتراضي";
+"Enable notifications" = "تمكين الإشعارات";
+"Haptic feedback" = "استجابة لمسية";
+"Preview pill" = "معاينة الكبسولة";
+"Preview download pill" = "معاينة كبسولة التنزيل";
+"Preview loading pill" = "معاينة كبسولة التحميل";
+"Master switch. When off, no RyukGram pills or IG-native toasts are emitted." = "المفتاح الرئيسي. عند الإيقاف، لا تظهر أي إشعارات.";
+"Universal in-app notifications. All RyukGram feedback (downloads, copies, errors, success messages) routes through here." = "إشعارات داخل التطبيق موحدة. كل ملاحظات RyukGram (التنزيلات، النسخ، الأخطاء، رسائل النجاح) تمر من هنا.";
+"Minimal: flat blur. Colorful: tinted by tone. Glow: colored halo. Island: dynamic-island capsule." = "Minimal: ضبابية مسطحة. Colorful: ملونة بالنبرة. Glow: هالة ملونة. Island: كبسولة الجزيرة الديناميكية.";
+"Top slides down, bottom slides up." = "الأعلى ينزلق للأسفل، الأسفل ينزلق للأعلى.";
+"How many pills can show at once before queueing." = "عدد الكبسولات التي يمكن عرضها معًا قبل الانتظار.";
+"Multiplies how long toasts stay on screen." = "يضاعف مدة بقاء الإشعارات على الشاشة.";
+"Vibration on success/error pills." = "اهتزاز عند كبسولات النجاح/الخطأ.";
+"For toast-style actions you can choose between our pill and IG's native bottom toast. Per-action overrides live below." = "للإجراءات بنمط الإشعار يمكنك الاختيار بين كبسولتنا وإشعار إنستغرام الأصلي. التجاوزات لكل إجراء أدناه.";
+"What to use when an action doesn't have its own override." = "ما يُستخدم عندما لا يحتوي إجراء على تجاوز خاص.";
+"Tap to cycle: info → success → warning → error" = "اضغط للتنقل: معلومات ← نجاح ← تحذير ← خطأ";
+"Tap to cycle between success and failure" = "اضغط للتبديل بين النجاح والفشل";
+"Progress UI — pill or off only." = "واجهة التقدم — كبسولة أو إيقاف فقط.";
+
+// ───── Style / position / surface menus ─────
+"Minimal" = "Minimal";
+"Colorful" = "Colorful";
+"Glow" = "Glow";
+"Island" = "Island";
+"Top" = "أعلى";
+"Bottom" = "أسفل";
+"Custom pill" = "كبسولة مخصصة";
+"IG native toast" = "إشعار إنستغرام الأصلي";
+"Short" = "قصير";
+"Normal" = "عادي";
+"Long" = "طويل";
+"Very long" = "طويل جدًا";
+
+// ───── Per-action category headers ─────
+"Downloads & saving" = "التنزيلات والحفظ";
+"Copy to clipboard" = "نسخ إلى الحافظة";
+"Read receipts & seen" = "إيصالات القراءة والمشاهدة";
+"Block, exclude & pin" = "حظر واستثناء وتثبيت";
+"Stories & messages" = "القصص والرسائل";
+"Voice & audio" = "الصوت والمقاطع";
+"Errors" = "الأخطاء";
+
+// ───── Per-action display names ─────
+"Download progress" = "تقدم التنزيل";
+"Bulk download progress" = "تقدم التنزيل المجمع";
+"Copied post / reel URL" = "تم نسخ رابط المنشور/الريل";
+"Copied comment text" = "تم نسخ نص التعليق";
+"Copied note text" = "تم نسخ نص الملاحظة";
+"Copied profile info" = "تم نسخ معلومات الملف الشخصي";
+"Copied audio URL" = "تم نسخ رابط الصوت";
+"Copied quality picker URL" = "تم نسخ رابط منتقي الجودة";
+"Copied unlocked password" = "تم نسخ كلمة المرور المفتوحة";
+"Copied description text" = "تم نسخ نص الوصف";
+"DM seen / read receipts" = "إيصالات قراءة الرسائل المباشرة";
+"Story seen / read receipts" = "إيصالات قراءة القصص";
+"User blocked / unblocked" = "تم حظر / إلغاء حظر المستخدم";
+"Chat added / removed from exclude" = "تم إضافة / إزالة الدردشة من الاستثناءات";
+"Story user added / removed from exclude" = "تم إضافة / إزالة مستخدم القصة من الاستثناءات";
+"Share-sheet recipient pinned" = "تم تثبيت المستلم في ورقة المشاركة";
+"Unsent message detected" = "تم اكتشاف رسالة غير مرسلة";
+"Live comments toggled" = "تم تبديل تعليقات البث المباشر";
+"Custom GIF sent" = "تم إرسال GIF مخصص";
+"Voice DM sent" = "تم إرسال رسالة صوتية";
+"Audio extraction status" = "حالة استخراج الصوت";
+"Profile Analyzer complete" = "اكتمل محلل الملف الشخصي";
+"Media extraction failed" = "فشل استخراج الوسائط";
+"Permission denied" = "تم رفض الإذن";
+"Validation error" = "خطأ في التحقق";
+"Network / API error" = "خطأ في الشبكة / API";
+"Action error fallback" = "احتياطي خطأ الإجراء";
+"Invalid clipboard link" = "رابط الحافظة غير صالح";
+"Experimental flag warning" = "تحذير العلامة التجريبية";
+"Settings action confirmed" = "تم تأكيد إجراء الإعدادات";
+"Cache clearing progress" = "تقدم مسح الذاكرة المؤقتة";
+"Other / uncategorized" = "أخرى / غير مصنفة";
+
+// ───── Live runtime strings (toast titles / subtitles) ─────
+"Comment copied" = "تم نسخ التعليق";
+"Copied: %@" = "تم النسخ: %@";
+"FFmpeg log copied" = "تم نسخ سجل FFmpeg";
+"GIF inserted" = "تم إدراج GIF";
+"Story marked as seen" = "تم تعليم القصة كمشاهدة";
+"Saved" = "تم الحفظ";
+"Tap to retry" = "اضغط لإعادة المحاولة";
+"Looks great" = "يبدو رائعًا";
+"Something broke" = "حدث خطأ ما";
+"Just so you know" = "للعلم فقط";
+"Success preview" = "معاينة النجاح";
+"Error preview" = "معاينة الخطأ";
+"Warning preview" = "معاينة التحذير";
+"Info preview" = "معاينة المعلومات";
+"Preview download…" = "معاينة التنزيل…";
+
+//////////////////////////////////////////////////////////////////////////////
+//                       MESSAGES — DELETED MESSAGES LOG                    //
+//////////////////////////////////////////////////////////////////////////////
+
+"Deleted messages" = "Deleted messages";
+"Deleted messages log" = "Deleted messages log";
+"Records every message someone unsends, grouped by sender" = "Records every message someone unsends, grouped by sender";
+"When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history." = "When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history.";
+"Enable deleted messages log" = "Enable deleted messages log";
+"Captures unsent messages with their text or media" = "Captures unsent messages with their text or media";
+"Open log" = "Open log";
+"Browse, filter and search recorded messages" = "Browse, filter and search recorded messages";
+"Search senders or messages" = "Search senders or messages";
+"Search messages" = "Search messages";
+"All time" = "All time";
+"Last 7 days" = "Last 7 days";
+"Last 30 days" = "Last 30 days";
+"Date range" = "Date range";
+"Most recent" = "Most recent";
+"Oldest first" = "Oldest first";
+"Most messages" = "Most messages";
+"Clear log" = "Clear log";
+"Clear deleted-message log?" = "Clear deleted-message log?";
+"Removes every preserved deleted message and its captured media for this account." = "Removes every preserved deleted message and its captured media for this account.";
+"No deleted messages yet" = "No deleted messages yet";
+"Logging is off" = "Logging is off";
+"When someone unsends a message, it will appear here grouped by sender." = "When someone unsends a message, it will appear here grouped by sender.";
+"Enable Settings → Messages → Deleted messages log to start recording." = "Enable Settings → Messages → Deleted messages log to start recording.";
+"No matches" = "No matches";
+"Adjust the filters or clear the search to see more." = "Adjust the filters or clear the search to see more.";
+"%lu messages from %lu users" = "%lu messages from %lu users";
+"Text" = "Text";
+"Video" = "Video";
+"Voice" = "Voice";
+"GIF" = "GIF";
+"Sticker" = "Sticker";
+"Link" = "Link";
+"Unknown" = "Unknown";
+"%@ deleted" = "%@ deleted";
+"Clear from this user" = "Clear from this user";
+"Clear log for this user?" = "Clear log for this user?";
+"Removes every preserved deleted message from this sender." = "Removes every preserved deleted message from this sender.";
+"%ld deleted messages • %@ → %@" = "%ld deleted messages • %@ → %@";
+"%ld deleted messages" = "%ld deleted messages";
+"Close" = "Close";
+"Kind: %@\n" = "Kind: %@\n";
+"Deleted: %@\n" = "Deleted: %@\n";
+"Source URL recorded but media not stored.\n" = "Source URL recorded but media not stored.\n";
+
+"This account" = "This account";
+"Media on disk" = "Media on disk";
+"Empty" = "Empty";
+"Clear media files" = "Clear media files";
+"Clear log for this account" = "Clear log for this account";
+"Playback failed" = "Playback failed";
+"View" = "View";
+"Play" = "Play";
+"Shared post" = "Shared post";
+"Shared link" = "Shared link";
+"Content unavailable" = "Content unavailable";
+"Copied" = "Copied";
+"Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account." = "Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account.";
+"Clear media files?" = "Clear media files?";
+"Removes every saved photo, video and voice clip. Records keep their text and sender info." = "Removes every saved photo, video and voice clip. Records keep their text and sender info.";
+"Clear log for this account?" = "Clear log for this account?";
+"Removes every preserved deleted message and its captured media for the current account. This cannot be undone." = "Removes every preserved deleted message and its captured media for the current account. This cannot be undone.";
+"See how much disk the log uses and clear it" = "See how much disk the log uses and clear it";
+
+"now" = "now";
+"Relative (1m / 3h / 3d ago)" = "Relative (1m / 3h / 3d ago)";
+"Absolute date + time" = "Absolute date + time";
+"How timestamps render in the log" = "How timestamps render in the log";
+
+"Select messages to download" = "Select messages to download";
+"%lu selected" = "%lu selected";
+"Nothing to save" = "Nothing to save";
+"%@%lu deleted" = "%@%lu deleted";
+"Photos" = "Photos";

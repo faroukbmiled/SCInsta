@@ -182,6 +182,7 @@ static id sci_buildViewModel(NSString *giphyId) {
             return;
         }
         ((void(*)(id, SEL, id, id))objc_msgSend)(composerCtrl, sel, nil, vm);
+        SCINotifySuccess(SCI_NOTIF_GIF_SENT, SCILocalized(@"GIF inserted"), nil);
     }]];
     [prompt addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel")
                                                style:UIAlertActionStyleCancel

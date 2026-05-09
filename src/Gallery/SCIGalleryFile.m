@@ -97,6 +97,7 @@ static NSString *SCIGallerySourceSlug(SCIGallerySource source) {
         case SCIGallerySourceThumbnail: return @"thumbnail";
         case SCIGallerySourceNotes:   return @"notes";
         case SCIGallerySourceComments: return @"comments";
+        case SCIGallerySourceInstants: return @"instant";
         case SCIGallerySourceOther:
         default:                    return @"other";
     }
@@ -595,6 +596,7 @@ NSString *SCIFileNameForMedia(NSURL *fileURL,
         case SCIGallerySourceThumbnail: return SCILocalized(@"Thumb");
         case SCIGallerySourceNotes:     return SCILocalized(@"Notes");
         case SCIGallerySourceComments:  return SCILocalized(@"Comments");
+        case SCIGallerySourceInstants:  return SCILocalized(@"Instants");
         case SCIGallerySourceOther:
         default:                      return SCILocalized(@"Other");
     }
@@ -610,6 +612,7 @@ NSString *SCIFileNameForMedia(NSURL *fileURL,
         case SCIGallerySourceThumbnail: return SCILocalized(@"Thumb");
         case SCIGallerySourceNotes:     return @"Notes";
         case SCIGallerySourceComments:  return SCILocalized(@"Comment");
+        case SCIGallerySourceInstants:  return SCILocalized(@"Instant");
         case SCIGallerySourceOther:
         default:                      return SCILocalized(@"Other");
     }
@@ -625,6 +628,7 @@ NSString *SCIFileNameForMedia(NSURL *fileURL,
         case SCIGallerySourceThumbnail: return @"photo_gallery";
         case SCIGallerySourceNotes:   return @"notes";
         case SCIGallerySourceComments: return @"comments";
+        case SCIGallerySourceInstants: return @"story";
         case SCIGallerySourceOther:
         default:                    return @"media";
     }

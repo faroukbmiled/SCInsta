@@ -167,7 +167,7 @@
         @{@"label": SCILocalized(@"Images"), @"symbol": @"photo", @"tag": @(SCIGalleryMediaTypeImage)},
         @{@"label": SCILocalized(@"Videos"), @"symbol": @"video", @"tag": @(SCIGalleryMediaTypeVideo)},
         @{@"label": SCILocalized(@"Audio"),  @"symbol": @"waveform", @"tag": @(SCIGalleryMediaTypeAudio)},
-        @{@"label": SCILocalized(@"GIFs"),   @"symbol": @"sparkles", @"tag": @(SCIGalleryMediaTypeGIF)},
+        @{@"label": SCILocalized(@"GIFs"),   @"symbol": @"ig_icon_gif_outline_24", @"tag": @(SCIGalleryMediaTypeGIF)},
     ];
     UIStackView *currentRow = nil;
     for (NSUInteger i = 0; i < defs.count; i++) {
@@ -207,6 +207,7 @@
         @(SCIGallerySourceReels),
         @(SCIGallerySourceProfile),
         @(SCIGallerySourceDMs),
+        @(SCIGallerySourceInstants),
         @(SCIGallerySourceNotes),
         @(SCIGallerySourceComments),
         @(SCIGallerySourceThumbnail),
@@ -355,6 +356,7 @@
         case SCIGallerySourceThumbnail: return @"photo.on.rectangle.angled";
         case SCIGallerySourceNotes:     return @"note.text";
         case SCIGallerySourceComments:  return @"text.bubble";
+        case SCIGallerySourceInstants:  return @"ig_icon_app_instants_outline_24";
         case SCIGallerySourceOther:
         default:                        return @"photo.on.rectangle";
     }

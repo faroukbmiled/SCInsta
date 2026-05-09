@@ -17,6 +17,7 @@
 #import "SCIAssetUtils.h"
 #import "../Utils.h"
 #import "SCIGalleryShim.h"
+#import "../UI/SCIPopupChrome.h"
 #import <CoreData/CoreData.h>
 
 static NSString * const kGridCellID = @"SCIGalleryGridCell";
@@ -54,20 +55,7 @@ static NSInteger SCIGalleryItemCountForFolderPath(NSManagedObjectContext *contex
 #pragma mark - Presentation
 
 + (void)presentGallery {
-    UIViewController *presenter = topMostController();
-    SCIGalleryViewController *vc = [[SCIGalleryViewController alloc] init];
-    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
-    // PageSheet on iOS 13+ ships native swipe-down-to-dismiss. The sheet is
-    // dismissable from any non-control area or via the navigation bar drag.
-    nav.modalPresentationStyle = UIModalPresentationPageSheet;
-    nav.modalInPresentation = NO;
-    if (@available(iOS 15.0, *)) {
-        UISheetPresentationController *sheet = nav.sheetPresentationController;
-        sheet.detents = @[[UISheetPresentationControllerDetent largeDetent]];
-        sheet.prefersGrabberVisible = YES;
-        sheet.preferredCornerRadius = 22.0;
-    }
-    [presenter presentViewController:nav animated:YES completion:nil];
+    [SCIPopupChrome presentVC:[SCIGalleryViewController new] from:topMostController()];
 }
 
 + (void)presentPickerWithMediaTypes:(NSArray<NSNumber *> *)allowedMediaTypes
@@ -81,15 +69,7 @@ static NSInteger SCIGalleryItemCountForFolderPath(NSManagedObjectContext *contex
     vc.pickerCompletion = [completion copy];
     vc.pickerTitleOverride = [title copy];
 
-    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
-    nav.modalPresentationStyle = UIModalPresentationPageSheet;
-    if (@available(iOS 15.0, *)) {
-        UISheetPresentationController *sheet = nav.sheetPresentationController;
-        sheet.detents = @[[UISheetPresentationControllerDetent largeDetent]];
-        sheet.prefersGrabberVisible = YES;
-        sheet.preferredCornerRadius = 22.0;
-    }
-    [presenter presentViewController:nav animated:YES completion:nil];
+    [SCIPopupChrome presentVC:vc from:presenter];
 }
 
 #pragma mark - Init
@@ -119,7 +99,7 @@ static NSInteger SCIGalleryItemCountForFolderPath(NSManagedObjectContext *contex
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    self.view.backgroundColor = [UIColor systemBackgroundColor];
+    self.view.backgroundColor = [SCIPopupChrome backgroundColor];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(handleGalleryPreferencesChanged:)
                                                  name:@"SCIGalleryFavoritesSortPreferenceChanged"
@@ -361,7 +341,7 @@ static NSInteger SCIGalleryItemCountForFolderPath(NSManagedObjectContext *contex
 
     _collectionView = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:layout];
     _collectionView.translatesAutoresizingMaskIntoConstraints = NO;
-    _collectionView.backgroundColor = [UIColor systemBackgroundColor];
+    _collectionView.backgroundColor = self.view.backgroundColor;
     _collectionView.dataSource = self;
     _collectionView.delegate = self;
     _collectionView.alwaysBounceVertical = YES;
@@ -806,7 +786,7 @@ static NSInteger SCIGalleryItemCountForFolderPath(NSManagedObjectContext *contex
         }
         if (it) [items addObject:it];
     }
-    if (items.count) [SCIMediaViewer showItems:items startIndex:(NSUInteger)MIN(idx, (NSInteger)items.count - 1)];
+    if (items.count) [SCIMediaViewer showItems:items startIndex:(NSUInteger)MIN(idx, (NSInteger)items.count - 1) shareSheetOnly:YES];
 }
 
 - (NSArray<SCIGalleryFile *> *)visibleGalleryFiles {

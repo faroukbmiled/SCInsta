@@ -63,7 +63,7 @@ static NSURL *sciNormalizeIGURL(NSString *raw) {
 
     NSURL *url = sciNormalizeIGURL([[UIPasteboard generalPasteboard] string]);
     if (!url) {
-        [SCIUtils showToastForDuration:2.0 title:SCILocalized(@"Clipboard is not an Instagram URL")];
+        SCINotifyWarning(SCI_NOTIF_PASTE_LINK_INVALID, SCILocalized(@"Clipboard is not an Instagram URL"), nil);
         return;
     }
 
