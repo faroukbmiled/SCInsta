@@ -568,7 +568,7 @@ static UIImage *SCIGalleryActionIcon(NSString *resourceName) {
         ? SCILocalized(@"This folder is empty.")
         : [NSString stringWithFormat:SCILocalized(@"This folder contains %ld file(s). They will be moved to the parent folder."), (long)count];
 
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:SCILocalized(@"Delete Folder?")
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@?", SCILocalized(@"Delete Folder")]
                                                                   message:msg
                                                            preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];

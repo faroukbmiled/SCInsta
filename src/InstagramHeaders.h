@@ -509,10 +509,24 @@
 @interface IGNotesCreationFeatureSupportModel : NSObject
 @end
 
-// Pando-backed value object — KVC routes through `setValue:forKey:` for keys
-// `backgroundColor` (UIColor) and `secondaryTextColor` (UIColor). Gradient is
-// preset-only on the schema, not exposed for free-form custom creation.
+// Pando-backed immutable on v423+ — mutate via the all-fields init only.
 @interface IGNotesCustomThemeCreationModel : NSObject
+- (instancetype)initWithBackgroundColor:(UIColor *)backgroundColor
+               gradientBackgroundColors:(NSArray *)gradientBackgroundColors
+                              textColor:(UIColor *)textColor
+                     secondaryTextColor:(UIColor *)secondaryTextColor
+                            customEmoji:(id)customEmoji
+                        customizationId:(NSString *)customizationId
+                     usedGeneratedTheme:(BOOL)usedGeneratedTheme
+                         activationType:(NSInteger)activationType;
+@property (nonatomic, readonly) UIColor *backgroundColor;
+@property (nonatomic, readonly) NSArray *gradientBackgroundColors;
+@property (nonatomic, readonly) UIColor *textColor;
+@property (nonatomic, readonly) UIColor *secondaryTextColor;
+@property (nonatomic, readonly) id customEmoji;
+@property (nonatomic, readonly) NSString *customizationId;
+@property (nonatomic, readonly) BOOL usedGeneratedTheme;
+@property (nonatomic, readonly) NSInteger activationType;
 @end
 
 @interface IGDirectNotesComposerViewController : UIViewController

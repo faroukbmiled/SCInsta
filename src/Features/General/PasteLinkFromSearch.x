@@ -1,6 +1,7 @@
 // Long-press the Explore/search tab to open an IG link from the clipboard.
 
 #import "../../Utils.h"
+#import "../../SCIURLOpener.h"
 #import "../../InstagramHeaders.h"
 #import <objc/runtime.h>
 
@@ -66,31 +67,7 @@ static NSURL *sciNormalizeIGURL(NSString *raw) {
         SCINotifyWarning(SCI_NOTIF_PASTE_LINK_INVALID, SCILocalized(@"Clipboard is not an Instagram URL"), nil);
         return;
     }
-
-    // https URLs route through universal-link handling, not openURL:options:.
-    UIApplication *app = [UIApplication sharedApplication];
-    id<UIApplicationDelegate> delegate = app.delegate;
-
-    if ([url.scheme.lowercaseString isEqualToString:@"instagram"]) {
-        if ([delegate respondsToSelector:@selector(application:openURL:options:)]) {
-            [delegate application:app openURL:url options:@{}];
-        }
-        return;
-    }
-
-    NSUserActivity *activity = [[NSUserActivity alloc] initWithActivityType:NSUserActivityTypeBrowsingWeb];
-    activity.webpageURL = url;
-    SEL contSel = @selector(application:continueUserActivity:restorationHandler:);
-    if ([delegate respondsToSelector:contSel]) {
-        BOOL handled = [delegate application:app
-                        continueUserActivity:activity
-                          restorationHandler:^(NSArray<id<UIUserActivityRestoring>> *_Nullable _) {}];
-        if (handled) return;
-    }
-
-    if ([delegate respondsToSelector:@selector(application:openURL:options:)]) {
-        [delegate application:app openURL:url options:@{}];
-    }
+    [SCIURLOpener openURL:url];
 }
 @end
 

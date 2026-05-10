@@ -326,6 +326,9 @@
 "Long press to download directly (ignored when zoom is on)" = "Long press to download directly (ignored when zoom is on)";
 "Long-press gestures on profile elements — kept separate from the per-feature action buttons." = "Long-press gestures on profile elements — kept separate from the per-feature action buttons.";
 "Only affects your own profile header. Other users see the real numbers." = "Only affects your own profile header. Other users see the real numbers.";
+"Profile stats" = "Profile stats";
+"Show full follower count" = "Show full follower count";
+"Show full post count" = "Show full post count";
 "Post count" = "Post count";
 "Save profile picture" = "Save profile picture";
 "Show a checkmark next to your name on your own profile" = "Show a checkmark next to your name on your own profile";
@@ -558,14 +561,20 @@
 "Playback failed" = "Playback failed";
 "View" = "View";
 "Play" = "Play";
-"Shared post" = "Shared post";
-"Shared link" = "Shared link";
+"Tap to open in Instagram" = "Tap to open in Instagram";
+"Tap to open in Maps" = "Tap to open in Maps";
+"Tap to play" = "Tap to play";
+"Tap to play · %@" = "Tap to play · %@";
+"Live location" = "Live location";
+"Reel" = "Reel";
+"IGTV" = "IGTV";
+"Location" = "Location";
+"Hashtag" = "Hashtag";
+"Post" = "Post";
 "Content unavailable" = "Content unavailable";
 "Copied" = "Copied";
 "Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account." = "Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account.";
-"Clear media files?" = "Clear media files?";
 "Removes every saved photo, video and voice clip. Records keep their text and sender info." = "Removes every saved photo, video and voice clip. Records keep their text and sender info.";
-"Clear log for this account?" = "Clear log for this account?";
 "Removes every preserved deleted message and its captured media for the current account. This cannot be undone." = "Removes every preserved deleted message and its captured media for the current account. This cannot be undone.";
 "See how much disk the log uses and clear it" = "See how much disk the log uses and clear it";
 "now" = "now";
@@ -863,7 +872,6 @@
 "No URLs found" = "No URLs found";
 "No video URL" = "No video URL";
 "Not a carousel" = "Not a carousel";
-"Nothing to save" = "Nothing to save";
 "Nothing to share" = "Nothing to share";
 "Opening creator..." = "Opening creator...";
 "Photo library access denied" = "Photo library access denied";
@@ -1080,7 +1088,6 @@
 "Profile updates" = "Profile updates";
 
 "Request failed" = "Request failed";
-"Reset analyzer data?" = "Reset analyzer data?";
 "Run analysis" = "Run analysis";
 "Run your first analysis" = "Run your first analysis";
 "Since last scan" = "Since last scan";
@@ -1127,6 +1134,7 @@
 "File has no importable sections." = "File has no importable sections.";
 "File is not a valid RyukGram export." = "File is not a valid RyukGram export.";
 "Filter" = "Filter";
+"Filter · %lu" = "Filter · %lu";
 "First scan: we collect your followers and following lists and save them locally." = "First scan: we collect your followers and following lists and save them locally.";
 "Follow %lu" = "Follow %lu";
 "Followers" = "Followers";
@@ -1178,10 +1186,6 @@
 "%dd ago" = "%dd ago";
 "Visited" = "Visited";
 "Today" = "Today";
-"Last 7 days" = "Last 7 days";
-"Last 30 days" = "Last 30 days";
-"Most recent" = "Most recent";
-"Oldest first" = "Oldest first";
 "Most visited" = "Most visited";
 "Pick what to remove. Snapshots drop the since-last-scan diffs; visited profiles wipes the visit history." = "Pick what to remove. Snapshots drop the since-last-scan diffs; visited profiles wipes the visit history.";
 "Reset snapshots" = "Reset snapshots";
@@ -1255,7 +1259,6 @@
 // Strings from Reels.                                                      //
 //////////////////////////////////////////////////////////////////////////////
 
-"Copied!" = "Copied!";
 "No password found" = "No password found";
 "No text field found" = "No text field found";
 "Password" = "Password";
@@ -1313,7 +1316,6 @@
 "%lu active • tap to cancel" = "%lu active • tap to cancel";
 "Downloading %d%%" = "Downloading %d%%";
 "Download all and share?" = "Download all and share?";
-"Save all to Photos?" = "Save all to Photos?";
 
 //////////////////////////////////////////////////////////////////////////////
 //                               ABOUT / CREDITS                            //
@@ -1411,7 +1413,6 @@
 "Configure: %@" = "Configure: %@";
 "What happens on a single tap. Long-press always opens the full menu." = "What happens on a single tap. Long-press always opens the full menu.";
 "Reset to defaults" = "Reset to defaults";
-"Reset to defaults?" = "Reset to defaults?";
 "This will restore the default sections, order, and toggles for this menu." = "This will restore the default sections, order, and toggles for this menu.";
 "Audio & visibility" = "Audio & visibility";
 "DM disappearing media" = "DM disappearing media";
@@ -1467,9 +1468,7 @@
 "Photos only" = "Photos only";
 "Gallery only" = "Gallery only";
 "Photos + Gallery" = "Photos + Gallery";
-"Save to Gallery?" = "Save to Gallery?";
 "Saved to Gallery" = "Saved to Gallery";
-"Save all to Gallery?" = "Save all to Gallery?";
 "Saved %lu items to Gallery" = "Saved %lu items to Gallery";
 "Saving to Gallery..." = "Saving to Gallery...";
 "to Gallery" = "to Gallery";
@@ -1563,7 +1562,6 @@
 "Create & Move" = "Create & Move";
 "Rename Folder" = "Rename Folder";
 "Delete Folder" = "Delete Folder";
-"Delete Folder?" = "Delete Folder?";
 "This folder is empty." = "This folder is empty.";
 "This folder contains %ld file(s). They will be moved to the parent folder." = "This folder contains %ld file(s). They will be moved to the parent folder.";
 "Root" = "Root";
@@ -1706,3 +1704,7 @@
 "Warning preview" = "Warning preview";
 "Info preview" = "Info preview";
 "Preview download…" = "Preview download…";
+
+"Colors" = "Colors";
+"+ Add new language" = "+ Add new language";
+"Each chat can override this in the list" = "Each chat can override this in the list";

@@ -1,5 +1,4 @@
-// Full profile counts — replaces compact profile counts like 11.9K
-// with the real full number formatted as 11,943.
+// Full profile counts — rewrite IGStatButton labels from "11.9K" to "11,943".
 
 #import "../../Utils.h"
 
@@ -72,6 +71,57 @@ static NSInteger sciButtonKind(id button) {
 	if (sciFullPostsCountEnabled() && [low containsString:@"post"]) return 2;
 
 	return 0;
+}
+
+// Own-profile detection — mirrors FakeProfileStats.x.
+static Class sciStatsCellClass(void) {
+	static Class cached;
+	static dispatch_once_t once;
+	dispatch_once(&once, ^{
+		cached = NSClassFromString(@"IGProfileSimpleAvatarStatsCell");
+		if (!cached) cached = NSClassFromString(@"_TtC21IGProfileDetailHeader30IGProfileSimpleAvatarStatsCell");
+		if (!cached) {
+			unsigned int n = 0;
+			Class *list = objc_copyClassList(&n);
+			for (unsigned int i = 0; i < n; i++) {
+				const char *nm = class_getName(list[i]);
+				if (nm && strstr(nm, "IGProfileSimpleAvatarStatsCell")) {
+					cached = list[i];
+					break;
+				}
+			}
+			free(list);
+		}
+	});
+	return cached;
+}
+
+static BOOL sciButtonIsOnOwnProfile(UIView *btn) {
+	Class cellCls = sciStatsCellClass();
+	if (!cellCls) return NO;
+
+	UIView *cur = btn;
+	while (cur && ![cur isKindOfClass:cellCls]) cur = cur.superview;
+	if (!cur) return NO;
+
+	@try {
+		id v = [cur valueForKey:@"isCurrentUser"];
+		if (v) return [v boolValue];
+	} @catch (__unused id e) {}
+
+	Ivar iv = class_getInstanceVariable([cur class], "_isCurrentUser");
+	if (!iv) iv = class_getInstanceVariable([cur class], "isCurrentUser");
+	if (!iv) return NO;
+	return *(BOOL *)((uint8_t *)(__bridge void *)cur + ivar_getOffset(iv));
+}
+
+// Fake stats win on own profile.
+static BOOL sciFakeOwnsCountForKind(NSInteger kind, UIView *btn) {
+	NSString *fakeKey = kind == 1 ? @"fake_follower_count"
+	                  : kind == 2 ? @"fake_post_count" : nil;
+	if (!fakeKey) return NO;
+	if (![SCIUtils getBoolPref:fakeKey]) return NO;
+	return sciButtonIsOnOwnProfile(btn);
 }
 
 static id sciProfileUserForButton(UIView *button) {
@@ -163,6 +213,8 @@ static void sciApplyFullProfileCount(id button) {
 
 	NSInteger kind = sciButtonKind(button);
 	if (kind == 0) return;
+
+	if (sciFakeOwnsCountForKind(kind, (UIView *)button)) return;
 
 	id user = sciProfileUserForButton((UIView *)button);
 	if (!user) return;

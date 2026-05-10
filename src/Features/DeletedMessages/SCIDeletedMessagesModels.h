@@ -12,6 +12,7 @@ typedef NS_ENUM(NSInteger, SCIDeletedMessageKind) {
     SCIDeletedMessageKindSticker,
     SCIDeletedMessageKindShare,
     SCIDeletedMessageKindLink,
+    SCIDeletedMessageKindAudioShare,
     SCIDeletedMessageKindOther,
 };
 

@@ -152,7 +152,7 @@ typedef NS_ENUM(NSInteger, SCIGalleryDeleteSection) {
         if (!item) {
             item = [SCIGalleryDeleteUserItem new];
             item.username = username.length > 0 ? username : nil;
-            item.displayName = username.length > 0 ? username : SCILocalized(SCILocalized(@"Unknown user"));
+            item.displayName = username.length > 0 ? username : SCILocalized(@"Unknown user");
             items[key] = item;
         }
         item.count += 1;
@@ -228,7 +228,7 @@ typedef NS_ENUM(NSInteger, SCIGalleryDeleteSection) {
         NSPredicate *predicate = item.username.length > 0
             ? [NSPredicate predicateWithFormat:@"sourceUsername == %@", item.username]
             : [NSPredicate predicateWithFormat:@"sourceUsername == nil OR sourceUsername == ''"];
-        NSString *title = [NSString stringWithFormat:SCILocalized(SCILocalized(@"Delete %@?")), item.displayName];
+        NSString *title = [NSString stringWithFormat:SCILocalized(@"Delete %@?"), item.displayName];
         [self confirmDeleteWithTitle:title predicate:predicate successTitle:SCILocalized(@"User files deleted")];
         return;
     }
@@ -262,8 +262,8 @@ typedef NS_ENUM(NSInteger, SCIGalleryDeleteSection) {
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
                                                                   message:message
                                                            preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(SCILocalized(@"Cancel")) style:UIAlertActionStyleCancel handler:nil]];
-    [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(SCILocalized(@"Delete"))
+    [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
+    [alert addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Delete")
                                               style:UIAlertActionStyleDestructive
                                             handler:^(__unused UIAlertAction *action) {
         NSFileManager *fm = [NSFileManager defaultManager];

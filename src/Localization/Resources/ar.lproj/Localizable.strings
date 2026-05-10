@@ -326,6 +326,9 @@
 "Long press to download directly (ignored when zoom is on)" = "‏اضغط مطولاً للتنزيل مباشرة (يتم تجاهله عند تشغيل التكبير)‏";
 "Long-press gestures on profile elements — kept separate from the per-feature action buttons." = "‏إيماءات الضغط المطول على عناصر الملف الشخصي — منفصلة عن أزرار الإجراءات لكل ميزة.‏";
 "Only affects your own profile header. Other users see the real numbers." = "‏يؤثر فقط على رأس ملفك الشخصي. يرى المستخدمون الآخرون الأرقام الحقيقية.‏";
+"Profile stats" = "إحصائيات الملف الشخصي";
+"Show full follower count" = "إظهار العدد الكامل للمتابعين";
+"Show full post count" = "إظهار العدد الكامل للمنشورات";
 "Post count" = "‏عدد المنشورات‏";
 "Save profile picture" = "‏حفظ صورة الملف الشخصي‏";
 "Show a checkmark next to your name on your own profile" = "‏إظهار علامة توثيق بجوار اسمك في ملفك الشخصي‏";
@@ -1001,7 +1004,6 @@
 "Profile updates" = "‏تحديثات الملف الشخصي‏";
 
 "Request failed" = "‏فشل الطلب‏";
-"Reset analyzer data?" = "‏إعادة تعيين بيانات المحلل؟‏";
 "Run analysis" = "‏تشغيل التحليل‏";
 "Run your first analysis" = "‏شغّل أول تحليل لك‏";
 "Since last scan" = "‏منذ آخر تحليل‏";
@@ -1048,6 +1050,7 @@
 "File has no importable sections." = "‏لا يحتوي الملف على أقسام قابلة للاستيراد.‏";
 "File is not a valid RyukGram export." = "‏الملف ليس تصديرًا صالحًا من RyukGram.‏";
 "Filter" = "‏تصفية‏";
+"Filter · %lu" = "تصفية · %lu";
 "First scan: we collect your followers and following lists and save them locally." = "‏أول تحليل: نجمع قوائم المتابعين والمتابَعين ونحفظها محليًا.‏";
 "Follow %lu" = "‏متابعة %lu‏";
 "Followers" = "‏المتابعون‏";
@@ -1178,7 +1181,6 @@
 // Strings from Reels.                                                      //
 //////////////////////////////////////////////////////////////////////////////
 
-"Copied!" = "‏تم النسخ!‏";
 "No password found" = "‏لم يتم العثور على كلمة مرور‏";
 "No text field found" = "‏لم يتم العثور على حقل نص‏";
 "Password" = "‏كلمة المرور‏";
@@ -1236,7 +1238,6 @@
 "%lu active • tap to cancel" = "‏%lu نشط • انقر للإلغاء‏";
 "Downloading %d%%" = "‏جارِ التنزيل %d%%‏";
 "Download all and share?" = "‏تنزيل الكل ومشاركته؟‏";
-"Save all to Photos?" = "‏حفظ الكل في الصور؟‏";
 
 //////////////////////////////////////////////////////////////////////////////
 //                               ABOUT / CREDITS                            //
@@ -1334,7 +1335,6 @@
 "Configure: %@" = "‏تهيئة: %@‏";
 "What happens on a single tap. Long-press always opens the full menu." = "‏ما الذي يحدث عند النقر المفرد. الضغط المطول يفتح القائمة الكاملة دائمًا.‏";
 "Reset to defaults" = "‏إعادة التعيين إلى الافتراضي‏";
-"Reset to defaults?" = "‏إعادة التعيين إلى الافتراضي؟‏";
 "This will restore the default sections, order, and toggles for this menu." = "‏سيؤدي هذا إلى استعادة الأقسام والترتيب والمفاتيح الافتراضية لهذه القائمة.‏";
 "Audio & visibility" = "‏الصوت والرؤية‏";
 "DM disappearing media" = "‏الوسائط المختفية في الرسائل الخاصة‏";
@@ -1390,9 +1390,7 @@
 "Photos only" = "‏الصور فقط‏";
 "Gallery only" = "‏المعرض فقط‏";
 "Photos + Gallery" = "‏الصور + المعرض‏";
-"Save to Gallery?" = "‏حفظ في المعرض؟‏";
 "Saved to Gallery" = "‏تم الحفظ في المعرض‏";
-"Save all to Gallery?" = "‏حفظ الكل في المعرض؟‏";
 "Saved %lu items to Gallery" = "‏تم حفظ %lu من العناصر في المعرض‏";
 "Saving to Gallery..." = "‏جارِ الحفظ في المعرض...‏";
 "to Gallery" = "‏إلى المعرض‏";
@@ -1486,7 +1484,6 @@
 "Create & Move" = "‏إنشاء ونقل‏";
 "Rename Folder" = "‏إعادة تسمية المجلد‏";
 "Delete Folder" = "‏حذف المجلد‏";
-"Delete Folder?" = "‏حذف المجلد؟‏";
 "This folder is empty." = "‏هذا المجلد فارغ.‏";
 "This folder contains %ld file(s). They will be moved to the parent folder." = "‏يحتوي هذا المجلد على %ld من الملفات. سيتم نقلها إلى المجلد الأصلي.‏";
 "Root" = "‏الجذر‏";
@@ -1634,77 +1631,82 @@
 //                       MESSAGES — DELETED MESSAGES LOG                    //
 //////////////////////////////////////////////////////////////////////////////
 
-"Deleted messages" = "Deleted messages";
-"Deleted messages log" = "Deleted messages log";
-"Records every message someone unsends, grouped by sender" = "Records every message someone unsends, grouped by sender";
-"When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history." = "When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history.";
-"Enable deleted messages log" = "Enable deleted messages log";
-"Captures unsent messages with their text or media" = "Captures unsent messages with their text or media";
-"Open log" = "Open log";
-"Browse, filter and search recorded messages" = "Browse, filter and search recorded messages";
-"Search senders or messages" = "Search senders or messages";
-"Search messages" = "Search messages";
-"All time" = "All time";
-"Last 7 days" = "Last 7 days";
-"Last 30 days" = "Last 30 days";
-"Date range" = "Date range";
-"Most recent" = "Most recent";
-"Oldest first" = "Oldest first";
-"Most messages" = "Most messages";
-"Clear log" = "Clear log";
-"Clear deleted-message log?" = "Clear deleted-message log?";
-"Removes every preserved deleted message and its captured media for this account." = "Removes every preserved deleted message and its captured media for this account.";
-"No deleted messages yet" = "No deleted messages yet";
-"Logging is off" = "Logging is off";
-"When someone unsends a message, it will appear here grouped by sender." = "When someone unsends a message, it will appear here grouped by sender.";
-"Enable Settings → Messages → Deleted messages log to start recording." = "Enable Settings → Messages → Deleted messages log to start recording.";
-"No matches" = "No matches";
-"Adjust the filters or clear the search to see more." = "Adjust the filters or clear the search to see more.";
-"%lu messages from %lu users" = "%lu messages from %lu users";
-"Text" = "Text";
-"Video" = "Video";
-"Voice" = "Voice";
-"GIF" = "GIF";
-"Sticker" = "Sticker";
-"Link" = "Link";
-"Unknown" = "Unknown";
-"%@ deleted" = "%@ deleted";
-"Clear from this user" = "Clear from this user";
-"Clear log for this user?" = "Clear log for this user?";
-"Removes every preserved deleted message from this sender." = "Removes every preserved deleted message from this sender.";
-"%ld deleted messages • %@ → %@" = "%ld deleted messages • %@ → %@";
-"%ld deleted messages" = "%ld deleted messages";
-"Close" = "Close";
-"Kind: %@\n" = "Kind: %@\n";
-"Deleted: %@\n" = "Deleted: %@\n";
-"Source URL recorded but media not stored.\n" = "Source URL recorded but media not stored.\n";
+"Deleted messages" = "‏الرسائل المحذوفة‏";
+"Deleted messages log" = "‏سجل الرسائل المحذوفة‏";
+"Records every message someone unsends, grouped by sender" = "‏يحفظ كل رسالة يلغيها أحدهم، مجمعة حسب المرسل‏";
+"When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history." = "‏عند التفعيل، تُحفظ الرسائل المحذوفة ووسائطها على هذا الجهاز. أوقف التفعيل وامسح السجل لمسح المحفوظات.‏";
+"Enable deleted messages log" = "‏تفعيل سجل الرسائل المحذوفة‏";
+"Captures unsent messages with their text or media" = "‏يلتقط الرسائل المحذوفة مع نصها أو وسائطها‏";
+"Open log" = "‏فتح السجل‏";
+"Browse, filter and search recorded messages" = "‏تصفح وفلتر وابحث في الرسائل المسجلة‏";
+"Search senders or messages" = "‏ابحث عن المرسلين أو الرسائل‏";
+"Search messages" = "‏ابحث في الرسائل‏";
+"All time" = "‏كل الوقت‏";
+"Date range" = "‏نطاق التاريخ‏";
+"Most messages" = "‏الأكثر رسائل‏";
+"Clear log" = "‏مسح السجل‏";
+"Clear deleted-message log?" = "‏مسح سجل الرسائل المحذوفة؟‏";
+"Removes every preserved deleted message and its captured media for this account." = "‏يزيل كل رسالة محذوفة محفوظة ووسائطها لهذا الحساب.‏";
+"No deleted messages yet" = "‏لا توجد رسائل محذوفة بعد‏";
+"Logging is off" = "‏التسجيل متوقف‏";
+"When someone unsends a message, it will appear here grouped by sender." = "‏عندما يحذف أحدهم رسالة، ستظهر هنا مجمعة حسب المرسل.‏";
+"Enable Settings → Messages → Deleted messages log to start recording." = "‏فعّل الإعدادات ← الرسائل ← سجل الرسائل المحذوفة لبدء التسجيل.‏";
+"No matches" = "‏لا توجد نتائج‏";
+"Adjust the filters or clear the search to see more." = "‏عدّل الفلاتر أو امسح البحث لعرض المزيد.‏";
+"%lu messages from %lu users" = "‏%lu رسالة من %lu مستخدمًا‏";
+"Text" = "‏نص‏";
+"Video" = "‏فيديو‏";
+"Voice" = "‏صوت‏";
+"GIF" = "‏GIF‏";
+"Sticker" = "‏ملصق‏";
+"Link" = "‏رابط‏";
+"Unknown" = "‏غير معروف‏";
+"%@ deleted" = "‏حُذف %@‏";
+"Clear from this user" = "‏مسح من هذا المستخدم‏";
+"Clear log for this user?" = "‏مسح سجل هذا المستخدم؟‏";
+"Removes every preserved deleted message from this sender." = "‏يزيل كل رسالة محذوفة محفوظة من هذا المرسل.‏";
+"%ld deleted messages • %@ → %@" = "‏%ld رسالة محذوفة • %@ ← %@‏";
+"%ld deleted messages" = "‏%ld رسالة محذوفة‏";
+"Close" = "‏إغلاق‏";
+"Kind: %@\n" = "‏النوع: %@‏\n";
+"Deleted: %@\n" = "‏حُذفت: %@‏\n";
+"Source URL recorded but media not stored.\n" = "‏تم تسجيل عنوان المصدر دون تخزين الوسائط.‏\n";
 
-"This account" = "This account";
-"Media on disk" = "Media on disk";
-"Empty" = "Empty";
-"Clear media files" = "Clear media files";
-"Clear log for this account" = "Clear log for this account";
-"Playback failed" = "Playback failed";
-"View" = "View";
-"Play" = "Play";
-"Shared post" = "Shared post";
-"Shared link" = "Shared link";
-"Content unavailable" = "Content unavailable";
-"Copied" = "Copied";
-"Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account." = "Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account.";
-"Clear media files?" = "Clear media files?";
-"Removes every saved photo, video and voice clip. Records keep their text and sender info." = "Removes every saved photo, video and voice clip. Records keep their text and sender info.";
-"Clear log for this account?" = "Clear log for this account?";
-"Removes every preserved deleted message and its captured media for the current account. This cannot be undone." = "Removes every preserved deleted message and its captured media for the current account. This cannot be undone.";
-"See how much disk the log uses and clear it" = "See how much disk the log uses and clear it";
+"This account" = "‏هذا الحساب‏";
+"Media on disk" = "‏الوسائط على القرص‏";
+"Empty" = "‏فارغ‏";
+"Clear media files" = "‏مسح ملفات الوسائط‏";
+"Clear log for this account" = "‏مسح سجل هذا الحساب‏";
+"Playback failed" = "‏فشل التشغيل‏";
+"View" = "‏عرض‏";
+"Play" = "‏تشغيل‏";
+"Tap to open in Instagram" = "اضغط للفتح في Instagram";
+"Tap to open in Maps" = "اضغط للفتح في الخرائط";
+"Tap to play" = "اضغط للتشغيل";
+"Tap to play · %@" = "اضغط للتشغيل · %@";
+"Live location" = "الموقع المباشر";
+"Reel" = "‏ريل‏";
+"IGTV" = "‏IGTV‏";
+"Location" = "موقع";
+"Hashtag" = "‏هاشتاغ‏";
+"Post" = "منشور";
+"Content unavailable" = "‏المحتوى غير متاح‏";
+"Copied" = "‏تم النسخ‏";
+"Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account." = "‏مسح الوسائط يحتفظ بالسجلات (النص، المرسل، الوقت). مسح السجل يحذف كل شيء لهذا الحساب.‏";
+"Removes every saved photo, video and voice clip. Records keep their text and sender info." = "‏يزيل كل صورة وفيديو ومقطع صوتي محفوظ. تحتفظ السجلات بنصها ومعلومات المرسل.‏";
+"Removes every preserved deleted message and its captured media for the current account. This cannot be undone." = "‏يزيل كل رسالة محذوفة محفوظة ووسائطها للحساب الحالي. لا يمكن التراجع عن هذا.‏";
+"See how much disk the log uses and clear it" = "‏اطّلع على المساحة التي يستهلكها السجل وامسحه‏";
 
-"now" = "now";
-"Relative (1m / 3h / 3d ago)" = "Relative (1m / 3h / 3d ago)";
-"Absolute date + time" = "Absolute date + time";
-"How timestamps render in the log" = "How timestamps render in the log";
+"now" = "‏الآن‏";
+"Relative (1m / 3h / 3d ago)" = "‏نسبي (قبل دقيقة / 3 س / 3 ي)‏";
+"Absolute date + time" = "‏تاريخ ووقت كاملان‏";
+"How timestamps render in the log" = "‏طريقة عرض الطوابع الزمنية في السجل‏";
 
-"Select messages to download" = "Select messages to download";
-"%lu selected" = "%lu selected";
-"Nothing to save" = "Nothing to save";
-"%@%lu deleted" = "%@%lu deleted";
-"Photos" = "Photos";
+"Select messages to download" = "‏اختر الرسائل للتنزيل‏";
+"%lu selected" = "‏%lu محدد‏";
+"%@%lu deleted" = "‏%@%lu محذوف‏";
+"Photos" = "‏الصور‏";
+
+"Colors" = "‏الألوان‏";
+"+ Add new language" = "‏+ إضافة لغة جديدة‏";
+"Each chat can override this in the list" = "‏يمكن لكل محادثة تجاوز هذا في القائمة‏";

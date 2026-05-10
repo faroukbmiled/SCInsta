@@ -11,6 +11,7 @@
 #import "SCIGalleryDeleteViewController.h"
 #import "SCIGalleryOriginController.h"
 #import "SCIMediaChrome.h"
+#import "../UI/SCIScrollToTopButton.h"
 #import "../InstagramHeaders.h"
 #import "../ActionButton/SCIMediaViewer.h"
 #import "../ActionButton/SCIMediaActions.h"
@@ -111,6 +112,7 @@ static NSInteger SCIGalleryItemCountForFolderPath(NSManagedObjectContext *contex
     [self setupBottomToolbar];
     [self setupCollectionView];
     [self setupEmptyState];
+    [self setupScrollToTopButton];
     [self setupFetchedResultsController];
     [self reloadSubfolders];
     [self updateEmptyState];
@@ -447,6 +449,13 @@ static NSInteger SCIGalleryItemCountForFolderPath(NSManagedObjectContext *contex
 }
 
 #pragma mark - Empty State
+
+- (void)setupScrollToTopButton {
+    // Bottom bar lives in the nav controller's view (outside our safe-area guide), pad manually.
+    SCIScrollToTopButton *btn = [SCIScrollToTopButton new];
+    [btn attachToScrollView:self.collectionView inView:self.view bottomInset:(SCIMediaChromeBottomBarHeight + 16)];
+    self.scrollToTopButton = btn;
+}
 
 - (void)setupEmptyState {
     _emptyStateView = [[UIView alloc] initWithFrame:CGRectZero];

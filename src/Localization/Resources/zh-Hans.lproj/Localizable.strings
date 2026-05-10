@@ -326,6 +326,9 @@
 "Long press to download directly (ignored when zoom is on)" = "长按直接下载（启用缩放时忽略）";
 "Long-press gestures on profile elements — kept separate from the per-feature action buttons." = "个人档案元素的长按手势 — 与每项功能的操作按钮分开维护。";
 "Only affects your own profile header. Other users see the real numbers." = "仅影响你自己的个人档案页首。其他用户看到的是真实数字。";
+"Profile stats" = "个人资料统计";
+"Show full follower count" = "显示完整粉丝数";
+"Show full post count" = "显示完整帖子数";
 "Post count" = "贴文数";
 "Save profile picture" = "储存个人档案图片";
 "Show a checkmark next to your name on your own profile" = "在你自己的个人档案名称旁显示打勾符号";
@@ -1001,7 +1004,6 @@
 "Profile updates" = "个人档案更新";
 
 "Request failed" = "请求失败";
-"Reset analyzer data?" = "要重设分析器资料吗？";
 "Run analysis" = "执行分析";
 "Run your first analysis" = "执行首次分析";
 "Since last scan" = "自上次扫描后";
@@ -1048,6 +1050,7 @@
 "File has no importable sections." = "档案中没有可汇入的区段。";
 "File is not a valid RyukGram export." = "档案不是有效的 RyukGram 汇出档。";
 "Filter" = "筛选";
+"Filter · %lu" = "筛选 · %lu";
 "First scan: we collect your followers and following lists and save them locally." = "首次扫描：我们会收集你的粉丝及追踪清单并储存在本机。";
 "Follow %lu" = "追踪 %lu";
 "Followers" = "粉丝";
@@ -1178,7 +1181,6 @@
 // Strings from Reels.                                                      //
 //////////////////////////////////////////////////////////////////////////////
 
-"Copied!" = "已复制！";
 "No password found" = "找不到密码";
 "No text field found" = "找不到文字栏位";
 "Password" = "密码";
@@ -1236,7 +1238,6 @@
 "%lu active • tap to cancel" = "%lu 个进行中 • 点按取消";
 "Downloading %d%%" = "正在下载 %d%%";
 "Download all and share?" = "下载全部并分享？";
-"Save all to Photos?" = "全部保存到「照片」？";
 
 //////////////////////////////////////////////////////////////////////////////
 //                               ABOUT / CREDITS                            //
@@ -1334,7 +1335,6 @@
 "Configure: %@" = "配置：%@";
 "What happens on a single tap. Long-press always opens the full menu." = "单击时执行的操作。长按始终会打开完整菜单。";
 "Reset to defaults" = "恢复默认";
-"Reset to defaults?" = "要恢复默认吗？";
 "This will restore the default sections, order, and toggles for this menu." = "这将恢复此菜单的默认分区、顺序和开关设置。";
 "Audio & visibility" = "音频与可见性";
 "DM disappearing media" = "私信阅后即焚媒体";
@@ -1390,9 +1390,7 @@
 "Photos only" = "仅照片";
 "Gallery only" = "仅图库";
 "Photos + Gallery" = "照片 + 图库";
-"Save to Gallery?" = "要保存到图库吗？";
 "Saved to Gallery" = "已保存到图库";
-"Save all to Gallery?" = "要全部保存到图库吗？";
 "Saved %lu items to Gallery" = "已保存 %lu 项到图库";
 "Saving to Gallery..." = "正在保存到图库...";
 "to Gallery" = "到图库";
@@ -1486,7 +1484,6 @@
 "Create & Move" = "创建并移动";
 "Rename Folder" = "重命名文件夹";
 "Delete Folder" = "删除文件夹";
-"Delete Folder?" = "删除文件夹？";
 "This folder is empty." = "此文件夹为空。";
 "This folder contains %ld file(s). They will be moved to the parent folder." = "此文件夹包含 %ld 个文件。它们将被移动到上级文件夹。";
 "Root" = "根目录";
@@ -1634,77 +1631,82 @@
 //                       MESSAGES — DELETED MESSAGES LOG                    //
 //////////////////////////////////////////////////////////////////////////////
 
-"Deleted messages" = "Deleted messages";
-"Deleted messages log" = "Deleted messages log";
-"Records every message someone unsends, grouped by sender" = "Records every message someone unsends, grouped by sender";
-"When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history." = "When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history.";
-"Enable deleted messages log" = "Enable deleted messages log";
-"Captures unsent messages with their text or media" = "Captures unsent messages with their text or media";
-"Open log" = "Open log";
-"Browse, filter and search recorded messages" = "Browse, filter and search recorded messages";
-"Search senders or messages" = "Search senders or messages";
-"Search messages" = "Search messages";
-"All time" = "All time";
-"Last 7 days" = "Last 7 days";
-"Last 30 days" = "Last 30 days";
-"Date range" = "Date range";
-"Most recent" = "Most recent";
-"Oldest first" = "Oldest first";
-"Most messages" = "Most messages";
-"Clear log" = "Clear log";
-"Clear deleted-message log?" = "Clear deleted-message log?";
-"Removes every preserved deleted message and its captured media for this account." = "Removes every preserved deleted message and its captured media for this account.";
-"No deleted messages yet" = "No deleted messages yet";
-"Logging is off" = "Logging is off";
-"When someone unsends a message, it will appear here grouped by sender." = "When someone unsends a message, it will appear here grouped by sender.";
-"Enable Settings → Messages → Deleted messages log to start recording." = "Enable Settings → Messages → Deleted messages log to start recording.";
-"No matches" = "No matches";
-"Adjust the filters or clear the search to see more." = "Adjust the filters or clear the search to see more.";
-"%lu messages from %lu users" = "%lu messages from %lu users";
-"Text" = "Text";
-"Video" = "Video";
-"Voice" = "Voice";
+"Deleted messages" = "已删除的消息";
+"Deleted messages log" = "已删除消息日志";
+"Records every message someone unsends, grouped by sender" = "记录每条被撤回的消息，按发送者分组";
+"When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history." = "启用后，已删除的消息及其媒体会保存在本设备。关闭并清除日志以擦除历史记录。";
+"Enable deleted messages log" = "启用已删除消息日志";
+"Captures unsent messages with their text or media" = "捕获撤回的消息及其文本或媒体";
+"Open log" = "打开日志";
+"Browse, filter and search recorded messages" = "浏览、筛选和搜索已记录的消息";
+"Search senders or messages" = "搜索发送者或消息";
+"Search messages" = "搜索消息";
+"All time" = "全部时间";
+"Date range" = "日期范围";
+"Most messages" = "消息最多";
+"Clear log" = "清除日志";
+"Clear deleted-message log?" = "清除已删除消息日志？";
+"Removes every preserved deleted message and its captured media for this account." = "移除此账号所有保留的已删除消息及其捕获的媒体。";
+"No deleted messages yet" = "还没有已删除的消息";
+"Logging is off" = "记录已关闭";
+"When someone unsends a message, it will appear here grouped by sender." = "当有人撤回消息时，将按发送者分组显示在此处。";
+"Enable Settings → Messages → Deleted messages log to start recording." = "启用 设置 → 消息 → 已删除消息日志 以开始记录。";
+"No matches" = "没有匹配项";
+"Adjust the filters or clear the search to see more." = "调整筛选条件或清除搜索以查看更多。";
+"%lu messages from %lu users" = "来自 %lu 位用户的 %lu 条消息";
+"Text" = "文本";
+"Video" = "视频";
+"Voice" = "语音";
 "GIF" = "GIF";
-"Sticker" = "Sticker";
-"Link" = "Link";
-"Unknown" = "Unknown";
-"%@ deleted" = "%@ deleted";
-"Clear from this user" = "Clear from this user";
-"Clear log for this user?" = "Clear log for this user?";
-"Removes every preserved deleted message from this sender." = "Removes every preserved deleted message from this sender.";
-"%ld deleted messages • %@ → %@" = "%ld deleted messages • %@ → %@";
-"%ld deleted messages" = "%ld deleted messages";
-"Close" = "Close";
-"Kind: %@\n" = "Kind: %@\n";
-"Deleted: %@\n" = "Deleted: %@\n";
-"Source URL recorded but media not stored.\n" = "Source URL recorded but media not stored.\n";
+"Sticker" = "贴纸";
+"Link" = "链接";
+"Unknown" = "未知";
+"%@ deleted" = "已删除 %@";
+"Clear from this user" = "清除此用户记录";
+"Clear log for this user?" = "清除此用户的日志？";
+"Removes every preserved deleted message from this sender." = "移除此发送者所有保留的已删除消息。";
+"%ld deleted messages • %@ → %@" = "%ld 条已删除消息 • %@ → %@";
+"%ld deleted messages" = "%ld 条已删除消息";
+"Close" = "关闭";
+"Kind: %@\n" = "类型：%@\n";
+"Deleted: %@\n" = "删除时间：%@\n";
+"Source URL recorded but media not stored.\n" = "已记录源 URL，但未存储媒体。\n";
 
-"This account" = "This account";
-"Media on disk" = "Media on disk";
-"Empty" = "Empty";
-"Clear media files" = "Clear media files";
-"Clear log for this account" = "Clear log for this account";
-"Playback failed" = "Playback failed";
-"View" = "View";
-"Play" = "Play";
-"Shared post" = "Shared post";
-"Shared link" = "Shared link";
-"Content unavailable" = "Content unavailable";
-"Copied" = "Copied";
-"Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account." = "Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account.";
-"Clear media files?" = "Clear media files?";
-"Removes every saved photo, video and voice clip. Records keep their text and sender info." = "Removes every saved photo, video and voice clip. Records keep their text and sender info.";
-"Clear log for this account?" = "Clear log for this account?";
-"Removes every preserved deleted message and its captured media for the current account. This cannot be undone." = "Removes every preserved deleted message and its captured media for the current account. This cannot be undone.";
-"See how much disk the log uses and clear it" = "See how much disk the log uses and clear it";
+"This account" = "此账号";
+"Media on disk" = "磁盘上的媒体";
+"Empty" = "空";
+"Clear media files" = "清除媒体文件";
+"Clear log for this account" = "清除此账号的日志";
+"Playback failed" = "播放失败";
+"View" = "查看";
+"Play" = "播放";
+"Tap to open in Instagram" = "点击在 Instagram 中打开";
+"Tap to open in Maps" = "点击在地图中打开";
+"Tap to play" = "点击播放";
+"Tap to play · %@" = "点击播放 · %@";
+"Live location" = "实时位置";
+"Reel" = "Reel";
+"IGTV" = "IGTV";
+"Location" = "位置";
+"Hashtag" = "话题标签";
+"Post" = "帖子";
+"Content unavailable" = "内容不可用";
+"Copied" = "已复制";
+"Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account." = "清除媒体会保留记录（文本、发送者、时间戳）。清除日志会删除此账号的所有内容。";
+"Removes every saved photo, video and voice clip. Records keep their text and sender info." = "移除所有已保存的照片、视频和语音片段。记录保留其文本和发送者信息。";
+"Removes every preserved deleted message and its captured media for the current account. This cannot be undone." = "移除当前账号所有保留的已删除消息及其捕获的媒体。此操作无法撤销。";
+"See how much disk the log uses and clear it" = "查看日志占用磁盘空间并清除";
 
-"now" = "now";
-"Relative (1m / 3h / 3d ago)" = "Relative (1m / 3h / 3d ago)";
-"Absolute date + time" = "Absolute date + time";
-"How timestamps render in the log" = "How timestamps render in the log";
+"now" = "刚刚";
+"Relative (1m / 3h / 3d ago)" = "相对 (1分钟 / 3小时 / 3天前)";
+"Absolute date + time" = "绝对日期+时间";
+"How timestamps render in the log" = "日志中时间戳的显示方式";
 
-"Select messages to download" = "Select messages to download";
-"%lu selected" = "%lu selected";
-"Nothing to save" = "Nothing to save";
-"%@%lu deleted" = "%@%lu deleted";
-"Photos" = "Photos";
+"Select messages to download" = "选择要下载的消息";
+"%lu selected" = "已选 %lu 项";
+"%@%lu deleted" = "%@%lu 已删除";
+"Photos" = "照片";
+
+"Colors" = "颜色";
+"+ Add new language" = "+ 添加新语言";
+"Each chat can override this in the list" = "每个对话可在列表中单独设置";

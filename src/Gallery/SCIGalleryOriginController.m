@@ -5,6 +5,7 @@
 #import "SCIGalleryFile.h"
 #import "SCIGallerySaveMetadata.h"
 #import "../Utils.h"
+#import "../SCIURLOpener.h"
 #import "SCIGalleryShim.h"
 
 #import <objc/runtime.h>
@@ -255,15 +256,15 @@ static NSString *SCIGalleryMediaURLStringFromMetadata(SCIGallerySaveMetadata *me
 
 + (BOOL)openOriginalPostForGalleryFile:(SCIGalleryFile *)file {
     NSURL *url = [file preferredOriginalMediaURL];
-    return url ? [SCIUtils openInstagramMediaURL:url] : NO;
+    return url ? [SCIURLOpener openURL:url] : NO;
 }
 
 + (BOOL)openProfileForGalleryFile:(SCIGalleryFile *)file {
     if (file.sourceUsername.length > 0) {
-        return [SCIUtils openInstagramProfileForUsername:file.sourceUsername];
+        return [SCIURLOpener openInstagramProfileForUsername:file.sourceUsername];
     }
     NSURL *url = [file preferredProfileURL];
-    return url ? [SCIUtils openInstagramMediaURL:url] : NO;
+    return url ? [SCIURLOpener openURL:url] : NO;
 }
 
 @end

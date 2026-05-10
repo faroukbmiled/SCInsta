@@ -7,13 +7,10 @@
 #import "../../SCIFFmpeg.h"
 #import <objc/runtime.h>
 
-#define SCIDM_LOG(fmt, ...) NSLog(@"[SCInsta][DMCapture] " fmt, ##__VA_ARGS__)
-
 #pragma mark - Lazy weak-ref cache
 
 // Stash a weak ref at insert; on unsend, promote to strong and snapshot.
-// Aged-out messages still loaded in IG's `_cache._threadClientStateByThreadIds`
-// fall back to a `_messagesByServerId` read.
+// Aged-out messages fall back to a `_messagesByServerId` read.
 
 static NSMapTable *sciMessageRefs(void) {
     static NSMapTable *t;
@@ -144,81 +141,6 @@ static NSString *sciTryURLSelectors(id obj, NSArray<NSString *> *names) {
         } @catch (__unused id e) {}
     }
     return nil;
-}
-
-#pragma mark - Discovery dump (one-shot per class)
-
-static void sciDumpContentOnce(id content) {
-    if (!content) return;
-    static NSMutableSet<NSString *> *seen;
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{ seen = [NSMutableSet set]; });
-    NSString *cn = NSStringFromClass([content class]);
-    if (!cn.length || [seen containsObject:cn]) return;
-    [seen addObject:cn];
-
-    NSMutableArray *lines = [NSMutableArray array];
-    [lines addObject:[NSString stringWithFormat:@"class=%@", cn]];
-    NSMutableArray *chain = [NSMutableArray array];
-    for (Class c = class_getSuperclass([content class]); c; c = class_getSuperclass(c)) {
-        [chain addObject:NSStringFromClass(c)];
-        if (c == [NSObject class]) break;
-    }
-    if (chain.count) [lines addObject:[NSString stringWithFormat:@"  super: %@",
-                                       [chain componentsJoinedByString:@" → "]]];
-    for (Class c = [content class]; c && c != [NSObject class]; c = class_getSuperclass(c)) {
-        unsigned int n = 0;
-        Ivar *list = class_copyIvarList(c, &n);
-        for (unsigned int i = 0; i < n; i++) {
-            const char *name = ivar_getName(list[i]);
-            const char *type = ivar_getTypeEncoding(list[i]);
-            if (!name || !type) continue;
-            id val = nil;
-            if (type[0] == '@') @try { val = object_getIvar(content, list[i]); } @catch (__unused id e) {}
-            NSString *desc = @"<scalar>";
-            if (val) {
-                if ([val isKindOfClass:[NSString class]]) desc = [NSString stringWithFormat:@"\"%@\"", val];
-                else if ([val isKindOfClass:[NSURL class]]) desc = [NSString stringWithFormat:@"URL=%@", [(NSURL *)val absoluteString]];
-                else if ([val isKindOfClass:[NSNumber class]] || [val isKindOfClass:[NSDate class]]) desc = [val description];
-                else desc = [NSString stringWithFormat:@"<%@>", NSStringFromClass([val class])];
-            }
-            [lines addObject:[NSString stringWithFormat:@"    %s : %s = %@", name, type, desc]];
-        }
-        if (list) free(list);
-    }
-    SCIDM_LOG(@"new content variant\n%@", [lines componentsJoinedByString:@"\n"]);
-}
-
-static void sciDumpGraphOnce(id obj, int depth, NSMutableSet *visited) {
-    if (!obj || depth < 0) return;
-    if ([obj isKindOfClass:[NSString class]] || [obj isKindOfClass:[NSNumber class]]
-        || [obj isKindOfClass:[NSDate class]] || [obj isKindOfClass:[NSURL class]]) return;
-    if ([obj isKindOfClass:[NSArray class]]) {
-        for (id e in (NSArray *)obj) sciDumpGraphOnce(e, depth - 1, visited);
-        return;
-    }
-    if ([obj isKindOfClass:[NSDictionary class]]) {
-        for (id v in [(NSDictionary *)obj allValues]) sciDumpGraphOnce(v, depth - 1, visited);
-        return;
-    }
-    NSValue *box = [NSValue valueWithNonretainedObject:obj];
-    if ([visited containsObject:box]) return;
-    [visited addObject:box];
-    NSString *cn = NSStringFromClass([obj class]);
-    if (![cn hasPrefix:@"NS"] && ![cn hasPrefix:@"_NS"]
-        && ![cn hasPrefix:@"OS"] && ![cn hasPrefix:@"__"]) sciDumpContentOnce(obj);
-    for (Class c = [obj class]; c && c != [NSObject class]; c = class_getSuperclass(c)) {
-        unsigned int n = 0;
-        Ivar *list = class_copyIvarList(c, &n);
-        for (unsigned int i = 0; i < n; i++) {
-            const char *type = ivar_getTypeEncoding(list[i]);
-            if (!type || type[0] != '@') continue;
-            id v = nil;
-            @try { v = object_getIvar(obj, list[i]); } @catch (__unused id e) {}
-            if (v) sciDumpGraphOnce(v, depth - 1, visited);
-        }
-        if (list) free(list);
-    }
 }
 
 #pragma mark - URL scanner (recursive, scored)
@@ -587,10 +509,7 @@ static NSDictionary *sciBuildSnapshot(id message, NSString *ownerHint) {
                 } @catch (__unused id e) {}
             }
         }
-        if (replyId.length) {
-            snap[@"reply_to_id"] = replyId;
-            SCIDM_LOG(@"sid=%@ reply_to_id=%@", sid, replyId);
-        }
+        if (replyId.length) snap[@"reply_to_id"] = replyId;
     } @catch (__unused id e) {}
 
     id content = sciAnyIvar(message, "_content")
@@ -600,17 +519,14 @@ static NSDictionary *sciBuildSnapshot(id message, NSString *ownerHint) {
         @try { content = [message valueForKey:@"content"]; } @catch (__unused id e) {}
     }
     if (!content) {
-        SCIDM_LOG(@"sid=%@ no content found on %@", sid, NSStringFromClass([message class]));
         snap[@"kind"] = @(SCIDeletedMessageKindUnknown);
         return snap;
     }
-    sciDumpContentOnce(content);
 
     if (sciAnyIvar(content, "_threadActivity")
         || sciAnyIvar(content, "_messageTypeNotLocallyAvailable_placeholderTitle")
         || sciAnyIvar(content, "_messageTypeNotLocallyAvailable_placeholderMessage")
         || sciAnyIvar(content, "_expiredPlaceholder_messageContent")) {
-        SCIDM_LOG(@"sid=%@ skipping system/placeholder", sid);
         return nil;
     }
 
@@ -627,7 +543,6 @@ static NSDictionary *sciBuildSnapshot(id message, NSString *ownerHint) {
     // Media branch — photo / video / voice / gif / sticker.
     id media = sciAnyIvar(content, "_media");
     if (media) {
-        sciDumpContentOnce(media);
         NSMutableSet *vis = [NSMutableSet set];
         NSMutableSet<NSString *> *tokens = [NSMutableSet set];
         sciCollectIvarNames(media, 5, vis, tokens);
@@ -638,17 +553,14 @@ static NSDictionary *sciBuildSnapshot(id message, NSString *ownerHint) {
         else if (sciSetContainsAny(tokens, @[@"video", @"dashmanifest", @"playableurl"])) kind = SCIDeletedMessageKindVideo;
         else                                                       kind = SCIDeletedMessageKindPhoto;
 
-        SCIDM_LOG(@"sid=%@ media branch kind=%ld tokens=%lu", sid, (long)kind, (unsigned long)tokens.count);
-
         if (kind == SCIDeletedMessageKindVoice) {
             double dur = 0; NSArray *wf = nil;
             sciScanVoiceMetadata(media, &dur, &wf);
             if (dur > 0)  snap[@"duration"] = @(dur);
             if (wf.count) snap[@"waveform"] = wf;
-            SCIDM_LOG(@"  voice duration=%.2f waveform=%lu samples", dur, (unsigned long)wf.count);
         }
 
-        // IGVideo lives under _permanentMedia_permanentMedia, not directly on media.
+        // IGVideo sits under _permanentMedia_permanentMedia, not on media.
         if (kind == SCIDeletedMessageKindVideo) {
             id permanent = sciAnyIvar(media, "_permanentMedia_permanentMedia");
             id video = nil;
@@ -669,39 +581,27 @@ static NSDictionary *sciBuildSnapshot(id message, NSString *ownerHint) {
                                                   ?: sciAnyIvar(visual, "_overlayPhoto");
                 }
             }
-            SCIDM_LOG(@"  video probe permanent=%d video=%d overlay=%d",
-                      permanent ? 1 : 0, video ? 1 : 0, overlayPhoto ? 1 : 0);
 
             if (video) {
-                sciDumpContentOnce(video);
                 NSData *manifestData = sciAnyIvar(video, "_dashManifestData");
                 if ([manifestData isKindOfClass:[NSData class]] && manifestData.length) {
                     NSString *xml = [[NSString alloc] initWithData:manifestData encoding:NSUTF8StringEncoding];
                     NSArray<SCIDashRepresentation *> *reps = [SCIDashParser parseManifest:xml];
                     SCIDashRepresentation *bestV = [SCIDashParser bestVideoFromRepresentations:reps];
                     SCIDashRepresentation *bestA = [SCIDashParser bestAudioFromRepresentations:reps];
-                    SCIDM_LOG(@"  video DASH manifest=%lu bytes reps=%lu video=%@ audio=%@",
-                              (unsigned long)manifestData.length,
-                              (unsigned long)reps.count,
-                              bestV.url.absoluteString,
-                              bestA.url.absoluteString);
                     if (bestV.url.absoluteString.length) {
                         mediaURL = bestV.url.absoluteString;
                         mediaScore = 100;
                     }
-                    // DASH ships video + audio as separate reps; sciFinalizeMedia muxes them via SCIFFmpeg.
+                    // DASH video + audio are separate reps; muxed via SCIFFmpeg later.
                     if (bestA.url.absoluteString.length) snap[@"audio_url"] = bestA.url.absoluteString;
-                } else {
-                    SCIDM_LOG(@"  video has no _dashManifestData (probably old or video memo)");
                 }
-                // Fallback ivars on IGVideo if DASH wasn't there.
                 if (!mediaURL.length) {
                     for (NSString *ivName in @[@"_broadcastURL", @"_subtitleURL"]) {
                         id v = sciAnyIvar(video, ivName.UTF8String);
                         if ([v isKindOfClass:[NSURL class]]) {
                             mediaURL = [(NSURL *)v absoluteString];
                             mediaScore = 90;
-                            SCIDM_LOG(@"  video fallback url ivar=%@ url=%@", ivName, mediaURL);
                             break;
                         }
                     }
@@ -713,19 +613,16 @@ static NSDictionary *sciBuildSnapshot(id message, NSString *ownerHint) {
                 sciScanForURLsRecursive(overlayPhoto, 4, &m, &ms, &t, &ts, @"thumbnail");
                 NSString *picked = t.length ? t : m;
                 if (picked.length) { thumbURL = picked; thumbScore = MAX(ts, ms); }
-                SCIDM_LOG(@"  video overlay thumb=%@", picked);
             }
         }
 
         sciScanForURLsRecursive(media, 5, &mediaURL, &mediaScore, &thumbURL, &thumbScore, @"media");
-        SCIDM_LOG(@"  media url=%@  thumb=%@", mediaURL, thumbURL);
     }
 
     // Reshare branch.
     id reshare = sciAnyIvar(content, "_reshare_attachment");
     if (reshare && kind == SCIDeletedMessageKindUnknown) {
         kind = SCIDeletedMessageKindShare;
-        sciDumpGraphOnce(reshare, 4, [NSMutableSet set]);
         sciScanForURLsRecursive(reshare, 5, &mediaURL, &mediaScore, &thumbURL, &thumbScore, @"reshare");
         text = sciStrIvar(content, "_reshare_comment");
         if (!text.length) text = sciExtractShareTitle(reshare);
@@ -737,14 +634,12 @@ static NSDictionary *sciBuildSnapshot(id message, NSString *ownerHint) {
                 @[@"webURL", @"shareURL", @"deepLink", @"url", @"mediaURL", @"playableURL"]);
             if (u.length) mediaURL = u;
         }
-        SCIDM_LOG(@"sid=%@ reshare text=%lu media=%@", sid, (unsigned long)text.length, mediaURL);
     }
 
     // Link branch — IGDirectLinkContext has direct ivars.
     id link = sciAnyIvar(content, "_link_linkContext");
     if (link && kind == SCIDeletedMessageKindUnknown) {
         kind = SCIDeletedMessageKindLink;
-        sciDumpGraphOnce(link, 4, [NSMutableSet set]);
         id u    = sciAnyIvar(link, "_url");
         id imgU = sciAnyIvar(link, "_imageURL");
         if ([u    isKindOfClass:[NSURL class]]) mediaURL = [(NSURL *)u    absoluteString];
@@ -758,29 +653,62 @@ static NSDictionary *sciBuildSnapshot(id message, NSString *ownerHint) {
         if (summary.length) [parts addObject:summary];
         if (!parts.count && mediaURL.length) [parts addObject:mediaURL];
         if (parts.count) text = [parts componentsJoinedByString:@"\n"];
-        SCIDM_LOG(@"sid=%@ link url=%@ thumb=%@ text=%lu", sid, mediaURL, thumbURL, (unsigned long)text.length);
     }
 
-    // XMA — Pando-backed wrapper. IGDirectXMA inherits from
-    // IGDevirtualizedValueObject and exposes its data via the Pando KVC
-    // resolver, not direct ivars. Hit `valueForKey:` against the common
-    // snake_case + camelCase keys we'd expect for shared reels / posts /
-    // links.
+    // XMA — Pando-backed wrapper. IGDirectXMA has zero ivars; data comes
+    // via valueForKey on names mirroring IGDirectXMABuilder / IGDirectXMAShareBuilder.
     if (kind == SCIDeletedMessageKindUnknown) {
         id xmaLike = sciAnyIvar(content, "_xma")
                   ?: sciAnyIvar(content, "_bloksXMA")
                   ?: sciAnyIvar(content, "_pollMessage")
                   ?: sciAnyIvar(content, "_progressiveImage");
         if (xmaLike) {
-            kind = SCIDeletedMessageKindShare;
-            sciDumpGraphOnce(xmaLike, 4, [NSMutableSet set]);
-            sciScanForURLsRecursive(xmaLike, 5, &mediaURL, &mediaScore, &thumbURL, &thumbScore, @"xma");
+            NSString *xmaContentType = nil;
+            @try {
+                id v = [xmaLike valueForKey:@"contentType"];
+                if ([v isKindOfClass:[NSString class]]) xmaContentType = [(NSString *)v lowercaseString];
+            } @catch (__unused id e) {}
 
-            // KVC probes — IGDevirtualizedValueObject answers these via Pando.
-            NSString *(^kvcStr)(NSArray<NSString *> *) = ^NSString *(NSArray<NSString *> *keys) {
+            // Audio share heuristic — generic_xma with playableAudioURL or /reels_audio_page targetURL.
+            BOOL isAudio = NO;
+            @try {
+                id items = [xmaLike valueForKey:@"xmaItems"];
+                id first = ([items isKindOfClass:[NSArray class]] && [items count] > 0) ? [items firstObject] : nil;
+                if (first) {
+                    id pa = [first valueForKey:@"playableAudioURL"];
+                    if ([pa isKindOfClass:[NSURL class]] && [(NSURL *)pa absoluteString].length) isAudio = YES;
+                    if (!isAudio) {
+                        id tgt = [first valueForKey:@"targetURL"];
+                        NSString *tgtStr = [tgt isKindOfClass:[NSURL class]] ? [(NSURL *)tgt absoluteString]
+                                           : ([tgt isKindOfClass:[NSString class]] ? tgt : nil);
+                        if ([tgtStr.lowercaseString containsString:@"reels_audio_page"]
+                            || [tgtStr.lowercaseString containsString:@"audio_page"]) isAudio = YES;
+                    }
+                }
+            } @catch (__unused id e) {}
+
+            if (isAudio)                                           kind = SCIDeletedMessageKindAudioShare;
+            else if ([xmaContentType isEqualToString:@"xma_link"]) kind = SCIDeletedMessageKindLink;
+            else                                                   kind = SCIDeletedMessageKindShare;
+
+            // Real share payload sits on xmaItems[0] (IGDirectXMAShare).
+            NSMutableArray *probeTargets = [NSMutableArray arrayWithObject:xmaLike];
+            @try {
+                id items = [xmaLike valueForKey:@"xmaItems"];
+                if ([items isKindOfClass:[NSArray class]]) {
+                    for (id it in (NSArray *)items) if (it) [probeTargets addObject:it];
+                }
+            } @catch (__unused id e) {}
+            @try {
+                id meta = [xmaLike valueForKey:@"metadata"];
+                if (meta && meta != [NSNull null]) [probeTargets addObject:meta];
+            } @catch (__unused id e) {}
+
+            NSString *(^pickStr)(id, NSArray<NSString *> *) = ^NSString *(id obj, NSArray<NSString *> *keys) {
                 for (NSString *k in keys) {
                     @try {
-                        id v = [xmaLike valueForKey:k];
+                        id v = [obj valueForKey:k];
+                        if (!v || v == [NSNull null]) continue;
                         if ([v isKindOfClass:[NSAttributedString class]]) v = [(NSAttributedString *)v string];
                         if ([v isKindOfClass:[NSString class]] && [(NSString *)v length] > 0
                             && !sciIsDescriptionFallback(v)) return v;
@@ -788,10 +716,11 @@ static NSDictionary *sciBuildSnapshot(id message, NSString *ownerHint) {
                 }
                 return nil;
             };
-            NSString *(^kvcURL)(NSArray<NSString *> *) = ^NSString *(NSArray<NSString *> *keys) {
+            NSString *(^pickURL)(id, NSArray<NSString *> *) = ^NSString *(id obj, NSArray<NSString *> *keys) {
                 for (NSString *k in keys) {
                     @try {
-                        id v = [xmaLike valueForKey:k];
+                        id v = [obj valueForKey:k];
+                        if (!v || v == [NSNull null]) continue;
                         if ([v isKindOfClass:[NSURL class]]) {
                             NSString *s = [(NSURL *)v absoluteString];
                             if (s.length) return s;
@@ -802,49 +731,68 @@ static NSDictionary *sciBuildSnapshot(id message, NSString *ownerHint) {
                 return nil;
             };
 
-            text = sciExtractShareTitle(xmaLike);
-            if (!text.length) text = sciTryStringSelectors(xmaLike,
-                @[@"headerTitle", @"title", @"headline", @"subtitle", @"caption",
-                  @"captionText", @"summary", @"placeholderTitle",
-                  @"placeholderMessage", @"name", @"username", @"text", @"messageText"]);
-            if (!text.length) text = kvcStr(@[@"header_title", @"headerTitle",
-                                               @"header_subtitle", @"subtitle",
-                                               @"caption", @"captionText", @"caption_text",
-                                               @"description", @"summary",
-                                               @"sub_text", @"subText",
-                                               @"target_url_title", @"link_preview_title"]);
+            // IGDirectXMAShareBuilder mirror keys — priority order.
+            NSArray<NSString *> *titleKeys = @[
+                @"headerTitleText", @"titleText", @"headerSubtitleText",
+                @"subtitleText", @"captionBodyText", @"footerBodyText",
+                @"overlayTitle", @"overlayDescription", @"overlayText",
+                @"quotedTitleText", @"quotedAttributionText", @"quotedCaptionBodyText",
+                @"groupName", @"targetURLTitle",
+                @"title", @"caption", @"text", @"summary", @"description"
+            ];
+            // Audio: prefer .mp4 (download/play); others: targetURL (in-app open).
+            NSArray<NSString *> *mediaKeys = (kind == SCIDeletedMessageKindAudioShare)
+                ? @[@"playableAudioURL", @"playableURL", @"accessoryPlayableURL",
+                    @"fullSizeURL", @"targetURL",
+                    @"webURL", @"shareURL", @"deepLink", @"url", @"mediaURL"]
+                : @[@"targetURL",
+                    @"playableURL", @"playableAudioURL",
+                    @"accessoryPlayableURL", @"fullSizeURL",
+                    @"webURL", @"shareURL", @"deepLink", @"url", @"mediaURL"];
+            NSArray<NSString *> *thumbKeys = @[
+                @"previewURL", @"accessoryPreviewURL", @"previewMaskURL",
+                @"previewIgImageURL",
+                @"thumbnailURL", @"posterURL", @"imageURL"
+            ];
 
-            if (!mediaURL.length) {
-                NSString *u = sciTryURLSelectors(xmaLike,
-                    @[@"webURL", @"shareURL", @"deepLink", @"url", @"playableURL", @"mediaURL"]);
-                if (u.length) mediaURL = u;
+            NSMutableArray *titleParts = [NSMutableArray array];
+            for (id obj in probeTargets) {
+                NSString *t = pickStr(obj, titleKeys);
+                if (t.length && ![titleParts containsObject:t]) [titleParts addObject:t];
+                if (titleParts.count >= 3) break;
             }
-            if (!mediaURL.length) {
-                NSString *u = kvcURL(@[@"target_url", @"targetURL",
-                                        @"cta_url", @"ctaURL",
-                                        @"deeplink_url", @"deepLinkURL",
-                                        @"share_url", @"shareURL",
-                                        @"playback_url", @"playbackURL",
-                                        @"video_url", @"videoURL",
-                                        @"web_url", @"webURL",
-                                        @"url"]);
-                if (u.length) { mediaURL = u; mediaScore = 50; }
+            if (!text.length && titleParts.count) text = [titleParts componentsJoinedByString:@"\n"];
+
+            for (id obj in probeTargets) {
+                if (!mediaURL.length) {
+                    NSString *u = pickURL(obj, mediaKeys);
+                    if (u.length) { mediaURL = u; mediaScore = 70; }
+                }
+                if (!thumbURL.length) {
+                    NSString *u = pickURL(obj, thumbKeys);
+                    if (u.length) { thumbURL = u; thumbScore = 70; }
+                }
+                if (mediaURL.length && thumbURL.length) break;
             }
-            if (!thumbURL.length) {
-                NSString *u = sciTryURLSelectors(xmaLike,
-                    @[@"thumbnailURL", @"previewURL", @"posterURL", @"imageURL"]);
-                if (u.length) thumbURL = u;
+
+            sciScanForURLsRecursive(xmaLike, 5, &mediaURL, &mediaScore, &thumbURL, &thumbScore, @"xma");
+
+            // Unwrap IG/FB outbound redirector — `l.instagram.com/?u=<real>`.
+            if (kind == SCIDeletedMessageKindLink && mediaURL.length) {
+                NSURL *u = [NSURL URLWithString:mediaURL];
+                NSString *host = u.host.lowercaseString;
+                if ([host isEqualToString:@"l.instagram.com"]
+                    || [host isEqualToString:@"l.facebook.com"]
+                    || [host isEqualToString:@"lm.facebook.com"]) {
+                    NSURLComponents *comps = [NSURLComponents componentsWithURL:u resolvingAgainstBaseURL:NO];
+                    for (NSURLQueryItem *q in comps.queryItems) {
+                        if ([q.name isEqualToString:@"u"] && q.value.length) {
+                            mediaURL = q.value;
+                            break;
+                        }
+                    }
+                }
             }
-            if (!thumbURL.length) {
-                NSString *u = kvcURL(@[@"preview_url", @"previewURL",
-                                        @"thumbnail_url", @"thumbnailURL",
-                                        @"image_url", @"imageURL",
-                                        @"poster_url", @"posterURL",
-                                        @"cover_image_url"]);
-                if (u.length) { thumbURL = u; thumbScore = 50; }
-            }
-            SCIDM_LOG(@"sid=%@ xma kvc text=%lu media=%@ thumb=%@",
-                      sid, (unsigned long)text.length, mediaURL, thumbURL);
         }
     }
 
@@ -854,11 +802,6 @@ static NSDictionary *sciBuildSnapshot(id message, NSString *ownerHint) {
     if (text.length)     snap[@"text"]      = text;
     if (mediaURL.length) snap[@"media_url"] = mediaURL;
     if (thumbURL.length) snap[@"thumb_url"] = thumbURL;
-    SCIDM_LOG(@"sid=%@ FINAL kind=%ld text=%lu media=%@ thumb=%@",
-              sid, (long)kind,
-              (unsigned long)text.length,
-              mediaURL.length ? @"yes" : @"no",
-              thumbURL.length ? @"yes" : @"no");
     return snap;
 }
 
@@ -882,20 +825,11 @@ static void sciDownloadToTempFile(NSURL *url, void (^done)(NSURL *file, NSError 
     }] resume];
 }
 
-// Video finalizer — DASH video reps are silent. Download both video + audio
-// reps and mux into a single MP4 via the existing SCIFFmpeg helper.
-// Falls back to plain video download when no audio URL was captured.
+// DASH video reps are silent — download video + audio reps and mux to mp4.
 static void sciDownloadAndMuxVideo(NSString *videoURL, NSString *audioURL,
                                     NSString *messageId, NSString *ownerPk) {
     if (!videoURL.length || !messageId.length) return;
-    if (!audioURL.length) {
-        SCIDM_LOG(@"  video mux skipped — no audio rep, falling back to plain download");
-        return;
-    }
-    if (![SCIFFmpeg isAvailable]) {
-        SCIDM_LOG(@"  ffmpeg unavailable, saving silent video instead");
-        return;
-    }
+    if (!audioURL.length || ![SCIFFmpeg isAvailable]) return;
     NSURL *vURL = [NSURL URLWithString:videoURL];
     NSURL *aURL = [NSURL URLWithString:audioURL];
     if (!vURL || !aURL) return;
@@ -903,44 +837,27 @@ static void sciDownloadAndMuxVideo(NSString *videoURL, NSString *audioURL,
     dispatch_async(sciDownloadQueue(), ^{
         __block NSURL *vFile = nil, *aFile = nil;
         dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-        sciDownloadToTempFile(vURL, ^(NSURL *f, NSError *e) {
-            if (!e) vFile = f;
-            else SCIDM_LOG(@"  mux video dl fail: %@", e.localizedDescription);
-            dispatch_semaphore_signal(sema);
-        });
+        sciDownloadToTempFile(vURL, ^(NSURL *f, NSError *e) { if (!e) vFile = f; dispatch_semaphore_signal(sema); });
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-        sciDownloadToTempFile(aURL, ^(NSURL *f, NSError *e) {
-            if (!e) aFile = f;
-            else SCIDM_LOG(@"  mux audio dl fail: %@", e.localizedDescription);
-            dispatch_semaphore_signal(sema);
-        });
+        sciDownloadToTempFile(aURL, ^(NSURL *f, NSError *e) { if (!e) aFile = f; dispatch_semaphore_signal(sema); });
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
         if (!vFile || !aFile) {
             if (vFile) [[NSFileManager defaultManager] removeItemAtURL:vFile error:nil];
             if (aFile) [[NSFileManager defaultManager] removeItemAtURL:aFile error:nil];
             return;
         }
-        SCIDM_LOG(@"  mux starting v=%@ a=%@", vFile.lastPathComponent, aFile.lastPathComponent);
         [SCIFFmpeg muxVideoURL:vFile audioURL:aFile preset:nil progress:nil
                     completion:^(NSURL *outURL, NSError *err) {
             [[NSFileManager defaultManager] removeItemAtURL:vFile error:nil];
             [[NSFileManager defaultManager] removeItemAtURL:aFile error:nil];
-            if (err || !outURL) {
-                SCIDM_LOG(@"  mux fail err=%@ — saving silent video as fallback", err.localizedDescription);
-                return;
-            }
+            if (err || !outURL) return;
             NSString *fname = [SCIDeletedMessagesStorage reserveRelativeMediaPathForMessageId:messageId
                                                                                     extension:@"mp4"
                                                                                       ownerPK:ownerPk];
             NSString *abs = [SCIDeletedMessagesStorage absolutePathForRelativePath:fname ownerPK:ownerPk];
             if (!abs.length) return;
             [[NSFileManager defaultManager] removeItemAtPath:abs error:nil];
-            NSError *moveErr = nil;
-            if (![[NSFileManager defaultManager] moveItemAtURL:outURL toURL:[NSURL fileURLWithPath:abs] error:&moveErr]) {
-                SCIDM_LOG(@"  mux output move fail err=%@", moveErr.localizedDescription);
-                return;
-            }
-            SCIDM_LOG(@"  mux ok msg=%@ → %@", messageId, abs);
+            if (![[NSFileManager defaultManager] moveItemAtURL:outURL toURL:[NSURL fileURLWithPath:abs] error:nil]) return;
             for (SCIDeletedMessage *m in [SCIDeletedMessagesStorage allMessagesForOwnerPK:ownerPk]) {
                 if (![m.messageId isEqualToString:messageId]) continue;
                 m.mediaPath = fname;
@@ -969,15 +886,8 @@ static void sciDownloadMedia(NSString *urlString, NSString *messageId,
     dispatch_async(sciDownloadQueue(), ^{
         NSURLSessionDataTask *task = [sciSharedSession() dataTaskWithURL:url
                                                        completionHandler:^(NSData *data, NSURLResponse *resp, NSError *err) {
-            if (err || !data.length) {
-                SCIDM_LOG(@"download fail msg=%@ thumb=%d err=%@", messageId, isThumbnail, err.localizedDescription);
-                return;
-            }
-            if (![data writeToFile:abs atomically:YES]) {
-                SCIDM_LOG(@"write fail msg=%@ path=%@", messageId, abs);
-                return;
-            }
-            SCIDM_LOG(@"download ok msg=%@ thumb=%d bytes=%lu", messageId, isThumbnail, (unsigned long)data.length);
+            if (err || !data.length) return;
+            if (![data writeToFile:abs atomically:YES]) return;
             for (SCIDeletedMessage *m in [SCIDeletedMessagesStorage allMessagesForOwnerPK:ownerPk]) {
                 if (![m.messageId isEqualToString:messageId]) continue;
                 if (isThumbnail) m.thumbnailPath = fname;
@@ -1050,7 +960,6 @@ void sciDMCaptureNoteRemoveKeys(NSArray *keys, id applicator,
     NSString *thread = threadId.length ? [threadId copy] : nil;
 
     NSMutableDictionary<NSString *, id> *strongRefs = [NSMutableDictionary dictionary];
-    NSUInteger weakHits = 0, fallbackHits = 0, missed = 0;
 
     // Layer 1: weak ref → strong promotion.
     @synchronized (sciMessageRefsLock()) {
@@ -1059,24 +968,18 @@ void sciDMCaptureNoteRemoveKeys(NSArray *keys, id applicator,
             NSString *sid = sciExtractKeySid(key);
             if (!sid.length) continue;
             id m = [t objectForKey:sid];
-            if (m) { strongRefs[sid] = m; weakHits++; [t removeObjectForKey:sid]; }
+            if (m) { strongRefs[sid] = m; [t removeObjectForKey:sid]; }
         }
     }
 
-    // Layer 2: per-thread state lookup.
+    // Layer 2: per-thread state lookup for sids no longer in the weak cache.
     for (id key in keys) {
         NSString *sid = sciExtractKeySid(key);
         if (!sid.length || strongRefs[sid]) continue;
         id m = sciFallbackLookupMessage(applicator, sid, thread);
-        if (m) { strongRefs[sid] = m; fallbackHits++; }
-        else   { missed++; }
+        if (m) strongRefs[sid] = m;
     }
 
-    SCIDM_LOG(@"unsend keys=%lu weak=%lu fallback=%lu missed=%lu",
-              (unsigned long)keys.count,
-              (unsigned long)weakHits,
-              (unsigned long)fallbackHits,
-              (unsigned long)missed);
     if (!strongRefs.count) return;
 
     dispatch_async(sciCaptureQueue(), ^{
@@ -1116,15 +1019,15 @@ void sciDMCaptureNoteRemoveKeys(NSArray *keys, id applicator,
             m.replyToMessageId    = snap[@"reply_to_id"];
 
             [SCIDeletedMessagesStorage saveMessage:m forOwnerPK:owner];
-            SCIDM_LOG(@"persisted sid=%@ kind=%ld owner=%@ sender=%@",
-                      sid, (long)m.kind, owner, senderPk);
 
-            // Video gets the mux path so the downloaded mp4 actually has
-            // sound. Everything else uses the plain downloader.
+            // Video → mux path. Share/Link mediaURL is a deeplink, skip body fetch (thumb only).
+            // AudioShare's mediaURL is a downloadable .mp4.
             NSString *audioURL = snap[@"audio_url"];
+            BOOL isDeeplinkOnly = (m.kind == SCIDeletedMessageKindShare ||
+                                   m.kind == SCIDeletedMessageKindLink);
             if (m.kind == SCIDeletedMessageKindVideo && audioURL.length && m.mediaURL.length) {
                 sciDownloadAndMuxVideo(m.mediaURL, audioURL, sid, owner);
-            } else if (m.mediaURL.length) {
+            } else if (!isDeeplinkOnly && m.mediaURL.length) {
                 sciDownloadMedia(m.mediaURL, sid, owner, NO);
             }
             if (m.thumbnailURL.length) sciDownloadMedia(m.thumbnailURL, sid, owner, YES);

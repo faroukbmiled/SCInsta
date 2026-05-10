@@ -2,6 +2,7 @@
 #import "../Features/StoriesAndMessages/SCIExcludedThreads.h"
 #import "../Networking/SCIInstagramAPI.h"
 #import "../Utils.h"
+#import "../SCIURLOpener.h"
 
 @interface SCIExcludedChatsViewController ()
 @property (nonatomic, strong) UITableView *tableView;
@@ -273,9 +274,7 @@
     if ([e[@"isGroup"] boolValue] || users.count != 1) return;
     NSString *username = users.firstObject[@"username"];
     if (!username) return;
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"instagram://user?username=%@", username]];
-    if ([[UIApplication sharedApplication] canOpenURL:url])
-        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+    [SCIURLOpener openInstagramProfileForUsername:username];
 }
 
 - (UISwipeActionsConfiguration *)tableView:(UITableView *)tv trailingSwipeActionsConfigurationForRowAtIndexPath:(NSIndexPath *)indexPath {

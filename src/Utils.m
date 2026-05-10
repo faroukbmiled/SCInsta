@@ -158,62 +158,6 @@ static UIColor *SCIDynIGColor(CGFloat lr, CGFloat lg, CGFloat lb, CGFloat dr, CG
 + (UIColor *)SCIColor_InstagramDestructive { return [UIColor colorWithRed:237/255.0 green:73/255.0 blue:86/255.0 alpha:1.0]; }
 + (UIColor *)SCIColor_InstagramPressedBackground { return SCIDynIGColor(232,233,238, 51,60,69); }
 
-// Instagram deep-link openers — try the in-app URL handler first, fall back
-// to UIApplication openURL: + the web URL.
-+ (BOOL)openInstagramProfileForUsername:(NSString *)username {
-    if (!username.length) return NO;
-    NSString *enc = [username stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
-    if (!enc.length) return NO;
-    NSURL *appURL = [NSURL URLWithString:[NSString stringWithFormat:@"instagram://user?username=%@", enc]];
-    UIApplication *app = [UIApplication sharedApplication];
-    if (appURL && [app canOpenURL:appURL]) {
-        id<UIApplicationDelegate> d = app.delegate;
-        if ([d respondsToSelector:@selector(application:openURL:options:)]) {
-            [d application:app openURL:appURL options:@{}];
-            return YES;
-        }
-        [app openURL:appURL options:@{} completionHandler:nil];
-        return YES;
-    }
-    NSURL *web = [NSURL URLWithString:[NSString stringWithFormat:@"https://www.instagram.com/%@/", enc]];
-    return [self openInstagramMediaURL:web];
-}
-
-+ (BOOL)openInstagramMediaURL:(NSURL *)url {
-    // Always route through IG's own URL handler. We never call
-    // [UIApplication openURL:] for https/http URLs because that bounces them
-    // to Safari instead of into IG's deep-link stack.
-    if (!url) return NO;
-    UIApplication *app = [UIApplication sharedApplication];
-    id<UIApplicationDelegate> d = app.delegate;
-    NSString *scheme = url.scheme.lowercaseString ?: @"";
-
-    if ([scheme isEqualToString:@"http"] || [scheme isEqualToString:@"https"]) {
-        NSUserActivity *act = [[NSUserActivity alloc] initWithActivityType:NSUserActivityTypeBrowsingWeb];
-        act.webpageURL = url;
-        if ([d respondsToSelector:@selector(application:continueUserActivity:restorationHandler:)]) {
-            BOOL h = [d application:app continueUserActivity:act restorationHandler:^(__unused NSArray<id<UIUserActivityRestoring>> *r) {}];
-            if (h) return YES;
-        }
-        // Fall back to the IG app delegate's openURL: (still in-app, never Safari).
-        if ([d respondsToSelector:@selector(application:openURL:options:)]) {
-            [d application:app openURL:url options:@{}];
-            return YES;
-        }
-        return NO;
-    }
-
-    if ([scheme isEqualToString:@"instagram"]) {
-        if ([d respondsToSelector:@selector(application:openURL:options:)]) {
-            [d application:app openURL:url options:@{}];
-            return YES;
-        }
-        return NO;
-    }
-
-    return NO;
-}
-
 // Errors
 + (NSError *)errorWithDescription:(NSString *)errorDesc {
     return [self errorWithDescription:errorDesc code:1];

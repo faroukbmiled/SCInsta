@@ -4,9 +4,8 @@
 #import "../../UI/SCIColorPickerSheet.h"
 #import <objc/runtime.h>
 
-// Notes bubble editor: paintbrush button (top-right) + long-press on the IG
-// color palette open the shared color picker for background / text color.
-// Gradient is unsupported by the schema — preset-only.
+// Notes bubble editor: paintbrush button + palette long-press open the shared
+// color picker for background / text color.
 
 typedef NS_ENUM(NSInteger, SCINoteColorMode) {
     SCINoteColorModeBackground = 0,
@@ -57,11 +56,62 @@ static _TtC26IGNotesBubbleCreationSwift39IGDirectNotesBubbleEditorViewController
     return nil;
 }
 
-static IGNotesCustomThemeCreationModel *SCIEnsureThemeModel(IGDirectNotesComposerViewController *composer) {
+static IGNotesCustomThemeCreationModel *SCICurrentThemeModel(IGDirectNotesComposerViewController *composer) {
     IGNotesCustomThemeCreationModel *model = nil;
     @try { model = [composer valueForKey:@"_selectedCustomThemeCreationModel"]; } @catch (__unused NSException *e) {}
-    if (!model) model = [[%c(IGNotesCustomThemeCreationModel) alloc] init];
     return model;
+}
+
+// Pando theme model is immutable — rebuild via the all-fields init, copying
+// every existing field plus the color override.
+static IGNotesCustomThemeCreationModel *SCIThemeModelByOverridingColor(IGDirectNotesComposerViewController *composer,
+                                                                       SCINoteColorMode mode,
+                                                                       UIColor *newColor) {
+    Class K = %c(IGNotesCustomThemeCreationModel);
+    if (!K) return nil;
+
+    IGNotesCustomThemeCreationModel *prev = SCICurrentThemeModel(composer);
+
+    UIColor   *bg     = nil;
+    NSArray   *grad   = nil;
+    UIColor   *text   = nil;
+    UIColor   *sText  = nil;
+    id         emoji  = nil;
+    NSString  *cid    = nil;
+    BOOL       usedGen = NO;
+    NSInteger  actT    = 0;
+
+    if (prev) {
+        @try { bg     = [prev valueForKey:@"backgroundColor"]; }          @catch (__unused NSException *e) {}
+        @try { grad   = [prev valueForKey:@"gradientBackgroundColors"]; } @catch (__unused NSException *e) {}
+        @try { text   = [prev valueForKey:@"textColor"]; }                @catch (__unused NSException *e) {}
+        @try { sText  = [prev valueForKey:@"secondaryTextColor"]; }       @catch (__unused NSException *e) {}
+        @try { emoji  = [prev valueForKey:@"customEmoji"]; }              @catch (__unused NSException *e) {}
+        @try { cid    = [prev valueForKey:@"customizationId"]; }          @catch (__unused NSException *e) {}
+        @try { usedGen = [[prev valueForKey:@"usedGeneratedTheme"] boolValue]; } @catch (__unused NSException *e) {}
+        @try { actT    = [[prev valueForKey:@"activationType"] integerValue]; } @catch (__unused NSException *e) {}
+    }
+
+    if (mode == SCINoteColorModeText) {
+        text = newColor;
+        if (!sText) sText = newColor;
+    } else {
+        bg = newColor;
+        grad = nil;
+    }
+
+    if (!bg)    bg    = [UIColor systemPinkColor];
+    if (!text)  text  = [UIColor whiteColor];
+    if (!sText) sText = text;
+
+    return [[K alloc] initWithBackgroundColor:bg
+                     gradientBackgroundColors:grad
+                                    textColor:text
+                           secondaryTextColor:sText
+                                  customEmoji:emoji
+                              customizationId:cid
+                           usedGeneratedTheme:usedGen
+                               activationType:actT];
 }
 
 static void SCIEnableBottomButtons(UIViewController *parentVC) {
@@ -145,12 +195,11 @@ static char kSCINoteThemeButtonKey;
 
         IGDirectNotesComposerViewController *composer = [(id)self delegate];
         if (!composer) return;
-        IGNotesCustomThemeCreationModel *model = SCIEnsureThemeModel(composer);
+
+        IGNotesCustomThemeCreationModel *model = SCIThemeModelByOverridingColor(composer, mode, primary);
         if (!model) return;
 
-        NSString *key = (mode == SCINoteColorModeText) ? @"secondaryTextColor" : @"backgroundColor";
         char *assocKey = (mode == SCINoteColorModeText) ? &kSCINoteTextColorKey : &kSCINoteBgColorKey;
-        @try { [model setValue:primary forKey:key]; } @catch (__unused NSException *e) {}
         objc_setAssociatedObject(self, assocKey, primary, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
         [composer notesBubbleEditorViewControllerDidUpdateWithCustomThemeCreationModel:model];

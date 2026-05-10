@@ -326,6 +326,9 @@
 "Long press to download directly (ignored when zoom is on)" = "길게 눌러 바로 다운로드 (확대가 켜져 있으면 무시됨)";
 "Long-press gestures on profile elements — kept separate from the per-feature action buttons." = "프로필 요소의 길게 누르기 제스처 — 기능별 작업 버튼과 별도로 유지됩니다.";
 "Only affects your own profile header. Other users see the real numbers." = "본인 프로필 헤더에만 적용됩니다. 다른 사용자에게는 실제 숫자가 표시됩니다.";
+"Profile stats" = "프로필 통계";
+"Show full follower count" = "전체 팔로워 수 표시";
+"Show full post count" = "전체 게시물 수 표시";
 "Post count" = "게시물 수";
 "Save profile picture" = "프로필 사진 저장";
 "Show a checkmark next to your name on your own profile" = "본인 프로필 이름 옆에 체크 표시를 보여줍니다";
@@ -1001,7 +1004,6 @@
 "Profile updates" = "프로필 변경";
 
 "Request failed" = "요청 실패";
-"Reset analyzer data?" = "분석 데이터를 초기화할까요?";
 "Run analysis" = "분석 실행";
 "Run your first analysis" = "첫 분석을 실행하세요";
 "Since last scan" = "마지막 분석 이후";
@@ -1048,6 +1050,7 @@
 "File has no importable sections." = "파일에 가져올 수 있는 섹션이 없습니다.";
 "File is not a valid RyukGram export." = "유효한 RyukGram 내보내기 파일이 아닙니다.";
 "Filter" = "필터";
+"Filter · %lu" = "필터 · %lu";
 "First scan: we collect your followers and following lists and save them locally." = "첫 분석: 팔로워와 팔로잉 목록을 수집해 기기에 저장합니다.";
 "Follow %lu" = "팔로우 %lu";
 "Followers" = "팔로워";
@@ -1178,7 +1181,6 @@
 // Strings from Reels.                                                      //
 //////////////////////////////////////////////////////////////////////////////
 
-"Copied!" = "복사되었습니다!";
 "No password found" = "비밀번호를 찾을 수 없습니다";
 "No text field found" = "텍스트 필드를 찾을 수 없습니다";
 "Password" = "비밀번호";
@@ -1236,7 +1238,6 @@
 "%lu active • tap to cancel" = "%lu개 진행 중 • 탭하여 취소";
 "Downloading %d%%" = "다운로드 중 %d%%";
 "Download all and share?" = "모두 다운로드하고 공유하시겠습니까?";
-"Save all to Photos?" = "모두 사진 앱에 저장하시겠습니까?";
 
 //////////////////////////////////////////////////////////////////////////////
 //                               ABOUT / CREDITS                            //
@@ -1334,7 +1335,6 @@
 "Configure: %@" = "구성: %@";
 "What happens on a single tap. Long-press always opens the full menu." = "한 번 탭했을 때의 동작입니다. 길게 누르면 항상 전체 메뉴가 열립니다.";
 "Reset to defaults" = "기본값으로 재설정";
-"Reset to defaults?" = "기본값으로 재설정할까요?";
 "This will restore the default sections, order, and toggles for this menu." = "이 메뉴의 기본 섹션, 순서, 토글이 복원됩니다.";
 "Audio & visibility" = "오디오 및 표시";
 "DM disappearing media" = "DM 사라지는 미디어";
@@ -1390,9 +1390,7 @@
 "Photos only" = "사진 앱만";
 "Gallery only" = "갤러리만";
 "Photos + Gallery" = "사진 앱 + 갤러리";
-"Save to Gallery?" = "갤러리에 저장할까요?";
 "Saved to Gallery" = "갤러리에 저장됨";
-"Save all to Gallery?" = "갤러리에 모두 저장할까요?";
 "Saved %lu items to Gallery" = "갤러리에 %lu개의 항목이 저장됨";
 "Saving to Gallery..." = "갤러리에 저장 중...";
 "to Gallery" = "갤러리에";
@@ -1486,7 +1484,6 @@
 "Create & Move" = "만들고 이동";
 "Rename Folder" = "폴더 이름 변경";
 "Delete Folder" = "폴더 삭제";
-"Delete Folder?" = "폴더를 삭제하시겠습니까?";
 "This folder is empty." = "이 폴더는 비어 있습니다.";
 "This folder contains %ld file(s). They will be moved to the parent folder." = "이 폴더에는 %ld개의 파일이 있습니다. 상위 폴더로 이동됩니다.";
 "Root" = "루트";
@@ -1634,77 +1631,82 @@
 //                       MESSAGES — DELETED MESSAGES LOG                    //
 //////////////////////////////////////////////////////////////////////////////
 
-"Deleted messages" = "Deleted messages";
-"Deleted messages log" = "Deleted messages log";
-"Records every message someone unsends, grouped by sender" = "Records every message someone unsends, grouped by sender";
-"When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history." = "When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history.";
-"Enable deleted messages log" = "Enable deleted messages log";
-"Captures unsent messages with their text or media" = "Captures unsent messages with their text or media";
-"Open log" = "Open log";
-"Browse, filter and search recorded messages" = "Browse, filter and search recorded messages";
-"Search senders or messages" = "Search senders or messages";
-"Search messages" = "Search messages";
-"All time" = "All time";
-"Last 7 days" = "Last 7 days";
-"Last 30 days" = "Last 30 days";
-"Date range" = "Date range";
-"Most recent" = "Most recent";
-"Oldest first" = "Oldest first";
-"Most messages" = "Most messages";
-"Clear log" = "Clear log";
-"Clear deleted-message log?" = "Clear deleted-message log?";
-"Removes every preserved deleted message and its captured media for this account." = "Removes every preserved deleted message and its captured media for this account.";
-"No deleted messages yet" = "No deleted messages yet";
-"Logging is off" = "Logging is off";
-"When someone unsends a message, it will appear here grouped by sender." = "When someone unsends a message, it will appear here grouped by sender.";
-"Enable Settings → Messages → Deleted messages log to start recording." = "Enable Settings → Messages → Deleted messages log to start recording.";
-"No matches" = "No matches";
-"Adjust the filters or clear the search to see more." = "Adjust the filters or clear the search to see more.";
-"%lu messages from %lu users" = "%lu messages from %lu users";
-"Text" = "Text";
-"Video" = "Video";
-"Voice" = "Voice";
+"Deleted messages" = "삭제된 메시지";
+"Deleted messages log" = "삭제된 메시지 로그";
+"Records every message someone unsends, grouped by sender" = "누군가 전송 취소한 모든 메시지를 발신자별로 기록";
+"When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history." = "활성화하면 삭제된 메시지와 미디어가 이 기기에 저장됩니다. 끄고 로그를 지우면 기록이 지워집니다.";
+"Enable deleted messages log" = "삭제된 메시지 로그 사용";
+"Captures unsent messages with their text or media" = "전송 취소된 메시지를 텍스트와 미디어와 함께 저장합니다";
+"Open log" = "로그 열기";
+"Browse, filter and search recorded messages" = "기록된 메시지를 탐색, 필터링, 검색";
+"Search senders or messages" = "발신자 또는 메시지 검색";
+"Search messages" = "메시지 검색";
+"All time" = "전체 기간";
+"Date range" = "날짜 범위";
+"Most messages" = "메시지 많은 순";
+"Clear log" = "로그 지우기";
+"Clear deleted-message log?" = "삭제된 메시지 로그를 지울까요?";
+"Removes every preserved deleted message and its captured media for this account." = "이 계정의 모든 보존된 삭제 메시지와 캡처된 미디어를 삭제합니다.";
+"No deleted messages yet" = "아직 삭제된 메시지가 없습니다";
+"Logging is off" = "기록이 꺼져 있음";
+"When someone unsends a message, it will appear here grouped by sender." = "누군가 메시지를 전송 취소하면 발신자별로 묶여 여기에 표시됩니다.";
+"Enable Settings → Messages → Deleted messages log to start recording." = "설정 → 메시지 → 삭제된 메시지 로그를 활성화하여 기록을 시작하세요.";
+"No matches" = "결과 없음";
+"Adjust the filters or clear the search to see more." = "필터를 조정하거나 검색을 지워 더 많은 결과를 확인하세요.";
+"%lu messages from %lu users" = "사용자 %lu명에게서 받은 메시지 %lu개";
+"Text" = "텍스트";
+"Video" = "동영상";
+"Voice" = "음성";
 "GIF" = "GIF";
-"Sticker" = "Sticker";
-"Link" = "Link";
-"Unknown" = "Unknown";
-"%@ deleted" = "%@ deleted";
-"Clear from this user" = "Clear from this user";
-"Clear log for this user?" = "Clear log for this user?";
-"Removes every preserved deleted message from this sender." = "Removes every preserved deleted message from this sender.";
-"%ld deleted messages • %@ → %@" = "%ld deleted messages • %@ → %@";
-"%ld deleted messages" = "%ld deleted messages";
-"Close" = "Close";
-"Kind: %@\n" = "Kind: %@\n";
-"Deleted: %@\n" = "Deleted: %@\n";
-"Source URL recorded but media not stored.\n" = "Source URL recorded but media not stored.\n";
+"Sticker" = "스티커";
+"Link" = "링크";
+"Unknown" = "알 수 없음";
+"%@ deleted" = "%@ 삭제됨";
+"Clear from this user" = "이 사용자 기록 지우기";
+"Clear log for this user?" = "이 사용자의 로그를 지울까요?";
+"Removes every preserved deleted message from this sender." = "이 발신자의 보존된 모든 삭제 메시지를 제거합니다.";
+"%ld deleted messages • %@ → %@" = "삭제된 메시지 %ld개 • %@ → %@";
+"%ld deleted messages" = "삭제된 메시지 %ld개";
+"Close" = "닫기";
+"Kind: %@\n" = "종류: %@\n";
+"Deleted: %@\n" = "삭제됨: %@\n";
+"Source URL recorded but media not stored.\n" = "원본 URL은 기록되었지만 미디어는 저장되지 않았습니다.\n";
 
-"This account" = "This account";
-"Media on disk" = "Media on disk";
-"Empty" = "Empty";
-"Clear media files" = "Clear media files";
-"Clear log for this account" = "Clear log for this account";
-"Playback failed" = "Playback failed";
-"View" = "View";
-"Play" = "Play";
-"Shared post" = "Shared post";
-"Shared link" = "Shared link";
-"Content unavailable" = "Content unavailable";
-"Copied" = "Copied";
-"Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account." = "Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account.";
-"Clear media files?" = "Clear media files?";
-"Removes every saved photo, video and voice clip. Records keep their text and sender info." = "Removes every saved photo, video and voice clip. Records keep their text and sender info.";
-"Clear log for this account?" = "Clear log for this account?";
-"Removes every preserved deleted message and its captured media for the current account. This cannot be undone." = "Removes every preserved deleted message and its captured media for the current account. This cannot be undone.";
-"See how much disk the log uses and clear it" = "See how much disk the log uses and clear it";
+"This account" = "이 계정";
+"Media on disk" = "디스크의 미디어";
+"Empty" = "비어 있음";
+"Clear media files" = "미디어 파일 지우기";
+"Clear log for this account" = "이 계정의 로그 지우기";
+"Playback failed" = "재생 실패";
+"View" = "보기";
+"Play" = "재생";
+"Tap to open in Instagram" = "Instagram에서 열려면 탭";
+"Tap to open in Maps" = "지도에서 열려면 탭";
+"Tap to play" = "재생하려면 탭";
+"Tap to play · %@" = "재생하려면 탭 · %@";
+"Live location" = "실시간 위치";
+"Reel" = "릴스";
+"IGTV" = "IGTV";
+"Location" = "위치";
+"Hashtag" = "해시태그";
+"Post" = "게시물";
+"Content unavailable" = "콘텐츠를 사용할 수 없음";
+"Copied" = "복사됨";
+"Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account." = "미디어를 지워도 기록(텍스트, 발신자, 시각)은 유지됩니다. 로그를 지우면 이 계정의 모든 데이터가 제거됩니다.";
+"Removes every saved photo, video and voice clip. Records keep their text and sender info." = "저장된 모든 사진, 동영상, 음성 클립을 삭제합니다. 기록은 텍스트와 발신자 정보를 유지합니다.";
+"Removes every preserved deleted message and its captured media for the current account. This cannot be undone." = "현재 계정의 모든 보존된 삭제 메시지와 캡처된 미디어를 삭제합니다. 되돌릴 수 없습니다.";
+"See how much disk the log uses and clear it" = "로그가 사용하는 디스크 용량을 확인하고 지우기";
 
-"now" = "now";
-"Relative (1m / 3h / 3d ago)" = "Relative (1m / 3h / 3d ago)";
-"Absolute date + time" = "Absolute date + time";
-"How timestamps render in the log" = "How timestamps render in the log";
+"now" = "방금";
+"Relative (1m / 3h / 3d ago)" = "상대 (1분 / 3시간 / 3일 전)";
+"Absolute date + time" = "절대 날짜+시간";
+"How timestamps render in the log" = "로그에서 타임스탬프가 표시되는 방식";
 
-"Select messages to download" = "Select messages to download";
-"%lu selected" = "%lu selected";
-"Nothing to save" = "Nothing to save";
-"%@%lu deleted" = "%@%lu deleted";
-"Photos" = "Photos";
+"Select messages to download" = "다운로드할 메시지 선택";
+"%lu selected" = "%lu개 선택됨";
+"%@%lu deleted" = "%@%lu 삭제됨";
+"Photos" = "사진";
+
+"Colors" = "색상";
+"+ Add new language" = "+ 새 언어 추가";
+"Each chat can override this in the list" = "각 채팅은 목록에서 개별 설정을 적용할 수 있습니다";

@@ -2,6 +2,7 @@
 #import "SCIProfileAnalyzerStorage.h"
 #import "../../Networking/SCIInstagramAPI.h"
 #import "../../Utils.h"
+#import "../../SCIURLOpener.h"
 #import "../../SCIImageCache.h"
 #import "../../Settings/SCISearchBarStyler.h"
 #import "../../Localization/SCILocalization.h"
@@ -1039,14 +1040,7 @@ typedef NS_ENUM(NSInteger, SCIPACellAction) {
     }
 
     if (!user.username.length) return;
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"instagram://user?username=%@", user.username]];
-    // Dismiss the modal first so IG can route the deep link.
-    UIViewController *presenter = self.navigationController.presentingViewController ?: self.presentingViewController;
-    void (^open)(void) = ^{
-        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
-    };
-    if (presenter) [presenter dismissViewControllerAnimated:YES completion:open];
-    else           open();
+    [SCIURLOpener dismiss:self thenOpenInstagramProfileForUsername:user.username];
 }
 
 #pragma mark - Pull-to-refresh

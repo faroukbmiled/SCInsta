@@ -113,6 +113,7 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 - Follow indicator — shows whether the user follows you (off / on / colored) **\***
 - Copy note on long press **\***
 - Fake profile stats — verified badge and follower/following/post counts **\***
+- Show full follower / post count on profile headers **\***
 
 ### Profile Analyzer (beta) **\***
 - Follower and following scans with progress and cancel **\***
@@ -145,7 +146,7 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 
 ### Stories and messages
 - Keep deleted messages **\***
-- Deleted messages log — dedicated UI for unsent texts, photos, videos, voice (inline play + scrub), GIFs, stickers and shared posts; per-sender groups, search, multi-kind filter, bulk select with Save / Share / Delete **\***
+- Deleted messages log — dedicated UI for every unsent message type, per-sender groups, search, filter, bulk Save / Share / Delete **\***
 - Hide trailing action buttons on preserved messages
 - Warn before pull-to-refresh clears preserved messages **\***
 - Manually mark messages as seen (button or toggle mode) **\***

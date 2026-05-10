@@ -916,7 +916,7 @@ static NSInteger sciHeaderInteger(NSDictionary *d, NSString *key) {
 
 - (void)resetTapped {
     NSString *pk = [SCIUtils currentUserPK];
-    UIAlertController *a = [UIAlertController alertControllerWithTitle:SCILocalized(@"Reset analyzer data?")
+    UIAlertController *a = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@?", SCILocalized(@"Reset analyzer data")]
                                                               message:SCILocalized(@"Pick what to remove. Snapshots drop the since-last-scan diffs; visited profiles wipes the visit history.")
                                                        preferredStyle:UIAlertControllerStyleActionSheet];
     [a addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Reset snapshots") style:UIAlertActionStyleDestructive handler:^(UIAlertAction *_) {

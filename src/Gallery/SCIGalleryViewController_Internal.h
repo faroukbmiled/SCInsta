@@ -32,6 +32,7 @@ typedef NS_ENUM(NSInteger, SCIGalleryViewMode) {
 @property (nonatomic, strong) UILabel *emptyStateLabel;
 @property (nonatomic, strong, nullable) UIView *bottomBar;
 @property (nonatomic, strong, nullable) UIStackView *bottomBarStack;
+@property (nonatomic, strong, nullable) id scrollToTopButton;
 
 @property (nonatomic, copy, nullable) NSString *currentFolderPath;
 @property (nonatomic, strong) NSArray<NSString *> *subfolders;

@@ -476,7 +476,7 @@
         return bs ? SCILocalized(@"Block keep-deleted for unlisted chats")
                   : SCILocalized(@"Block keep-deleted for excluded chats");
     };
-    s.subtitle = @"Each chat can override this in the list";
+    s.subtitle = SCILocalized(@"Each chat can override this in the list");
     s;
 }),
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Quick list button in chats") subtitle:SCILocalized(@"Shows a button in DM threads to add/remove chats from the list. Long-press for more options") defaultsKey:@"chat_quick_list_button"],
@@ -578,14 +578,10 @@
                                         },
                                         @{
                                             @"header": SCILocalized(@"Profile stats"),
-                                            @"footer": SCILocalized(@"Controls how profile statistics are displayed in the profile header."),
-                                            @"rows": @[[SCISetting switchCellWithTitle:SCILocalized(@"Show full follower count")
-							subtitle:SCILocalized(@"Displays the complete follower count in the profile header instead of the shortened format")
-							defaultsKey:@"full_followers_count"],
-							[SCISetting switchCellWithTitle:SCILocalized(@"Show full post count")
-							subtitle:SCILocalized(@"Displays the complete post count in the profile header instead of the shortened format")
-							defaultsKey:@"full_posts_count"],
-						]
+                                            @"rows": @[
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Show full follower count") subtitle:@"" defaultsKey:@"full_followers_count"],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Show full post count") subtitle:@"" defaultsKey:@"full_posts_count"],
+                                            ]
                                         },
                                         @{
                                             @"header": SCILocalized(@"Long-press gestures"),
@@ -1422,12 +1418,12 @@ static void sciPresentTeenIconPicker(void) {
         }]];
     }
 
-    [picker addAction:[UIAlertAction actionWithTitle:@"+ Add new language"
+    [picker addAction:[UIAlertAction actionWithTitle:SCILocalized(@"+ Add new language")
                                                style:UIAlertActionStyleDefault
                                              handler:^(__unused UIAlertAction *a) {
         [self promptNewLanguageCode];
     }]];
-    [picker addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+    [picker addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
     [sciTopVC() presentViewController:picker animated:YES completion:nil];
 }
 
@@ -1448,7 +1444,7 @@ static void sciPresentTeenIconPicker(void) {
         UIAlertController *a = [UIAlertController alertControllerWithTitle:SCILocalized(@"No overrides")
                                                                    message:SCILocalized(@"No imported localization files to reset.")
                                                             preferredStyle:UIAlertControllerStyleAlert];
-        [a addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+        [a addAction:[UIAlertAction actionWithTitle:SCILocalized(@"OK") style:UIAlertActionStyleCancel handler:nil]];
         [sciTopVC() presentViewController:a animated:YES completion:nil];
         return;
     }
@@ -1468,7 +1464,7 @@ static void sciPresentTeenIconPicker(void) {
             [self resetLocalizationForCode:code];
         }]];
     }
-    [picker addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+    [picker addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
     [sciTopVC() presentViewController:picker animated:YES completion:nil];
 }
 
@@ -1482,15 +1478,15 @@ static void sciPresentTeenIconPicker(void) {
     NSString *msg = err
         ? [NSString stringWithFormat:SCILocalized(@"Could not delete: %@"), err.localizedDescription]
         : [NSString stringWithFormat:SCILocalized(@"Deleted %@ override. Restart to apply."), code];
-    UIAlertController *a = [UIAlertController alertControllerWithTitle:err ? @"Error" : @"Done"
+    UIAlertController *a = [UIAlertController alertControllerWithTitle:err ? SCILocalized(@"Error") : SCILocalized(@"Done")
                                                                message:msg
                                                         preferredStyle:UIAlertControllerStyleAlert];
     if (!err) {
         SCILocalizationReset();
-        [a addAction:[UIAlertAction actionWithTitle:@"Restart now" style:UIAlertActionStyleDefault
+        [a addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Restart now") style:UIAlertActionStyleDefault
                                             handler:^(__unused UIAlertAction *x) { [SCIUtils showRestartConfirmation]; }]];
     }
-    [a addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+    [a addAction:[UIAlertAction actionWithTitle:SCILocalized(@"OK") style:UIAlertActionStyleCancel handler:nil]];
     [sciTopVC() presentViewController:a animated:YES completion:nil];
 }
 

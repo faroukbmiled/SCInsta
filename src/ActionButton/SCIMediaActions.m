@@ -832,14 +832,14 @@ static void sciConfirmThen(NSString *title, void(^block)(void)) {
 }
 
 + (void)downloadAndSaveMediaToGallery:(id)media fromView:(UIView *)sourceView {
-    sciConfirmThen(SCILocalized(@"Save to Gallery?"), ^{
+    sciConfirmThen([NSString stringWithFormat:@"%@?", SCILocalized(@"Save to Gallery")], ^{
         [self downloadHDMedia:media action:saveToGallery fromView:sourceView];
     });
 }
 
 + (void)downloadAllAndSaveMediaToGallery:(id)carouselMedia context:(SCIActionContext)ctx {
     [self downloadAllChildrenOfMedia:carouselMedia
-                        progressTitle:SCILocalized(@"Save all to Gallery?")
+                        progressTitle:[NSString stringWithFormat:@"%@?", SCILocalized(@"Save all to Gallery")]
                                  done:^(NSArray<NSURL *> *files) {
         if (!files.count) {
             [SCIUtils showErrorHUDWithDescription:SCILocalized(@"Nothing to save")];
@@ -1127,7 +1127,7 @@ static UIView *sciFindSubviewOfClass(UIView *root, NSString *className, int maxD
 
 + (void)downloadAllAndSaveMedia:(id)carouselMedia {
     [self downloadAllChildrenOfMedia:carouselMedia
-                        progressTitle:SCILocalized(@"Save all to Photos?")
+                        progressTitle:[NSString stringWithFormat:@"%@?", SCILocalized(@"Save all to Photos")]
                                  done:^(NSArray<NSURL *> *files) {
         if (!files.count) { [SCIUtils showErrorHUDWithDescription:SCILocalized(@"Nothing to save")]; return; }
         [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {

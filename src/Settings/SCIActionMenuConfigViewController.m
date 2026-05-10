@@ -349,7 +349,7 @@ static void sciInstallReorderRow(UITableViewCell *cell,
     }
 
     UIAlertController *a = [UIAlertController
-        alertControllerWithTitle:SCILocalized(@"Reset to defaults?")
+        alertControllerWithTitle:[NSString stringWithFormat:@"%@?", SCILocalized(@"Reset to defaults")]
                          message:SCILocalized(@"This will restore the default sections, order, and toggles for this menu.")
                   preferredStyle:UIAlertControllerStyleAlert];
     [a addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];

@@ -11,6 +11,7 @@ NSString *SCIDeletedMessageKindToString(SCIDeletedMessageKind kind) {
         case SCIDeletedMessageKindSticker: return @"sticker";
         case SCIDeletedMessageKindShare:   return @"share";
         case SCIDeletedMessageKindLink:    return @"link";
+        case SCIDeletedMessageKindAudioShare: return @"audio_share";
         case SCIDeletedMessageKindOther:   return @"other";
         case SCIDeletedMessageKindUnknown:
         default:                           return @"unknown";
@@ -27,6 +28,7 @@ SCIDeletedMessageKind SCIDeletedMessageKindFromString(NSString *s) {
     if ([s isEqualToString:@"sticker"]) return SCIDeletedMessageKindSticker;
     if ([s isEqualToString:@"share"])   return SCIDeletedMessageKindShare;
     if ([s isEqualToString:@"link"])    return SCIDeletedMessageKindLink;
+    if ([s isEqualToString:@"audio_share"]) return SCIDeletedMessageKindAudioShare;
     if ([s isEqualToString:@"other"])   return SCIDeletedMessageKindOther;
     return SCIDeletedMessageKindUnknown;
 }
@@ -41,6 +43,7 @@ NSString *SCIDeletedMessageKindLocalizedName(SCIDeletedMessageKind kind) {
         case SCIDeletedMessageKindSticker: return SCILocalized(@"Sticker");
         case SCIDeletedMessageKindShare:   return SCILocalized(@"Share");
         case SCIDeletedMessageKindLink:    return SCILocalized(@"Link");
+        case SCIDeletedMessageKindAudioShare: return SCILocalized(@"Audio");
         case SCIDeletedMessageKindOther:   return SCILocalized(@"Other");
         case SCIDeletedMessageKindUnknown:
         default:                           return SCILocalized(@"Unknown");
@@ -57,6 +60,7 @@ NSString *SCIDeletedMessageKindSymbol(SCIDeletedMessageKind kind) {
         case SCIDeletedMessageKindSticker: return @"face.smiling.fill";
         case SCIDeletedMessageKindShare:   return @"arrowshape.turn.up.right.fill";
         case SCIDeletedMessageKindLink:    return @"link";
+        case SCIDeletedMessageKindAudioShare: return @"music.note";
         case SCIDeletedMessageKindOther:   return @"bubble.left.fill";
         case SCIDeletedMessageKindUnknown:
         default:                           return @"bubble.left.fill";

@@ -126,7 +126,7 @@
     self.favoritesIcon = icon;
 
     UILabel *label = [UILabel new];
-    label.text = SCILocalized(SCILocalized(@"Favorites only"));
+    label.text = SCILocalized(@"Favorites only");
     label.font = [UIFont systemFontOfSize:15 weight:UIFontWeightMedium];
     label.textColor = [UIColor labelColor];
     label.translatesAutoresizingMaskIntoConstraints = NO;

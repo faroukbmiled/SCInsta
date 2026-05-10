@@ -326,6 +326,9 @@
 "Long press to download directly (ignored when zoom is on)" = "Doğrudan indirmek için uzun basın (yakınlaştırma açıkken yok sayılır)";
 "Long-press gestures on profile elements — kept separate from the per-feature action buttons." = "Profil öğelerindeki uzun basma hareketleri — özellik başına eylem butonlarından ayrı tutulur.";
 "Only affects your own profile header. Other users see the real numbers." = "Yalnızca kendi profil başlığınızı etkiler. Diğer kullanıcılar gerçek sayıları görür.";
+"Profile stats" = "Profil istatistikleri";
+"Show full follower count" = "Tam takipçi sayısını göster";
+"Show full post count" = "Tam gönderi sayısını göster";
 "Post count" = "Gönderi sayısı";
 "Save profile picture" = "Profil fotoğrafını kaydet";
 "Show a checkmark next to your name on your own profile" = "Kendi profilinizde adınızın yanında onay işareti gösterir";
@@ -1001,7 +1004,6 @@
 "Profile updates" = "Profil güncellemeleri";
 
 "Request failed" = "İstek başarısız";
-"Reset analyzer data?" = "Analizör verileri sıfırlansın mı?";
 "Run analysis" = "Analizi çalıştır";
 "Run your first analysis" = "İlk analizinizi çalıştırın";
 "Since last scan" = "Son taramadan beri";
@@ -1048,6 +1050,7 @@
 "File has no importable sections." = "Dosyada içe aktarılabilir bölüm yok.";
 "File is not a valid RyukGram export." = "Dosya geçerli bir RyukGram dışa aktarımı değil.";
 "Filter" = "Filtre";
+"Filter · %lu" = "Filtre · %lu";
 "First scan: we collect your followers and following lists and save them locally." = "İlk tarama: takipçi ve takip edilen listelerinizi toplar ve yerelde kaydederiz.";
 "Follow %lu" = "%lu kişiyi takip et";
 "Followers" = "Takipçiler";
@@ -1178,7 +1181,6 @@
 // Strings from Reels.                                                      //
 //////////////////////////////////////////////////////////////////////////////
 
-"Copied!" = "Kopyalandı!";
 "No password found" = "Şifre bulunamadı";
 "No text field found" = "Metin alanı bulunamadı";
 "Password" = "Şifre";
@@ -1236,7 +1238,6 @@
 "%lu active • tap to cancel" = "%lu etkin • iptal etmek için dokunun";
 "Downloading %d%%" = "İndiriliyor %%%d";
 "Download all and share?" = "Tümünü indirip paylaşılsın mı?";
-"Save all to Photos?" = "Tümü Fotoğraflar'a kaydedilsin mi?";
 
 //////////////////////////////////////////////////////////////////////////////
 //                               ABOUT / CREDITS                            //
@@ -1334,7 +1335,6 @@
 "Configure: %@" = "Yapılandır: %@";
 "What happens on a single tap. Long-press always opens the full menu." = "Tek dokunmada ne olacağı. Uzun basma her zaman tam menüyü açar.";
 "Reset to defaults" = "Varsayılanlara sıfırla";
-"Reset to defaults?" = "Varsayılanlara sıfırlansın mı?";
 "This will restore the default sections, order, and toggles for this menu." = "Bu işlem, bu menü için varsayılan bölümleri, sıralamayı ve anahtarları geri yükler.";
 "Audio & visibility" = "Ses ve görünürlük";
 "DM disappearing media" = "DM kaybolan medya";
@@ -1390,9 +1390,7 @@
 "Photos only" = "Yalnızca Fotoğraflar";
 "Gallery only" = "Yalnızca Galeri";
 "Photos + Gallery" = "Fotoğraflar + Galeri";
-"Save to Gallery?" = "Galeriye kaydedilsin mi?";
 "Saved to Gallery" = "Galeriye kaydedildi";
-"Save all to Gallery?" = "Tümü Galeriye kaydedilsin mi?";
 "Saved %lu items to Gallery" = "Galeriye %lu öğe kaydedildi";
 "Saving to Gallery..." = "Galeriye kaydediliyor...";
 "to Gallery" = "Galeriye";
@@ -1486,7 +1484,6 @@
 "Create & Move" = "Oluştur ve Taşı";
 "Rename Folder" = "Klasörü Yeniden Adlandır";
 "Delete Folder" = "Klasörü Sil";
-"Delete Folder?" = "Klasör Silinsin mi?";
 "This folder is empty." = "Bu klasör boş.";
 "This folder contains %ld file(s). They will be moved to the parent folder." = "Bu klasör %ld dosya içeriyor. Üst klasöre taşınacak.";
 "Root" = "Kök";
@@ -1634,77 +1631,82 @@
 //                       MESSAGES — DELETED MESSAGES LOG                    //
 //////////////////////////////////////////////////////////////////////////////
 
-"Deleted messages" = "Deleted messages";
-"Deleted messages log" = "Deleted messages log";
-"Records every message someone unsends, grouped by sender" = "Records every message someone unsends, grouped by sender";
-"When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history." = "When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history.";
-"Enable deleted messages log" = "Enable deleted messages log";
-"Captures unsent messages with their text or media" = "Captures unsent messages with their text or media";
-"Open log" = "Open log";
-"Browse, filter and search recorded messages" = "Browse, filter and search recorded messages";
-"Search senders or messages" = "Search senders or messages";
-"Search messages" = "Search messages";
-"All time" = "All time";
-"Last 7 days" = "Last 7 days";
-"Last 30 days" = "Last 30 days";
-"Date range" = "Date range";
-"Most recent" = "Most recent";
-"Oldest first" = "Oldest first";
-"Most messages" = "Most messages";
-"Clear log" = "Clear log";
-"Clear deleted-message log?" = "Clear deleted-message log?";
-"Removes every preserved deleted message and its captured media for this account." = "Removes every preserved deleted message and its captured media for this account.";
-"No deleted messages yet" = "No deleted messages yet";
-"Logging is off" = "Logging is off";
-"When someone unsends a message, it will appear here grouped by sender." = "When someone unsends a message, it will appear here grouped by sender.";
-"Enable Settings → Messages → Deleted messages log to start recording." = "Enable Settings → Messages → Deleted messages log to start recording.";
-"No matches" = "No matches";
-"Adjust the filters or clear the search to see more." = "Adjust the filters or clear the search to see more.";
-"%lu messages from %lu users" = "%lu messages from %lu users";
-"Text" = "Text";
+"Deleted messages" = "Silinmiş mesajlar";
+"Deleted messages log" = "Silinmiş mesaj günlüğü";
+"Records every message someone unsends, grouped by sender" = "Birinin geri aldığı her mesajı gönderen bazında kaydeder";
+"When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history." = "Etkinleştirildiğinde, silinmiş mesajlar ve medyaları bu cihaza kaydedilir. Geçmişi silmek için kapatın ve günlüğü temizleyin.";
+"Enable deleted messages log" = "Silinmiş mesaj günlüğünü etkinleştir";
+"Captures unsent messages with their text or media" = "Gönderilmeyen mesajları metni veya medyasıyla yakalar";
+"Open log" = "Günlüğü aç";
+"Browse, filter and search recorded messages" = "Kaydedilen mesajlarda gezin, filtrele ve ara";
+"Search senders or messages" = "Gönderen veya mesaj ara";
+"Search messages" = "Mesaj ara";
+"All time" = "Tüm zamanlar";
+"Date range" = "Tarih aralığı";
+"Most messages" = "En çok mesaj";
+"Clear log" = "Günlüğü temizle";
+"Clear deleted-message log?" = "Silinmiş mesaj günlüğü temizlensin mi?";
+"Removes every preserved deleted message and its captured media for this account." = "Bu hesap için saklanan her silinmiş mesajı ve yakalanan medyasını kaldırır.";
+"No deleted messages yet" = "Henüz silinmiş mesaj yok";
+"Logging is off" = "Kayıt kapalı";
+"When someone unsends a message, it will appear here grouped by sender." = "Birisi bir mesajı geri aldığında, burada gönderen bazında görünecek.";
+"Enable Settings → Messages → Deleted messages log to start recording." = "Kayda başlamak için Ayarlar → Mesajlar → Silinmiş mesaj günlüğü’nü etkinleştirin.";
+"No matches" = "Eşleşme yok";
+"Adjust the filters or clear the search to see more." = "Daha fazlasını görmek için filtreleri değiştirin veya aramayı temizleyin.";
+"%lu messages from %lu users" = "%lu kullanıcıdan %lu mesaj";
+"Text" = "Metin";
 "Video" = "Video";
-"Voice" = "Voice";
+"Voice" = "Ses";
 "GIF" = "GIF";
-"Sticker" = "Sticker";
-"Link" = "Link";
-"Unknown" = "Unknown";
-"%@ deleted" = "%@ deleted";
-"Clear from this user" = "Clear from this user";
-"Clear log for this user?" = "Clear log for this user?";
-"Removes every preserved deleted message from this sender." = "Removes every preserved deleted message from this sender.";
-"%ld deleted messages • %@ → %@" = "%ld deleted messages • %@ → %@";
-"%ld deleted messages" = "%ld deleted messages";
-"Close" = "Close";
-"Kind: %@\n" = "Kind: %@\n";
-"Deleted: %@\n" = "Deleted: %@\n";
-"Source URL recorded but media not stored.\n" = "Source URL recorded but media not stored.\n";
+"Sticker" = "Çıkartma";
+"Link" = "Bağlantı";
+"Unknown" = "Bilinmiyor";
+"%@ deleted" = "%@ silindi";
+"Clear from this user" = "Bu kullanıcıdan temizle";
+"Clear log for this user?" = "Bu kullanıcının günlüğü temizlensin mi?";
+"Removes every preserved deleted message from this sender." = "Bu göndericinin saklanan her silinmiş mesajını kaldırır.";
+"%ld deleted messages • %@ → %@" = "%ld silinmiş mesaj • %@ → %@";
+"%ld deleted messages" = "%ld silinmiş mesaj";
+"Close" = "Kapat";
+"Kind: %@\n" = "Tür: %@\n";
+"Deleted: %@\n" = "Silindi: %@\n";
+"Source URL recorded but media not stored.\n" = "Kaynak URL kaydedildi ancak medya saklanmadı.\n";
 
-"This account" = "This account";
-"Media on disk" = "Media on disk";
-"Empty" = "Empty";
-"Clear media files" = "Clear media files";
-"Clear log for this account" = "Clear log for this account";
-"Playback failed" = "Playback failed";
-"View" = "View";
-"Play" = "Play";
-"Shared post" = "Shared post";
-"Shared link" = "Shared link";
-"Content unavailable" = "Content unavailable";
-"Copied" = "Copied";
-"Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account." = "Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account.";
-"Clear media files?" = "Clear media files?";
-"Removes every saved photo, video and voice clip. Records keep their text and sender info." = "Removes every saved photo, video and voice clip. Records keep their text and sender info.";
-"Clear log for this account?" = "Clear log for this account?";
-"Removes every preserved deleted message and its captured media for the current account. This cannot be undone." = "Removes every preserved deleted message and its captured media for the current account. This cannot be undone.";
-"See how much disk the log uses and clear it" = "See how much disk the log uses and clear it";
+"This account" = "Bu hesap";
+"Media on disk" = "Diskteki medya";
+"Empty" = "Boş";
+"Clear media files" = "Medya dosyalarını temizle";
+"Clear log for this account" = "Bu hesabın günlüğünü temizle";
+"Playback failed" = "Oynatma başarısız";
+"View" = "Görüntüle";
+"Play" = "Oynat";
+"Tap to open in Instagram" = "Instagram'da açmak için dokunun";
+"Tap to open in Maps" = "Haritalar'da açmak için dokunun";
+"Tap to play" = "Oynatmak için dokunun";
+"Tap to play · %@" = "Oynatmak için dokunun · %@";
+"Live location" = "Canlı konum";
+"Reel" = "Reel";
+"IGTV" = "IGTV";
+"Location" = "Konum";
+"Hashtag" = "Hashtag";
+"Post" = "Gönderi";
+"Content unavailable" = "İçerik kullanılamıyor";
+"Copied" = "Kopyalandı";
+"Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account." = "Medyayı temizlemek kayıtları (metin, gönderen, zaman) korur. Günlüğü temizlemek bu hesabın her şeyini siler.";
+"Removes every saved photo, video and voice clip. Records keep their text and sender info." = "Kaydedilen her fotoğraf, video ve ses klibini kaldırır. Kayıtlar metni ve gönderen bilgisini korur.";
+"Removes every preserved deleted message and its captured media for the current account. This cannot be undone." = "Geçerli hesap için saklanan her silinmiş mesajı ve yakalanan medyasını kaldırır. Geri alınamaz.";
+"See how much disk the log uses and clear it" = "Günlüğün kullandığı disk alanını görün ve temizleyin";
 
-"now" = "now";
-"Relative (1m / 3h / 3d ago)" = "Relative (1m / 3h / 3d ago)";
-"Absolute date + time" = "Absolute date + time";
-"How timestamps render in the log" = "How timestamps render in the log";
+"now" = "şimdi";
+"Relative (1m / 3h / 3d ago)" = "Göreli (1d / 3sa / 3g önce)";
+"Absolute date + time" = "Tarih ve saat (mutlak)";
+"How timestamps render in the log" = "Günlükte zaman damgalarının nasıl görüneceği";
 
-"Select messages to download" = "Select messages to download";
-"%lu selected" = "%lu selected";
-"Nothing to save" = "Nothing to save";
-"%@%lu deleted" = "%@%lu deleted";
-"Photos" = "Photos";
+"Select messages to download" = "İndirilecek mesajları seçin";
+"%lu selected" = "%lu seçildi";
+"%@%lu deleted" = "%@%lu silindi";
+"Photos" = "Fotoğraflar";
+
+"Colors" = "Renkler";
+"+ Add new language" = "+ Yeni dil ekle";
+"Each chat can override this in the list" = "Her sohbet bunu listede geçersiz kılabilir";

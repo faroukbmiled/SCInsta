@@ -3,6 +3,8 @@
 #import "SCIDeletedMessagesStorage.h"
 #import "SCIDeletedMessagesFilter.h"
 #import "../../Utils.h"
+#import "../../SCIURLOpener.h"
+#import "../../UI/SCIScrollToTopButton.h"
 #import "../../SCIImageCache.h"
 #import "../../QuickLook.h"
 #import "../../PhotoAlbum.h"
@@ -59,6 +61,9 @@ static const CGFloat kSCIDMBubbleCorner    = 18.0;
               playing:(BOOL)playing;
 
 - (void)setVoiceProgressSeconds:(double)seconds;
+
++ (NSString *)shareTypeLabelForURL:(NSString * _Nullable)urlString fallbackKind:(SCIDeletedMessageKind)kind;
++ (BOOL)shareLabelIsNonUserCard:(NSString *)label;
 
 @end
 
@@ -179,8 +184,9 @@ static const CGFloat kSCIDMBubbleCorner    = 18.0;
     } else if (m.kind == SCIDeletedMessageKindSticker) {
         [self installStickerBubble:m ownerPK:ownerPK];
     } else if (m.kind == SCIDeletedMessageKindShare
-               || m.kind == SCIDeletedMessageKindLink) {
-        [self installShareBubble:m];
+               || m.kind == SCIDeletedMessageKindLink
+               || m.kind == SCIDeletedMessageKindAudioShare) {
+        [self installShareBubble:m ownerPK:ownerPK];
     } else {
         [self installPlaceholderBubble:m];
     }
@@ -526,41 +532,150 @@ static char kSCIDMVoiceDraggingKey;
     }];
 }
 
-- (void)installShareBubble:(SCIDeletedMessage *)m {
+// Type label derived from the share targetURL path.
++ (NSString *)shareTypeLabelForURL:(NSString *)urlString fallbackKind:(SCIDeletedMessageKind)kind {
+    if (kind == SCIDeletedMessageKindAudioShare)        return SCILocalized(@"Audio");
+    if (kind == SCIDeletedMessageKindLink && urlString.length) {
+        NSURL *u = [NSURL URLWithString:urlString];
+        NSString *host = u.host.lowercaseString ?: @"";
+        if (![host containsString:@"instagram.com"]) return SCILocalized(@"Link");
+    }
+    NSString *lowerURL = urlString.lowercaseString ?: @"";
+    NSString *path = [NSURL URLWithString:urlString].path.lowercaseString ?: @"";
+    if ([lowerURL containsString:@"live_location"]
+        || ([lowerURL containsString:@"latitude="] && [lowerURL containsString:@"longitude="]))
+                                                      return SCILocalized(@"Live location");
+    if ([path containsString:@"reels_audio_page"]
+        || [path containsString:@"/audio_page"]
+        || [path containsString:@"/audio/"])         return SCILocalized(@"Audio");
+    if ([path containsString:@"/reel"])               return SCILocalized(@"Reel");
+    if ([path containsString:@"/tv/"])                return SCILocalized(@"IGTV");
+    if ([path containsString:@"/stories/"])           return SCILocalized(@"Story");
+    if ([path containsString:@"/explore/locations/"]) return SCILocalized(@"Location");
+    if ([path containsString:@"/explore/tags/"])      return SCILocalized(@"Hashtag");
+    if ([path containsString:@"/p/"])                 return SCILocalized(@"Post");
+    if (kind == SCIDeletedMessageKindLink)            return SCILocalized(@"Link");
+    return SCILocalized(@"Post");
+}
+
+// Card types where the body is a title/subtitle pair, not a username.
++ (BOOL)shareLabelIsNonUserCard:(NSString *)label {
+    return [label isEqualToString:SCILocalized(@"Audio")]
+        || [label isEqualToString:SCILocalized(@"Location")]
+        || [label isEqualToString:SCILocalized(@"Live location")]
+        || [label isEqualToString:SCILocalized(@"Hashtag")];
+}
+
+- (void)installShareBubble:(SCIDeletedMessage *)m ownerPK:(NSString *)ownerPK {
     self.bubble.backgroundColor = [UIColor secondarySystemBackgroundColor];
+    self.bubbleMaxWidth.constant = kSCIDMMediaSize;
 
     UIStackView *col = [[UIStackView alloc] init];
     col.translatesAutoresizingMaskIntoConstraints = NO;
     col.axis = UILayoutConstraintAxisVertical;
-    col.spacing = 4;
+    col.spacing = 0;
+    col.alignment = UIStackViewAlignmentFill;
     [self.bubble addSubview:col];
     self.bubbleContent = col;
-
-    UILabel *title = [UILabel new];
-    title.font = [UIFont systemFontOfSize:13 weight:UIFontWeightSemibold];
-    title.textColor = [UIColor secondaryLabelColor];
-    title.text = (m.kind == SCIDeletedMessageKindLink)
-        ? SCILocalized(@"Shared link")
-        : SCILocalized(@"Shared post");
-    [col addArrangedSubview:title];
-
-    NSString *body = m.text.length ? m.text
-                                   : (m.previewText.length ? m.previewText
-                                                           : (m.mediaURL.length ? m.mediaURL
-                                                                                : SCILocalized(@"Content unavailable")));
-    UILabel *bodyL = [UILabel new];
-    bodyL.font = [UIFont systemFontOfSize:14];
-    bodyL.textColor = [UIColor labelColor];
-    bodyL.numberOfLines = 0;
-    bodyL.text = body;
-    [col addArrangedSubview:bodyL];
-
     [NSLayoutConstraint activateConstraints:@[
-        [col.topAnchor      constraintEqualToAnchor:self.bubble.topAnchor      constant:10],
-        [col.bottomAnchor   constraintEqualToAnchor:self.bubble.bottomAnchor   constant:-10],
-        [col.leadingAnchor  constraintEqualToAnchor:self.bubble.leadingAnchor  constant:14],
-        [col.trailingAnchor constraintEqualToAnchor:self.bubble.trailingAnchor constant:-14],
+        [col.topAnchor      constraintEqualToAnchor:self.bubble.topAnchor],
+        [col.bottomAnchor   constraintEqualToAnchor:self.bubble.bottomAnchor],
+        [col.leadingAnchor  constraintEqualToAnchor:self.bubble.leadingAnchor],
+        [col.trailingAnchor constraintEqualToAnchor:self.bubble.trailingAnchor],
     ]];
+
+    UIImageView *thumb = [UIImageView new];
+    thumb.translatesAutoresizingMaskIntoConstraints = NO;
+    thumb.contentMode = UIViewContentModeScaleAspectFill;
+    thumb.layer.masksToBounds = YES;
+    thumb.backgroundColor = [UIColor tertiarySystemFillColor];
+    [col addArrangedSubview:thumb];
+    [thumb.heightAnchor constraintEqualToConstant:kSCIDMMediaSize].active = YES;
+
+    NSString *thumbLocal = [SCIDeletedMessagesStorage absolutePathForRelativePath:m.thumbnailPath ownerPK:ownerPK];
+    UIImage *local = thumbLocal.length ? [UIImage imageWithContentsOfFile:thumbLocal] : nil;
+    if (local) {
+        thumb.image = local;
+    } else if (m.thumbnailURL.length) {
+        __weak UIImageView *weakThumb = thumb;
+        [SCIImageCache loadImageFromURL:[NSURL URLWithString:m.thumbnailURL]
+                             completion:^(UIImage *img) { if (img) weakThumb.image = img; }];
+    } else {
+        UIImageView *glyph = [UIImageView new];
+        glyph.translatesAutoresizingMaskIntoConstraints = NO;
+        UIImageSymbolConfiguration *cfg = [UIImageSymbolConfiguration configurationWithPointSize:42 weight:UIImageSymbolWeightLight];
+        glyph.image = [UIImage systemImageNamed:SCIDeletedMessageKindSymbol(m.kind) withConfiguration:cfg];
+        glyph.tintColor = [UIColor tertiaryLabelColor];
+        [thumb addSubview:glyph];
+        [NSLayoutConstraint activateConstraints:@[
+            [glyph.centerXAnchor constraintEqualToAnchor:thumb.centerXAnchor],
+            [glyph.centerYAnchor constraintEqualToAnchor:thumb.centerYAnchor],
+        ]];
+    }
+
+    UIStackView *footer = [[UIStackView alloc] init];
+    footer.translatesAutoresizingMaskIntoConstraints = NO;
+    footer.axis = UILayoutConstraintAxisVertical;
+    footer.spacing = 2;
+    footer.layoutMarginsRelativeArrangement = YES;
+    footer.layoutMargins = UIEdgeInsetsMake(10, 12, 10, 12);
+    [col addArrangedSubview:footer];
+
+    NSString *typeLabel = [SCIDMMessageCell shareTypeLabelForURL:m.mediaURL fallbackKind:m.kind];
+    NSString *body = m.text.length ? m.text : (m.previewText.length ? m.previewText : @"");
+    NSArray<NSString *> *bodyLines = body.length
+        ? [body componentsSeparatedByString:@"\n"]
+        : @[];
+
+    UILabel *titleL = [UILabel new];
+    titleL.font = [UIFont systemFontOfSize:14 weight:UIFontWeightSemibold];
+    titleL.textColor = [UIColor labelColor];
+    titleL.numberOfLines = 2;
+    titleL.lineBreakMode = NSLineBreakByTruncatingTail;
+    [footer addArrangedSubview:titleL];
+
+    UILabel *hint = [UILabel new];
+    hint.font = [UIFont systemFontOfSize:12];
+    hint.textColor = [UIColor secondaryLabelColor];
+    hint.numberOfLines = 1;
+    hint.lineBreakMode = NSLineBreakByTruncatingTail;
+    [footer addArrangedSubview:hint];
+
+    BOOL isNonUserCard = [SCIDMMessageCell shareLabelIsNonUserCard:typeLabel];
+    BOOL isLiveLocation = [typeLabel isEqualToString:SCILocalized(@"Live location")];
+    if (m.kind == SCIDeletedMessageKindLink || isNonUserCard) {
+        NSString *headline = bodyLines.firstObject ?: typeLabel;
+        titleL.text = headline;
+        NSString *sub = nil;
+        if (m.kind == SCIDeletedMessageKindLink) {
+            NSString *host = [NSURL URLWithString:m.mediaURL].host;
+            sub = host.length ? host : (bodyLines.count > 1 ? bodyLines[1] : nil);
+        } else {
+            sub = bodyLines.count > 1 ? bodyLines[1] : nil;
+        }
+        if (!m.mediaURL.length) {
+            hint.text = SCILocalized(@"Content unavailable");
+        } else if (m.kind == SCIDeletedMessageKindAudioShare) {
+            hint.text = sub.length
+                ? [NSString stringWithFormat:SCILocalized(@"Tap to play · %@"), sub]
+                : SCILocalized(@"Tap to play");
+        } else if (isLiveLocation) {
+            hint.text = SCILocalized(@"Tap to open in Maps");
+        } else {
+            hint.text = sub.length
+                ? [NSString stringWithFormat:@"%@ · %@", typeLabel, sub]
+                : typeLabel;
+        }
+    } else {
+        NSString *who = bodyLines.firstObject ?: @"";
+        titleL.numberOfLines = 1;
+        titleL.text = who.length
+            ? [NSString stringWithFormat:@"%@ · @%@", typeLabel, who]
+            : typeLabel;
+        hint.text = m.mediaURL.length
+            ? SCILocalized(@"Tap to open in Instagram")
+            : SCILocalized(@"Content unavailable");
+    }
 }
 
 - (void)installPlaceholderBubble:(SCIDeletedMessage *)m {
@@ -759,6 +874,7 @@ static char kSCIDMVoiceDraggingKey;
 @property (nonatomic, strong) UIBarButtonItem *selectionSaveItem;
 @property (nonatomic, strong) UIBarButtonItem *selectionShareItem;
 @property (nonatomic, strong) UIBarButtonItem *selectionDeleteItem;
+@property (nonatomic, strong) SCIScrollToTopButton *scrollToTopButton;
 @end
 
 @implementation SCIDeletedMessagesUserDetailViewController
@@ -782,6 +898,9 @@ static char kSCIDMVoiceDraggingKey;
     [self installSearchController];
     [self installTable];
     self.tableView.tableHeaderView = [self buildBannerHeader];
+
+    self.scrollToTopButton = [SCIScrollToTopButton new];
+    [self.scrollToTopButton attachToScrollView:self.tableView inView:self.view bottomInset:24];
 
     UIBarButtonItem *menu = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"ellipsis.circle"]
                                                               menu:[self buildMenu]];
@@ -860,6 +979,7 @@ static char kSCIDMVoiceDraggingKey;
     self.inSelectionMode = NO;
     [self.selectedSids removeAllObjects];
     [self.navigationController setToolbarHidden:YES animated:YES];
+    [self.scrollToTopButton setBottomInset:24];
     [self.tableView reloadData];
     [self refreshHeader];
 
@@ -932,6 +1052,7 @@ static char kSCIDMVoiceDraggingKey;
     self.selectionDeleteItem = del;
 
     [self.navigationController setToolbarHidden:NO animated:YES];
+    [self.scrollToTopButton setBottomInset:64];
     [self refreshSelectionCount];
 }
 
@@ -1215,35 +1336,43 @@ static char kSCIDMVoiceDraggingKey;
 
 #pragma mark - Filter menu (multi-select kinds + reset)
 
-static NSArray *sciFilterKindEntries(void) {
+// Each inner array becomes one inline UIMenu section (separated visually).
+static NSArray<NSArray<NSArray *> *> *sciFilterKindSections(void) {
     return @[
-        @[SCILocalized(@"Text"),    @(SCIDeletedMessageKindText),    SCIDeletedMessageKindSymbol(SCIDeletedMessageKindText)],
-        @[SCILocalized(@"Photo"),   @(SCIDeletedMessageKindPhoto),   SCIDeletedMessageKindSymbol(SCIDeletedMessageKindPhoto)],
-        @[SCILocalized(@"Video"),   @(SCIDeletedMessageKindVideo),   SCIDeletedMessageKindSymbol(SCIDeletedMessageKindVideo)],
-        @[SCILocalized(@"Voice"),   @(SCIDeletedMessageKindVoice),   SCIDeletedMessageKindSymbol(SCIDeletedMessageKindVoice)],
-        @[SCILocalized(@"GIF"),     @(SCIDeletedMessageKindGif),     SCIDeletedMessageKindSymbol(SCIDeletedMessageKindGif)],
-        @[SCILocalized(@"Sticker"), @(SCIDeletedMessageKindSticker), SCIDeletedMessageKindSymbol(SCIDeletedMessageKindSticker)],
-        @[SCILocalized(@"Share"),   @(SCIDeletedMessageKindShare),   SCIDeletedMessageKindSymbol(SCIDeletedMessageKindShare)],
-        @[SCILocalized(@"Other"),   @(SCIDeletedMessageKindOther),   SCIDeletedMessageKindSymbol(SCIDeletedMessageKindOther)],
+        @[@[SCILocalized(@"Photo"),   @(SCIDeletedMessageKindPhoto),   SCIDeletedMessageKindSymbol(SCIDeletedMessageKindPhoto)],
+          @[SCILocalized(@"Video"),   @(SCIDeletedMessageKindVideo),   SCIDeletedMessageKindSymbol(SCIDeletedMessageKindVideo)],
+          @[SCILocalized(@"GIF"),     @(SCIDeletedMessageKindGif),     SCIDeletedMessageKindSymbol(SCIDeletedMessageKindGif)],
+          @[SCILocalized(@"Sticker"), @(SCIDeletedMessageKindSticker), SCIDeletedMessageKindSymbol(SCIDeletedMessageKindSticker)]],
+        @[@[SCILocalized(@"Voice"),   @(SCIDeletedMessageKindVoice),       SCIDeletedMessageKindSymbol(SCIDeletedMessageKindVoice)],
+          @[SCILocalized(@"Audio"),   @(SCIDeletedMessageKindAudioShare),  SCIDeletedMessageKindSymbol(SCIDeletedMessageKindAudioShare)]],
+        @[@[SCILocalized(@"Share"),   @(SCIDeletedMessageKindShare),   SCIDeletedMessageKindSymbol(SCIDeletedMessageKindShare)],
+          @[SCILocalized(@"Link"),    @(SCIDeletedMessageKindLink),    SCIDeletedMessageKindSymbol(SCIDeletedMessageKindLink)]],
+        @[@[SCILocalized(@"Text"),    @(SCIDeletedMessageKindText),    SCIDeletedMessageKindSymbol(SCIDeletedMessageKindText)],
+          @[SCILocalized(@"Other"),   @(SCIDeletedMessageKindOther),   SCIDeletedMessageKindSymbol(SCIDeletedMessageKindOther)]],
     ];
 }
 
 - (UIMenu *)buildFilterMenu {
-    NSMutableArray<UIAction *> *kindActions = [NSMutableArray array];
     __weak typeof(self) ws = self;
-    for (NSArray *e in sciFilterKindEntries()) {
-        SCIDeletedMessageKind k = [e[1] integerValue];
-        UIAction *a = [UIAction actionWithTitle:e[0]
-                                          image:[UIImage systemImageNamed:e[2]]
-                                     identifier:nil
-                                        handler:^(__kindof UIAction *_) {
-            [ws.filter toggleKind:k];
-            [ws refilter];
-            [ws refreshFilterButton];
-        }];
-        a.state = [self.filter.kinds containsObject:@(k)] ? UIMenuElementStateOn : UIMenuElementStateOff;
-        if (@available(iOS 17.0, *)) a.attributes |= UIMenuElementAttributesKeepsMenuPresented;
-        [kindActions addObject:a];
+    NSMutableArray<UIMenu *> *sections = [NSMutableArray array];
+    for (NSArray<NSArray *> *group in sciFilterKindSections()) {
+        NSMutableArray<UIAction *> *actions = [NSMutableArray array];
+        for (NSArray *e in group) {
+            SCIDeletedMessageKind k = [e[1] integerValue];
+            UIAction *a = [UIAction actionWithTitle:e[0]
+                                              image:[UIImage systemImageNamed:e[2]]
+                                         identifier:nil
+                                            handler:^(__kindof UIAction *_) {
+                [ws.filter toggleKind:k];
+                [ws refilter];
+                [ws refreshFilterButton];
+            }];
+            a.state = [self.filter.kinds containsObject:@(k)] ? UIMenuElementStateOn : UIMenuElementStateOff;
+            if (@available(iOS 17.0, *)) a.attributes |= UIMenuElementAttributesKeepsMenuPresented;
+            [actions addObject:a];
+        }
+        [sections addObject:[UIMenu menuWithTitle:@"" image:nil identifier:nil
+                                          options:UIMenuOptionsDisplayInline children:actions]];
     }
 
     UIAction *reset = [UIAction actionWithTitle:SCILocalized(@"Reset")
@@ -1255,13 +1384,14 @@ static NSArray *sciFilterKindEntries(void) {
         [ws refreshFilterButton];
     }];
     reset.attributes = UIMenuElementAttributesDestructive;
+    [sections addObject:[UIMenu menuWithTitle:@"" image:nil identifier:nil
+                                      options:UIMenuOptionsDisplayInline children:@[reset]]];
 
-    UIMenu *kindGroup  = [UIMenu menuWithTitle:@"" image:nil identifier:nil
-                                       options:UIMenuOptionsDisplayInline children:kindActions];
-    UIMenu *resetGroup = [UIMenu menuWithTitle:@"" image:nil identifier:nil
-                                       options:UIMenuOptionsDisplayInline children:@[reset]];
-    return [UIMenu menuWithTitle:SCILocalized(@"Filter")
-                        children:@[kindGroup, resetGroup]];
+    NSUInteger n = self.filter.kinds.count;
+    NSString *menuTitle = n > 0
+        ? [NSString stringWithFormat:SCILocalized(@"Filter · %lu"), (unsigned long)n]
+        : SCILocalized(@"Filter");
+    return [UIMenu menuWithTitle:menuTitle children:sections];
 }
 
 - (void)refreshFilterButton {
@@ -1344,7 +1474,10 @@ static NSArray *sciFilterKindEntries(void) {
                   || (m.kind == SCIDeletedMessageKindVideo)
                   || (m.kind == SCIDeletedMessageKindGif)
                   || (m.kind == SCIDeletedMessageKindVoice)
+                  || (m.kind == SCIDeletedMessageKindAudioShare)
                   || (m.kind == SCIDeletedMessageKindSticker);
+    BOOL isAudioOnly = (m.kind == SCIDeletedMessageKindVoice)
+                    || (m.kind == SCIDeletedMessageKindAudioShare);
     NSURL *fileURL = nil;
     NSString *abs = [SCIDeletedMessagesStorage absolutePathForRelativePath:m.mediaPath ownerPK:self.ownerPK];
     if (abs.length && [[NSFileManager defaultManager] fileExistsAtPath:abs]) {
@@ -1361,10 +1494,10 @@ static NSArray *sciFilterKindEntries(void) {
         }]];
     }
     if (hasMedia) {
-        [primary addObject:[UIAction actionWithTitle:(m.kind == SCIDeletedMessageKindVoice
+        [primary addObject:[UIAction actionWithTitle:(isAudioOnly
                                                        ? SCILocalized(@"Play")
                                                        : SCILocalized(@"View"))
-                                                image:[UIImage systemImageNamed:(m.kind == SCIDeletedMessageKindVoice
+                                                image:[UIImage systemImageNamed:(isAudioOnly
                                                                                  ? @"play.circle"
                                                                                  : @"arrow.up.left.and.arrow.down.right")]
                                            identifier:nil
@@ -1374,7 +1507,7 @@ static NSArray *sciFilterKindEntries(void) {
     }
 
     NSMutableArray<UIMenuElement *> *saveSection = [NSMutableArray array];
-    if (fileURL && hasMedia && m.kind != SCIDeletedMessageKindVoice) {
+    if (fileURL && hasMedia && !isAudioOnly) {
         // Photos rejects audio.
         [saveSection addObject:[UIAction actionWithTitle:SCILocalized(@"Save to Photos")
                                                    image:[UIImage systemImageNamed:@"photo.on.rectangle"]
@@ -1460,6 +1593,47 @@ static NSArray *sciFilterKindEntries(void) {
     }
     if (m.kind == SCIDeletedMessageKindVoice) {
         [self toggleVoicePlayback:m];
+        return;
+    }
+    if (m.kind == SCIDeletedMessageKindAudioShare) {
+        NSURL *url = nil;
+        NSString *abs = [SCIDeletedMessagesStorage absolutePathForRelativePath:m.mediaPath ownerPK:self.ownerPK];
+        if (abs.length && [[NSFileManager defaultManager] fileExistsAtPath:abs])
+            url = [NSURL fileURLWithPath:abs];
+        else if (m.mediaURL.length)
+            url = [NSURL URLWithString:m.mediaURL];
+        if (!url) { [self presentInfoSheet:m]; return; }
+        NSArray<NSString *> *parts = m.text.length ? [m.text componentsSeparatedByString:@"\n"] : @[];
+        NSString *caption = parts.count >= 2
+            ? [NSString stringWithFormat:@"%@ — %@", parts[0], parts[1]]
+            : (parts.firstObject ?: @"");
+        [SCIMediaViewer showItem:[SCIMediaViewerItem itemWithAudioURL:url caption:caption]];
+        return;
+    }
+    if (m.kind == SCIDeletedMessageKindShare
+        || m.kind == SCIDeletedMessageKindLink) {
+        if (!m.mediaURL.length) { [self presentInfoSheet:m]; return; }
+        NSURL *u = [NSURL URLWithString:m.mediaURL];
+        if (!u) { [self presentInfoSheet:m]; return; }
+        // Live location → Apple Maps via lat/lng query params.
+        NSString *lower = m.mediaURL.lowercaseString;
+        if ([lower containsString:@"live_location"]
+            || ([lower containsString:@"latitude="] && [lower containsString:@"longitude="])) {
+            NSURLComponents *comps = [NSURLComponents componentsWithURL:u resolvingAgainstBaseURL:NO];
+            NSString *lat = nil, *lng = nil;
+            for (NSURLQueryItem *q in comps.queryItems) {
+                if ([q.name isEqualToString:@"latitude"]) lat = q.value;
+                else if ([q.name isEqualToString:@"longitude"]) lng = q.value;
+            }
+            if (lat.length && lng.length) {
+                NSString *label = [m.text componentsSeparatedByString:@"\n"].firstObject ?: SCILocalized(@"Live location");
+                NSString *q = [label stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+                NSURL *maps = [NSURL URLWithString:[NSString stringWithFormat:@"http://maps.apple.com/?ll=%@,%@&q=%@", lat, lng, q ?: @""]];
+                [SCIURLOpener dismiss:self thenOpenURL:maps];
+                return;
+            }
+        }
+        [SCIURLOpener dismiss:self thenOpenURL:u];
         return;
     }
     NSURL *url = [self bestMediaURLForMessage:m];

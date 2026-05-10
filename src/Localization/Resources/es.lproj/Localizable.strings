@@ -326,6 +326,9 @@
 "Long press to download directly (ignored when zoom is on)" = "Mantén pulsado para descargar directamente (Se ignora cuando la foto está ampliada)";
 "Long-press gestures on profile elements — kept separate from the per-feature action buttons." = "Los gestos al mantener pulsado en los elementos del perfil, se mantienen separados de los botones de acción específicos de cada función.";
 "Only affects your own profile header. Other users see the real numbers." = "Solo afecta al encabezado de tu propio perfil. Los demás usuarios ven los números reales.";
+"Profile stats" = "Estadísticas del perfil";
+"Show full follower count" = "Mostrar número completo de seguidores";
+"Show full post count" = "Mostrar número completo de publicaciones";
 "Post count" = "Número de publicaciones";
 "Save profile picture" = "Guardar foto de perfil";
 "Show a checkmark next to your name on your own profile" = "Muestra una marca de verificación junto a tu nombre en tu propio perfil";
@@ -1001,7 +1004,6 @@
 "Profile updates" = "Cambios de perfil";
 
 "Request failed" = "Solicitud fallida";
-"Reset analyzer data?" = "¿Restablecer datos del analizador?";
 "Run analysis" = "Ejecutar análisis";
 "Run your first analysis" = "Ejecuta tu primer análisis";
 "Since last scan" = "Desde el último análisis";
@@ -1048,6 +1050,7 @@
 "File has no importable sections." = "El archivo no contiene secciones importables.";
 "File is not a valid RyukGram export." = "El archivo no es una exportación válida de RyukGram.";
 "Filter" = "Filtrar";
+"Filter · %lu" = "Filtrar · %lu";
 "First scan: we collect your followers and following lists and save them locally." = "Primer análisis: recopilamos tus listas de seguidores y seguidos y las guardamos localmente.";
 "Follow %lu" = "Seguir %lu";
 "Followers" = "Seguidores";
@@ -1178,7 +1181,6 @@
 // Strings from Reels.                                                      //
 //////////////////////////////////////////////////////////////////////////////
 
-"Copied!" = "¡Copiado!";
 "No password found" = "No se encontró contraseña";
 "No text field found" = "No se encontró campo de texto";
 "Password" = "Contraseña";
@@ -1236,7 +1238,6 @@
 "%lu active • tap to cancel" = "%lu activas • toca para cancelar";
 "Downloading %d%%" = "Descargando %d%%";
 "Download all and share?" = "¿Descargar todo y compartir?";
-"Save all to Photos?" = "¿Guardar todo en Fotos?";
 
 //////////////////////////////////////////////////////////////////////////////
 //                               ABOUT / CREDITS                            //
@@ -1334,7 +1335,6 @@
 "Configure: %@" = "Configurar: %@";
 "What happens on a single tap. Long-press always opens the full menu." = "Lo que ocurre al tocar una vez. Mantener pulsado siempre abre el menú completo.";
 "Reset to defaults" = "Restablecer valores predeterminados";
-"Reset to defaults?" = "¿Restablecer valores predeterminados?";
 "This will restore the default sections, order, and toggles for this menu." = "Esto restaurará las secciones, el orden y los interruptores predeterminados de este menú.";
 "Audio & visibility" = "Audio y visibilidad";
 "DM disappearing media" = "Medios efímeros en mensajes";
@@ -1390,9 +1390,7 @@
 "Photos only" = "Solo Fotos";
 "Gallery only" = "Solo Galería";
 "Photos + Gallery" = "Fotos + Galería";
-"Save to Gallery?" = "¿Guardar en Galería?";
 "Saved to Gallery" = "Guardado en Galería";
-"Save all to Gallery?" = "¿Guardar todo en Galería?";
 "Saved %lu items to Gallery" = "Guardados %lu elementos en Galería";
 "Saving to Gallery..." = "Guardando en Galería...";
 "to Gallery" = "en Galería";
@@ -1486,7 +1484,6 @@
 "Create & Move" = "Crear y mover";
 "Rename Folder" = "Cambiar nombre de la carpeta";
 "Delete Folder" = "Eliminar carpeta";
-"Delete Folder?" = "¿Eliminar carpeta?";
 "This folder is empty." = "Esta carpeta está vacía.";
 "This folder contains %ld file(s). They will be moved to the parent folder." = "Esta carpeta contiene %ld archivo(s). Se moverán a la carpeta superior.";
 "Root" = "Raíz";
@@ -1634,77 +1631,82 @@
 //                       MESSAGES — DELETED MESSAGES LOG                    //
 //////////////////////////////////////////////////////////////////////////////
 
-"Deleted messages" = "Deleted messages";
-"Deleted messages log" = "Deleted messages log";
-"Records every message someone unsends, grouped by sender" = "Records every message someone unsends, grouped by sender";
-"When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history." = "When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history.";
-"Enable deleted messages log" = "Enable deleted messages log";
-"Captures unsent messages with their text or media" = "Captures unsent messages with their text or media";
-"Open log" = "Open log";
-"Browse, filter and search recorded messages" = "Browse, filter and search recorded messages";
-"Search senders or messages" = "Search senders or messages";
-"Search messages" = "Search messages";
-"All time" = "All time";
-"Last 7 days" = "Last 7 days";
-"Last 30 days" = "Last 30 days";
-"Date range" = "Date range";
-"Most recent" = "Most recent";
-"Oldest first" = "Oldest first";
-"Most messages" = "Most messages";
-"Clear log" = "Clear log";
-"Clear deleted-message log?" = "Clear deleted-message log?";
-"Removes every preserved deleted message and its captured media for this account." = "Removes every preserved deleted message and its captured media for this account.";
-"No deleted messages yet" = "No deleted messages yet";
-"Logging is off" = "Logging is off";
-"When someone unsends a message, it will appear here grouped by sender." = "When someone unsends a message, it will appear here grouped by sender.";
-"Enable Settings → Messages → Deleted messages log to start recording." = "Enable Settings → Messages → Deleted messages log to start recording.";
-"No matches" = "No matches";
-"Adjust the filters or clear the search to see more." = "Adjust the filters or clear the search to see more.";
-"%lu messages from %lu users" = "%lu messages from %lu users";
-"Text" = "Text";
+"Deleted messages" = "Mensajes eliminados";
+"Deleted messages log" = "Registro de mensajes eliminados";
+"Records every message someone unsends, grouped by sender" = "Registra cada mensaje que alguien retira, agrupado por remitente";
+"When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history." = "Cuando está activado, los mensajes eliminados y sus medios se guardan en este dispositivo. Desactiva y borra el registro para limpiar el historial.";
+"Enable deleted messages log" = "Activar registro de mensajes eliminados";
+"Captures unsent messages with their text or media" = "Captura mensajes no enviados con su texto o medios";
+"Open log" = "Abrir registro";
+"Browse, filter and search recorded messages" = "Explora, filtra y busca mensajes registrados";
+"Search senders or messages" = "Buscar remitentes o mensajes";
+"Search messages" = "Buscar mensajes";
+"All time" = "Todo el tiempo";
+"Date range" = "Rango de fechas";
+"Most messages" = "Más mensajes";
+"Clear log" = "Borrar registro";
+"Clear deleted-message log?" = "¿Borrar registro de mensajes eliminados?";
+"Removes every preserved deleted message and its captured media for this account." = "Elimina cada mensaje eliminado guardado y sus medios para esta cuenta.";
+"No deleted messages yet" = "Aún no hay mensajes eliminados";
+"Logging is off" = "El registro está desactivado";
+"When someone unsends a message, it will appear here grouped by sender." = "Cuando alguien retire un mensaje, aparecerá aquí agrupado por remitente.";
+"Enable Settings → Messages → Deleted messages log to start recording." = "Activa Ajustes → Mensajes → Registro de mensajes eliminados para empezar.";
+"No matches" = "Sin coincidencias";
+"Adjust the filters or clear the search to see more." = "Ajusta los filtros o borra la búsqueda para ver más.";
+"%lu messages from %lu users" = "%lu mensajes de %lu usuarios";
+"Text" = "Texto";
 "Video" = "Video";
-"Voice" = "Voice";
+"Voice" = "Voz";
 "GIF" = "GIF";
 "Sticker" = "Sticker";
-"Link" = "Link";
-"Unknown" = "Unknown";
-"%@ deleted" = "%@ deleted";
-"Clear from this user" = "Clear from this user";
-"Clear log for this user?" = "Clear log for this user?";
-"Removes every preserved deleted message from this sender." = "Removes every preserved deleted message from this sender.";
-"%ld deleted messages • %@ → %@" = "%ld deleted messages • %@ → %@";
-"%ld deleted messages" = "%ld deleted messages";
-"Close" = "Close";
-"Kind: %@\n" = "Kind: %@\n";
-"Deleted: %@\n" = "Deleted: %@\n";
-"Source URL recorded but media not stored.\n" = "Source URL recorded but media not stored.\n";
+"Link" = "Enlace";
+"Unknown" = "Desconocido";
+"%@ deleted" = "%@ eliminado(s)";
+"Clear from this user" = "Borrar de este usuario";
+"Clear log for this user?" = "¿Borrar registro de este usuario?";
+"Removes every preserved deleted message from this sender." = "Elimina cada mensaje eliminado guardado de este remitente.";
+"%ld deleted messages • %@ → %@" = "%ld mensajes eliminados • %@ → %@";
+"%ld deleted messages" = "%ld mensajes eliminados";
+"Close" = "Cerrar";
+"Kind: %@\n" = "Tipo: %@\n";
+"Deleted: %@\n" = "Eliminado: %@\n";
+"Source URL recorded but media not stored.\n" = "URL de origen registrada pero el medio no se almacenó.\n";
 
-"This account" = "This account";
-"Media on disk" = "Media on disk";
-"Empty" = "Empty";
-"Clear media files" = "Clear media files";
-"Clear log for this account" = "Clear log for this account";
-"Playback failed" = "Playback failed";
-"View" = "View";
-"Play" = "Play";
-"Shared post" = "Shared post";
-"Shared link" = "Shared link";
-"Content unavailable" = "Content unavailable";
-"Copied" = "Copied";
-"Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account." = "Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account.";
-"Clear media files?" = "Clear media files?";
-"Removes every saved photo, video and voice clip. Records keep their text and sender info." = "Removes every saved photo, video and voice clip. Records keep their text and sender info.";
-"Clear log for this account?" = "Clear log for this account?";
-"Removes every preserved deleted message and its captured media for the current account. This cannot be undone." = "Removes every preserved deleted message and its captured media for the current account. This cannot be undone.";
-"See how much disk the log uses and clear it" = "See how much disk the log uses and clear it";
+"This account" = "Esta cuenta";
+"Media on disk" = "Medios en disco";
+"Empty" = "Vacío";
+"Clear media files" = "Borrar archivos multimedia";
+"Clear log for this account" = "Borrar registro de esta cuenta";
+"Playback failed" = "Error de reproducción";
+"View" = "Ver";
+"Play" = "Reproducir";
+"Tap to open in Instagram" = "Toca para abrir en Instagram";
+"Tap to open in Maps" = "Toca para abrir en Mapas";
+"Tap to play" = "Toca para reproducir";
+"Tap to play · %@" = "Toca para reproducir · %@";
+"Live location" = "Ubicación en tiempo real";
+"Reel" = "Reel";
+"IGTV" = "IGTV";
+"Location" = "Ubicación";
+"Hashtag" = "Hashtag";
+"Post" = "Publicación";
+"Content unavailable" = "Contenido no disponible";
+"Copied" = "Copiado";
+"Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account." = "Borrar los medios mantiene los registros (texto, remitente, hora). Borrar el registro elimina todo de esta cuenta.";
+"Removes every saved photo, video and voice clip. Records keep their text and sender info." = "Elimina cada foto, video y audio guardado. Los registros mantienen su texto e información del remitente.";
+"Removes every preserved deleted message and its captured media for the current account. This cannot be undone." = "Elimina cada mensaje eliminado guardado y sus medios para la cuenta actual. Esto no se puede deshacer.";
+"See how much disk the log uses and clear it" = "Mira cuánto disco usa el registro y bórralo";
 
-"now" = "now";
-"Relative (1m / 3h / 3d ago)" = "Relative (1m / 3h / 3d ago)";
-"Absolute date + time" = "Absolute date + time";
-"How timestamps render in the log" = "How timestamps render in the log";
+"now" = "ahora";
+"Relative (1m / 3h / 3d ago)" = "Relativo (hace 1m / 3h / 3d)";
+"Absolute date + time" = "Fecha y hora absolutas";
+"How timestamps render in the log" = "Cómo se muestran las marcas de tiempo en el registro";
 
-"Select messages to download" = "Select messages to download";
-"%lu selected" = "%lu selected";
-"Nothing to save" = "Nothing to save";
-"%@%lu deleted" = "%@%lu deleted";
-"Photos" = "Photos";
+"Select messages to download" = "Selecciona los mensajes para descargar";
+"%lu selected" = "%lu seleccionados";
+"%@%lu deleted" = "%@%lu eliminado(s)";
+"Photos" = "Fotos";
+
+"Colors" = "Colores";
+"+ Add new language" = "+ Añadir idioma nuevo";
+"Each chat can override this in the list" = "Cada chat puede anular esto en la lista";

@@ -4,6 +4,7 @@
 // (post owner, in-post tags, and reel collab co-authors).
 
 #import "../../Utils.h"
+#import "../../SCIURLOpener.h"
 #import "../../InstagramHeaders.h"
 #import "../../SCIImageCache.h"
 #import "../../Networking/SCIInstagramAPI.h"
@@ -600,11 +601,7 @@ static NSDictionary *sciMentionUserInfo(id mention) {
     NSDictionary *info = self.userInfos[indexPath.row];
     NSString *username = info[@"username"];
     if (!username) return;
-    [self dismissViewControllerAnimated:YES completion:^{
-        NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"instagram://user?username=%@", username]];
-        if ([[UIApplication sharedApplication] canOpenURL:url])
-            [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
-    }];
+    [SCIURLOpener dismiss:self thenOpenInstagramProfileForUsername:username];
 }
 
 @end

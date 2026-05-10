@@ -54,10 +54,6 @@
 + (UIColor *)SCIColor_InstagramDestructive;
 + (UIColor *)SCIColor_InstagramPressedBackground;
 
-// Instagram deep links
-+ (BOOL)openInstagramProfileForUsername:(NSString *)username;
-+ (BOOL)openInstagramMediaURL:(NSURL *)url;
-
 // Errors
 + (NSError *)errorWithDescription:(NSString *)errorDesc;
 + (NSError *)errorWithDescription:(NSString *)errorDesc code:(NSInteger)errorCode;

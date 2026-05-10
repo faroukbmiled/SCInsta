@@ -326,6 +326,9 @@
 "Long press to download directly (ignored when zoom is on)" = "Удерживайте для прямого скачивания (игнорируется, если включено увеличение)";
 "Long-press gestures on profile elements — kept separate from the per-feature action buttons." = "Жесты долгого нажатия на элементы профиля — отдельно от кнопок действий конкретных функций.";
 "Only affects your own profile header. Other users see the real numbers." = "Влияет только на заголовок вашего собственного профиля. Другие пользователи видят реальные числа.";
+"Profile stats" = "Статистика профиля";
+"Show full follower count" = "Показывать полное число подписчиков";
+"Show full post count" = "Показывать полное число публикаций";
 "Post count" = "Число публикаций";
 "Save profile picture" = "Сохранить фото профиля";
 "Show a checkmark next to your name on your own profile" = "Показывать галочку рядом с вашим именем в вашем профиле";
@@ -1001,7 +1004,6 @@
 "Profile updates" = "Изменения профиля";
 
 "Request failed" = "Запрос не выполнен";
-"Reset analyzer data?" = "Сбросить данные анализа?";
 "Run analysis" = "Запустить анализ";
 "Run your first analysis" = "Запустите первый анализ";
 "Since last scan" = "С последнего анализа";
@@ -1048,6 +1050,7 @@
 "File has no importable sections." = "В файле нет секций для импорта.";
 "File is not a valid RyukGram export." = "Файл не является корректным экспортом RyukGram.";
 "Filter" = "Фильтр";
+"Filter · %lu" = "Фильтр · %lu";
 "First scan: we collect your followers and following lists and save them locally." = "Первый анализ: собираем ваши списки подписчиков и подписок и сохраняем их локально.";
 "Follow %lu" = "Подписаться на %lu";
 "Followers" = "Подписчики";
@@ -1178,7 +1181,6 @@
 // Strings from Reels.                                                      //
 //////////////////////////////////////////////////////////////////////////////
 
-"Copied!" = "Скопировано!";
 "No password found" = "Пароль не найден";
 "No text field found" = "Текстовое поле не найдено";
 "Password" = "Пароль";
@@ -1236,7 +1238,6 @@
 "%lu active • tap to cancel" = "%lu активно • нажмите, чтобы отменить";
 "Downloading %d%%" = "Скачивание %d%%";
 "Download all and share?" = "Скачать всё и поделиться?";
-"Save all to Photos?" = "Сохранить всё в Фото?";
 
 //////////////////////////////////////////////////////////////////////////////
 //                               ABOUT / CREDITS                            //
@@ -1334,7 +1335,6 @@
 "Configure: %@" = "Настроить: %@";
 "What happens on a single tap. Long-press always opens the full menu." = "Что происходит при одиночном нажатии. Долгое нажатие всегда открывает полное меню.";
 "Reset to defaults" = "Сбросить к значениям по умолчанию";
-"Reset to defaults?" = "Сбросить к значениям по умолчанию?";
 "This will restore the default sections, order, and toggles for this menu." = "Это восстановит разделы, порядок и переключатели этого меню по умолчанию.";
 "Audio & visibility" = "Аудио и видимость";
 "DM disappearing media" = "Исчезающие медиа в DM";
@@ -1390,9 +1390,7 @@
 "Photos only" = "Только Фото";
 "Gallery only" = "Только Галерея";
 "Photos + Gallery" = "Фото + Галерея";
-"Save to Gallery?" = "Сохранить в Галерею?";
 "Saved to Gallery" = "Сохранено в Галерею";
-"Save all to Gallery?" = "Сохранить всё в Галерею?";
 "Saved %lu items to Gallery" = "Сохранено в Галерею: %lu";
 "Saving to Gallery..." = "Сохранение в Галерею…";
 "to Gallery" = "в Галерею";
@@ -1486,7 +1484,6 @@
 "Create & Move" = "Создать и переместить";
 "Rename Folder" = "Переименовать папку";
 "Delete Folder" = "Удалить папку";
-"Delete Folder?" = "Удалить папку?";
 "This folder is empty." = "Эта папка пуста.";
 "This folder contains %ld file(s). They will be moved to the parent folder." = "В этой папке файлов: %ld. Они будут перемещены в родительскую папку.";
 "Root" = "Корень";
@@ -1634,77 +1631,82 @@
 //                       MESSAGES — DELETED MESSAGES LOG                    //
 //////////////////////////////////////////////////////////////////////////////
 
-"Deleted messages" = "Deleted messages";
-"Deleted messages log" = "Deleted messages log";
-"Records every message someone unsends, grouped by sender" = "Records every message someone unsends, grouped by sender";
-"When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history." = "When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history.";
-"Enable deleted messages log" = "Enable deleted messages log";
-"Captures unsent messages with their text or media" = "Captures unsent messages with their text or media";
-"Open log" = "Open log";
-"Browse, filter and search recorded messages" = "Browse, filter and search recorded messages";
-"Search senders or messages" = "Search senders or messages";
-"Search messages" = "Search messages";
-"All time" = "All time";
-"Last 7 days" = "Last 7 days";
-"Last 30 days" = "Last 30 days";
-"Date range" = "Date range";
-"Most recent" = "Most recent";
-"Oldest first" = "Oldest first";
-"Most messages" = "Most messages";
-"Clear log" = "Clear log";
-"Clear deleted-message log?" = "Clear deleted-message log?";
-"Removes every preserved deleted message and its captured media for this account." = "Removes every preserved deleted message and its captured media for this account.";
-"No deleted messages yet" = "No deleted messages yet";
-"Logging is off" = "Logging is off";
-"When someone unsends a message, it will appear here grouped by sender." = "When someone unsends a message, it will appear here grouped by sender.";
-"Enable Settings → Messages → Deleted messages log to start recording." = "Enable Settings → Messages → Deleted messages log to start recording.";
-"No matches" = "No matches";
-"Adjust the filters or clear the search to see more." = "Adjust the filters or clear the search to see more.";
-"%lu messages from %lu users" = "%lu messages from %lu users";
-"Text" = "Text";
-"Video" = "Video";
-"Voice" = "Voice";
+"Deleted messages" = "Удалённые сообщения";
+"Deleted messages log" = "Журнал удалённых сообщений";
+"Records every message someone unsends, grouped by sender" = "Записывает каждое отозванное сообщение, группируя по отправителю";
+"When enabled, deleted messages and their media are saved on this device. Toggle off and clear the log to wipe history." = "Когда включено, удалённые сообщения и их медиа сохраняются на этом устройстве. Отключите и очистите журнал, чтобы стереть историю.";
+"Enable deleted messages log" = "Включить журнал удалённых сообщений";
+"Captures unsent messages with their text or media" = "Захватывает отозванные сообщения вместе с текстом и медиа";
+"Open log" = "Открыть журнал";
+"Browse, filter and search recorded messages" = "Просмотр, фильтрация и поиск записанных сообщений";
+"Search senders or messages" = "Поиск отправителей или сообщений";
+"Search messages" = "Поиск сообщений";
+"All time" = "Всё время";
+"Date range" = "Диапазон дат";
+"Most messages" = "Больше всего сообщений";
+"Clear log" = "Очистить журнал";
+"Clear deleted-message log?" = "Очистить журнал удалённых сообщений?";
+"Removes every preserved deleted message and its captured media for this account." = "Удаляет все сохранённые удалённые сообщения и их медиа для этого аккаунта.";
+"No deleted messages yet" = "Удалённых сообщений пока нет";
+"Logging is off" = "Запись отключена";
+"When someone unsends a message, it will appear here grouped by sender." = "Когда кто-то отзовёт сообщение, оно появится здесь сгруппированным по отправителю.";
+"Enable Settings → Messages → Deleted messages log to start recording." = "Включите Настройки → Сообщения → Журнал удалённых сообщений, чтобы начать запись.";
+"No matches" = "Ничего не найдено";
+"Adjust the filters or clear the search to see more." = "Измените фильтры или очистите поиск, чтобы увидеть больше.";
+"%lu messages from %lu users" = "%lu сообщений от %lu пользователей";
+"Text" = "Текст";
+"Video" = "Видео";
+"Voice" = "Голос";
 "GIF" = "GIF";
-"Sticker" = "Sticker";
-"Link" = "Link";
-"Unknown" = "Unknown";
-"%@ deleted" = "%@ deleted";
-"Clear from this user" = "Clear from this user";
-"Clear log for this user?" = "Clear log for this user?";
-"Removes every preserved deleted message from this sender." = "Removes every preserved deleted message from this sender.";
-"%ld deleted messages • %@ → %@" = "%ld deleted messages • %@ → %@";
-"%ld deleted messages" = "%ld deleted messages";
-"Close" = "Close";
-"Kind: %@\n" = "Kind: %@\n";
-"Deleted: %@\n" = "Deleted: %@\n";
-"Source URL recorded but media not stored.\n" = "Source URL recorded but media not stored.\n";
+"Sticker" = "Стикер";
+"Link" = "Ссылка";
+"Unknown" = "Неизвестно";
+"%@ deleted" = "%@ удалено";
+"Clear from this user" = "Очистить от этого пользователя";
+"Clear log for this user?" = "Очистить журнал этого пользователя?";
+"Removes every preserved deleted message from this sender." = "Удаляет все сохранённые удалённые сообщения от этого отправителя.";
+"%ld deleted messages • %@ → %@" = "Удалённых сообщений: %ld • %@ → %@";
+"%ld deleted messages" = "Удалённых сообщений: %ld";
+"Close" = "Закрыть";
+"Kind: %@\n" = "Тип: %@\n";
+"Deleted: %@\n" = "Удалено: %@\n";
+"Source URL recorded but media not stored.\n" = "URL источника записан, но медиа не сохранено.\n";
 
-"This account" = "This account";
-"Media on disk" = "Media on disk";
-"Empty" = "Empty";
-"Clear media files" = "Clear media files";
-"Clear log for this account" = "Clear log for this account";
-"Playback failed" = "Playback failed";
-"View" = "View";
-"Play" = "Play";
-"Shared post" = "Shared post";
-"Shared link" = "Shared link";
-"Content unavailable" = "Content unavailable";
-"Copied" = "Copied";
-"Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account." = "Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account.";
-"Clear media files?" = "Clear media files?";
-"Removes every saved photo, video and voice clip. Records keep their text and sender info." = "Removes every saved photo, video and voice clip. Records keep their text and sender info.";
-"Clear log for this account?" = "Clear log for this account?";
-"Removes every preserved deleted message and its captured media for the current account. This cannot be undone." = "Removes every preserved deleted message and its captured media for the current account. This cannot be undone.";
-"See how much disk the log uses and clear it" = "See how much disk the log uses and clear it";
+"This account" = "Этот аккаунт";
+"Media on disk" = "Медиа на диске";
+"Empty" = "Пусто";
+"Clear media files" = "Очистить медиафайлы";
+"Clear log for this account" = "Очистить журнал этого аккаунта";
+"Playback failed" = "Не удалось воспроизвести";
+"View" = "Просмотр";
+"Play" = "Воспроизвести";
+"Tap to open in Instagram" = "Нажмите, чтобы открыть в Instagram";
+"Tap to open in Maps" = "Нажмите, чтобы открыть в Картах";
+"Tap to play" = "Нажмите для воспроизведения";
+"Tap to play · %@" = "Нажмите для воспроизведения · %@";
+"Live location" = "Геопозиция в реальном времени";
+"Reel" = "Reels";
+"IGTV" = "IGTV";
+"Location" = "Место";
+"Hashtag" = "Хэштег";
+"Post" = "Публикация";
+"Content unavailable" = "Контент недоступен";
+"Copied" = "Скопировано";
+"Clearing media keeps the records (text, sender, timestamp). Clearing the log removes everything for this account." = "Очистка медиа сохраняет записи (текст, отправитель, время). Очистка журнала удаляет всё для этого аккаунта.";
+"Removes every saved photo, video and voice clip. Records keep their text and sender info." = "Удаляет каждую сохранённую фотографию, видео и голосовое сообщение. Записи сохраняют текст и информацию об отправителе.";
+"Removes every preserved deleted message and its captured media for the current account. This cannot be undone." = "Удаляет все сохранённые удалённые сообщения и их медиа для текущего аккаунта. Действие необратимо.";
+"See how much disk the log uses and clear it" = "Узнайте, сколько места использует журнал, и очистите его";
 
-"now" = "now";
-"Relative (1m / 3h / 3d ago)" = "Relative (1m / 3h / 3d ago)";
-"Absolute date + time" = "Absolute date + time";
-"How timestamps render in the log" = "How timestamps render in the log";
+"now" = "сейчас";
+"Relative (1m / 3h / 3d ago)" = "Относительное (1 мин / 3 ч / 3 д назад)";
+"Absolute date + time" = "Точная дата и время";
+"How timestamps render in the log" = "Как отображаются метки времени в журнале";
 
-"Select messages to download" = "Select messages to download";
-"%lu selected" = "%lu selected";
-"Nothing to save" = "Nothing to save";
-"%@%lu deleted" = "%@%lu deleted";
-"Photos" = "Photos";
+"Select messages to download" = "Выберите сообщения для загрузки";
+"%lu selected" = "Выбрано: %lu";
+"%@%lu deleted" = "%@%lu удалено";
+"Photos" = "Фото";
+
+"Colors" = "Цвета";
+"+ Add new language" = "+ Добавить новый язык";
+"Each chat can override this in the list" = "Каждый чат может переопределить это в списке";

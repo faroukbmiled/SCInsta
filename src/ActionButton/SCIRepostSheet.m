@@ -1,5 +1,6 @@
 #import "SCIRepostSheet.h"
 #import "../Utils.h"
+#import "../SCIURLOpener.h"
 #import "../Downloader/Download.h"
 #import "../PhotoAlbum.h"
 #import <Photos/Photos.h>
@@ -10,7 +11,8 @@
     NSURL *url = videoURL ?: photoURL;
     if (!url) { [SCIUtils showErrorHUDWithDescription:SCILocalized(@"No media URL")]; return; }
 
-    // Show pill
+    BOOL isVideo = (videoURL != nil);
+
     SCIDownloadPillView *pill = [SCIDownloadPillView shared];
     [pill resetState];
     [pill setText:SCILocalized(@"Preparing repost...")];
@@ -18,15 +20,16 @@
     UIView *hostView = [UIApplication sharedApplication].keyWindow ?: topMostController().view;
     if (hostView) [pill showInView:hostView];
 
-    // Download to temp file
     NSString *ext = [[url lastPathComponent] pathExtension];
-    if (!ext.length) ext = videoURL ? @"mp4" : @"jpg";
+    if (!ext.length) ext = isVideo ? @"mp4" : @"jpg";
     NSString *tmp = [NSTemporaryDirectory() stringByAppendingPathComponent:
                      [NSString stringWithFormat:@"repost_%@.%@", [[NSUUID UUID] UUIDString], ext]];
+    NSURL *fileURL = [NSURL fileURLWithPath:tmp];
 
     NSURLSessionDownloadTask *task = [[NSURLSession sharedSession]
         downloadTaskWithURL:url completionHandler:^(NSURL *loc, NSURLResponse *resp, NSError *err) {
-        if (err || !loc) {
+        NSInteger status = [resp isKindOfClass:[NSHTTPURLResponse class]] ? ((NSHTTPURLResponse *)resp).statusCode : 0;
+        if (err || !loc || status >= 400) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 [pill showError:SCILocalized(@"Download failed")];
                 [pill dismissAfterDelay:2.0];
@@ -35,9 +38,10 @@
         }
 
         NSError *mv = nil;
-        NSURL *fileURL = [NSURL fileURLWithPath:tmp];
+        [[NSFileManager defaultManager] removeItemAtURL:fileURL error:nil];
         [[NSFileManager defaultManager] moveItemAtURL:loc toURL:fileURL error:&mv];
-        if (mv) {
+        unsigned long long size = [[[NSFileManager defaultManager] attributesOfItemAtPath:fileURL.path error:nil] fileSize];
+        if (mv || size == 0) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 [pill showError:SCILocalized(@"Save failed")];
                 [pill dismissAfterDelay:2.0];
@@ -45,15 +49,14 @@
             return;
         }
 
-        // Save to Photos and get the localIdentifier
-        [self saveToPhotosAndOpenCreation:fileURL isVideo:(videoURL != nil) pill:pill];
+        [self saveToPhotosAndOpenCreation:fileURL isVideo:isVideo pill:pill];
     }];
     [task resume];
 }
 
 + (void)saveToPhotosAndOpenCreation:(NSURL *)fileURL isVideo:(BOOL)isVideo pill:(SCIDownloadPillView *)pill {
     [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-        if (status != PHAuthorizationStatusAuthorized) {
+        if (status != PHAuthorizationStatusAuthorized && status != PHAuthorizationStatusLimited) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 [pill showError:SCILocalized(@"Photos access denied")];
                 [pill dismissAfterDelay:2.0];
@@ -64,31 +67,24 @@
         __block NSString *localId = nil;
 
         [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-            PHAssetCreationRequest *req;
-            if (isVideo) {
-                req = [PHAssetCreationRequest creationRequestForAssetFromVideoAtFileURL:fileURL];
-            } else {
-                UIImage *img = [UIImage imageWithContentsOfFile:fileURL.path];
-                if (img) {
-                    req = [PHAssetCreationRequest creationRequestForAssetFromImage:img];
-                } else {
-                    req = [PHAssetCreationRequest creationRequestForAsset];
-                    PHAssetResourceCreationOptions *opts = [PHAssetResourceCreationOptions new];
-                    opts.shouldMoveFile = YES;
-                    [req addResourceWithType:PHAssetResourceTypePhoto fileURL:fileURL options:opts];
-                }
-            }
+            PHAssetCreationRequest *req = [PHAssetCreationRequest creationRequestForAsset];
+            PHAssetResourceCreationOptions *opts = [PHAssetResourceCreationOptions new];
+            // Copy so the share-sheet fallback below still has a readable file.
+            opts.shouldMoveFile = NO;
+            [req addResourceWithType:(isVideo ? PHAssetResourceTypeVideo : PHAssetResourceTypePhoto)
+                             fileURL:fileURL
+                             options:opts];
+            req.creationDate = [NSDate date];
             localId = req.placeholderForCreatedAsset.localIdentifier;
         } completionHandler:^(BOOL success, NSError *error) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 if (!success || !localId.length) {
+                    NSLog(@"[RyukGram][Repost] performChanges failed success=%d err=%@", success, error);
                     [pill showError:SCILocalized(@"Failed to save")];
                     [pill dismissAfterDelay:2.0];
                     return;
                 }
 
-                // File the new asset into RyukGram album when the pref is on.
-                // Fire-and-forget — the IG creator handoff doesn't depend on it.
                 if ([SCIUtils getBoolPref:@"save_to_ryukgram_album"]) {
                     [SCIPhotoAlbum addAssetWithLocalIdentifier:localId completion:nil];
                 }
@@ -96,15 +92,13 @@
                 [pill showSuccess:SCILocalized(@"Opening creator...")];
                 [pill dismissAfterDelay:1.0];
 
-                // Open IG's native creation flow with the saved asset
                 NSString *urlStr = [NSString stringWithFormat:@"instagram://library?LocalIdentifier=%@",
                                     [localId stringByAddingPercentEncodingWithAllowedCharacters:
                                      [NSCharacterSet URLQueryAllowedCharacterSet]]];
                 NSURL *igURL = [NSURL URLWithString:urlStr];
-                if ([[UIApplication sharedApplication] canOpenURL:igURL]) {
-                    [[UIApplication sharedApplication] openURL:igURL options:@{} completionHandler:nil];
+                if (igURL && [[UIApplication sharedApplication] canOpenURL:igURL]) {
+                    [SCIURLOpener openURL:igURL];
                 } else {
-                    // Fallback: show share sheet
                     [SCIUtils showShareVC:fileURL];
                 }
             });

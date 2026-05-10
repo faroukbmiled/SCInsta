@@ -1,5 +1,13 @@
 #import "SCIColorPickerSheet.h"
 #import "../Localization/SCILocalization.h"
+#import <objc/runtime.h>
+
+// Solid mode presents UIColorPickerViewController directly — embedding it
+// breaks the eyedropper dismiss path under IGNavigationController. Gradient
+// mode keeps the original two-swatch + embedded picker layout.
+
+static char kSCIPickerSelfRetainKey;
+static char kSCIPickerKVOInstalledKey;
 
 @interface SCIColorPickerSheet () <UIColorPickerViewControllerDelegate>
 @property (nonatomic, assign) SCIColorPickerSheetMode mode;
@@ -8,7 +16,8 @@
 @property (nonatomic, copy) SCIColorPickerSheetApplyHandler applyHandler;
 
 @property (nonatomic, assign) BOOL editingEndSlot;
-@property (nonatomic, strong) UIColorPickerViewController *picker;
+@property (nonatomic, strong) UIColorPickerViewController *embeddedPicker;
+@property (nonatomic, weak)   UIColorPickerViewController *standalonePicker;
 @property (nonatomic, strong) UIStackView *swatchRow;
 @property (nonatomic, strong) UIButton *startSwatch;
 @property (nonatomic, strong) UIButton *endSwatch;
@@ -29,13 +38,74 @@
     return vc;
 }
 
+#pragma mark - Solid mode
+
+- (UIColorPickerViewController *)makeStandalonePickerSeededWith:(UIColor *)seed {
+    UIColorPickerViewController *p = [UIColorPickerViewController new];
+    p.delegate = self;
+    p.supportsAlpha = NO;
+    p.title = SCILocalized(@"Colors");
+    p.selectedColor = seed ?: [UIColor systemPinkColor];
+    [p addObserver:self forKeyPath:@"selectedColor" options:NSKeyValueObservingOptionNew context:NULL];
+    objc_setAssociatedObject(p, &kSCIPickerKVOInstalledKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(p, &kSCIPickerSelfRetainKey, self, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    self.standalonePicker = p;
+
+    p.modalPresentationStyle = UIModalPresentationPageSheet;
+    if (@available(iOS 15.0, *)) {
+        UISheetPresentationController *s = p.sheetPresentationController;
+        s.detents = @[[UISheetPresentationControllerDetent mediumDetent],
+                      [UISheetPresentationControllerDetent largeDetent]];
+        s.prefersGrabberVisible = YES;
+        s.preferredCornerRadius = 16.0;
+    }
+    return p;
+}
+
+- (void)tearDownStandalonePicker:(UIColorPickerViewController *)p {
+    if (!p) return;
+    if ([objc_getAssociatedObject(p, &kSCIPickerKVOInstalledKey) boolValue]) {
+        @try { [p removeObserver:self forKeyPath:@"selectedColor"]; }
+        @catch (__unused NSException *e) {}
+        objc_setAssociatedObject(p, &kSCIPickerKVOInstalledKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    objc_setAssociatedObject(p, &kSCIPickerSelfRetainKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    if (self.standalonePicker == p) self.standalonePicker = nil;
+}
+
+#pragma mark - Public present
+
+- (void)presentFromViewController:(UIViewController *)presenter {
+    if (!presenter) return;
+
+    if (_mode == SCIColorPickerSheetModeSolid) {
+        UIColorPickerViewController *p = [self makeStandalonePickerSeededWith:_startColor];
+        [self fireApply];
+        [presenter presentViewController:p animated:YES completion:nil];
+        return;
+    }
+
+    self.modalPresentationStyle = UIModalPresentationPageSheet;
+    if (@available(iOS 15.0, *)) {
+        UISheetPresentationController *s = self.sheetPresentationController;
+        s.detents = @[[UISheetPresentationControllerDetent mediumDetent],
+                      [UISheetPresentationControllerDetent largeDetent]];
+        s.prefersGrabberVisible = YES;
+        s.preferredCornerRadius = 16.0;
+    }
+    [presenter presentViewController:self animated:YES completion:nil];
+}
+
+#pragma mark - Gradient host
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor systemBackgroundColor];
+    if (_mode != SCIColorPickerSheetModeGradient) return;
 
     [self buildSwatchRow];
-    [self buildPicker];
-    [self layout];
+    [self buildEmbeddedPicker];
+    [self layoutGradient];
     [self refreshSwatches];
     [self fireApply];
 }
@@ -76,40 +146,33 @@
     _swatchRow.alignment = UIStackViewAlignmentCenter;
     _swatchRow.spacing = 32;
     _swatchRow.translatesAutoresizingMaskIntoConstraints = NO;
-    _swatchRow.hidden = (_mode != SCIColorPickerSheetModeGradient);
 }
 
-- (void)buildPicker {
-    _picker = [[UIColorPickerViewController alloc] init];
-    _picker.delegate = self;
-    _picker.supportsAlpha = NO;
-    _picker.selectedColor = _startColor;
-    [_picker addObserver:self forKeyPath:@"selectedColor" options:NSKeyValueObservingOptionNew context:NULL];
-    [self addChildViewController:_picker];
-    _picker.view.translatesAutoresizingMaskIntoConstraints = NO;
+- (void)buildEmbeddedPicker {
+    _embeddedPicker = [[UIColorPickerViewController alloc] init];
+    _embeddedPicker.delegate = self;
+    _embeddedPicker.supportsAlpha = NO;
+    _embeddedPicker.title = SCILocalized(@"Colors");
+    _embeddedPicker.selectedColor = _startColor;
+    [_embeddedPicker addObserver:self forKeyPath:@"selectedColor" options:NSKeyValueObservingOptionNew context:NULL];
+    objc_setAssociatedObject(_embeddedPicker, &kSCIPickerKVOInstalledKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    [self addChildViewController:_embeddedPicker];
+    _embeddedPicker.view.translatesAutoresizingMaskIntoConstraints = NO;
 }
 
-- (void)layout {
+- (void)layoutGradient {
     [self.view addSubview:_swatchRow];
-    [self.view addSubview:_picker.view];
-    [_picker didMoveToParentViewController:self];
+    [self.view addSubview:_embeddedPicker.view];
+    [_embeddedPicker didMoveToParentViewController:self];
 
     UILayoutGuide *g = self.view.safeAreaLayoutGuide;
-    if (_mode == SCIColorPickerSheetModeGradient) {
-        [NSLayoutConstraint activateConstraints:@[
-            [_swatchRow.topAnchor constraintEqualToAnchor:g.topAnchor constant:12],
-            [_swatchRow.centerXAnchor constraintEqualToAnchor:g.centerXAnchor],
-            [_picker.view.topAnchor constraintEqualToAnchor:_swatchRow.bottomAnchor constant:8],
-        ]];
-    } else {
-        [NSLayoutConstraint activateConstraints:@[
-            [_picker.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
-        ]];
-    }
     [NSLayoutConstraint activateConstraints:@[
-        [_picker.view.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
-        [_picker.view.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
-        [_picker.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
+        [_swatchRow.topAnchor constraintEqualToAnchor:g.topAnchor constant:12],
+        [_swatchRow.centerXAnchor constraintEqualToAnchor:g.centerXAnchor],
+        [_embeddedPicker.view.topAnchor constraintEqualToAnchor:_swatchRow.bottomAnchor constant:8],
+        [_embeddedPicker.view.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
+        [_embeddedPicker.view.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
+        [_embeddedPicker.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
     ]];
 }
 
@@ -122,8 +185,10 @@
     _endSwatch.layer.borderWidth   = _editingEndSlot ? 3 : 2;
 }
 
-- (void)selectStartSlot { _editingEndSlot = NO;  _picker.selectedColor = _startColor; [self refreshSwatches]; }
-- (void)selectEndSlot   { _editingEndSlot = YES; _picker.selectedColor = _endColor;   [self refreshSwatches]; }
+- (void)selectStartSlot { _editingEndSlot = NO;  _embeddedPicker.selectedColor = _startColor; [self refreshSwatches]; }
+- (void)selectEndSlot   { _editingEndSlot = YES; _embeddedPicker.selectedColor = _endColor;   [self refreshSwatches]; }
+
+#pragma mark - KVO + delegate
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     if (![keyPath isEqualToString:@"selectedColor"]) return;
@@ -133,12 +198,18 @@
 
     if (_mode == SCIColorPickerSheetModeGradient) {
         if (_editingEndSlot) _endColor = opaque; else _startColor = opaque;
+        [self refreshSwatches];
     } else {
         _startColor = opaque;
     }
-    [self refreshSwatches];
     [self fireApply];
 }
+
+- (void)colorPickerViewControllerDidFinish:(UIColorPickerViewController *)viewController {
+    if (viewController == self.standalonePicker) [self tearDownStandalonePicker:viewController];
+}
+
+#pragma mark - Apply
 
 - (void)fireApply {
     CFTimeInterval now = CACurrentMediaTime();
@@ -150,22 +221,12 @@
     }
 }
 
-- (void)presentFromViewController:(UIViewController *)presenter {
-    if (!presenter) return;
-    self.modalPresentationStyle = UIModalPresentationPageSheet;
-    if (@available(iOS 15.0, *)) {
-        UISheetPresentationController *s = self.sheetPresentationController;
-        s.detents = @[[UISheetPresentationControllerDetent mediumDetent],
-                      [UISheetPresentationControllerDetent largeDetent]];
-        s.prefersGrabberVisible = YES;
-        s.preferredCornerRadius = 16.0;
-    }
-    [presenter presentViewController:self animated:YES completion:nil];
-}
-
 - (void)dealloc {
-    @try { [_picker removeObserver:self forKeyPath:@"selectedColor"]; }
-    @catch (__unused NSException *e) {}
+    if (_embeddedPicker && [objc_getAssociatedObject(_embeddedPicker, &kSCIPickerKVOInstalledKey) boolValue]) {
+        @try { [_embeddedPicker removeObserver:self forKeyPath:@"selectedColor"]; }
+        @catch (__unused NSException *e) {}
+    }
+    if (_standalonePicker) [self tearDownStandalonePicker:_standalonePicker];
 }
 
 @end

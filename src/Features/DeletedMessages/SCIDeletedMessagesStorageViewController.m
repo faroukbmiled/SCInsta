@@ -111,7 +111,7 @@
 }
 
 - (void)confirmClearMedia {
-    UIAlertController *a = [UIAlertController alertControllerWithTitle:SCILocalized(@"Clear media files?")
+    UIAlertController *a = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@?", SCILocalized(@"Clear media files")]
                                                               message:SCILocalized(@"Removes every saved photo, video and voice clip. Records keep their text and sender info.")
                                                        preferredStyle:UIAlertControllerStyleAlert];
     [a addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
@@ -123,7 +123,7 @@
 }
 
 - (void)confirmClearAll {
-    UIAlertController *a = [UIAlertController alertControllerWithTitle:SCILocalized(@"Clear log for this account?")
+    UIAlertController *a = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@?", SCILocalized(@"Clear log for this account")]
                                                               message:SCILocalized(@"Removes every preserved deleted message and its captured media for the current account. This cannot be undone.")
                                                        preferredStyle:UIAlertControllerStyleAlert];
     [a addAction:[UIAlertAction actionWithTitle:SCILocalized(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
