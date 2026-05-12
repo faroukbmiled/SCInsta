@@ -14,6 +14,7 @@ static const NSInteger kReelActionHitTag = 1338;
 static char kReelActionDefaultKey;
 static char kReelContextInteractionKey;
 static char kReelVisibleButtonKey;
+static char kSCIIGUFIButtonEDRKey;
 
 @interface SCIReelHitButton : UIButton
 @end
@@ -49,6 +50,59 @@ static inline NSString *SCIReelDefaultAction(void) {
 static inline NSString *SCIReelActionOrMenu(void) {
 	NSString *action = SCIReelDefaultAction();
 	return action.length ? action : @"menu";
+}
+
+static UIColor *sciReelIconColor(BOOL edr) {
+	if (!edr) return UIColor.whiteColor;
+
+	static UIColor *color;
+	static dispatch_once_t once;
+	dispatch_once(&once, ^{
+		CGColorSpaceRef cs = CGColorSpaceCreateWithName(kCGColorSpaceExtendedSRGB);
+		CGFloat c[] = { 2.0, 2.0, 2.0, 1.0 };
+		CGColorRef cg = CGColorCreate(cs, c);
+		color = [UIColor colorWithCGColor:cg];
+		CGColorRelease(cg);
+		CGColorSpaceRelease(cs);
+	});
+
+	return color;
+}
+
+static BOOL sciNativeReelEDR(id ufi) {
+	id button = [ufi respondsToSelector:@selector(ufiLikeButton)]
+		? ((id (*)(id, SEL))objc_msgSend)(ufi, @selector(ufiLikeButton))
+		: nil;
+
+	NSNumber *value = objc_getAssociatedObject(button, &kSCIIGUFIButtonEDRKey);
+	if (value) return value.boolValue;
+
+	return [button respondsToSelector:@selector(edr)]
+		? ((BOOL (*)(id, SEL))objc_msgSend)(button, @selector(edr))
+		: NO;
+}
+
+static void sciApplyReelIconBrightness(SCIChromeButton *button, BOOL edr) {
+	if (!button) return;
+
+	UIColor *color = sciReelIconColor(edr);
+
+	button.hidden = NO;
+	button.alpha = 1.0;
+	button.userInteractionEnabled = NO;
+	button.tintAdjustmentMode = UIViewTintAdjustmentModeNormal;
+	button.iconTint = color;
+	button.bubbleColor = UIColor.clearColor;
+
+	button.iconView.hidden = NO;
+	button.iconView.alpha = 1.0;
+	button.iconView.tintColor = color;
+	button.iconView.tintAdjustmentMode = UIViewTintAdjustmentModeNormal;
+	button.iconView.highlighted = NO;
+
+	if (button.iconView.image) {
+		button.iconView.image = [button.iconView.image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+	}
 }
 
 static UIView *sciFindSuperviewOfClass(UIView *view, NSString *className) {
@@ -171,17 +225,17 @@ static void sciBounceVisibleButton(UIButton *hit) {
 	if (!interaction) return;
 
 	CGPoint point = CGPointMake(CGRectGetMidX(sender.bounds), CGRectGetMidY(sender.bounds));
-	SEL sel = NSSelectorFromString(@"_presentMenuAtLocation:");
+	SEL selector = NSSelectorFromString(@"_presentMenuAtLocation:");
 
-	if ([interaction respondsToSelector:sel]) {
-		((void (*)(id, SEL, CGPoint))objc_msgSend)(interaction, sel, point);
+	if ([interaction respondsToSelector:selector]) {
+		((void (*)(id, SEL, CGPoint))objc_msgSend)(interaction, selector, point);
 		return;
 	}
 
-	sel = NSSelectorFromString(@"presentMenuAtLocation:");
+	selector = NSSelectorFromString(@"presentMenuAtLocation:");
 
-	if ([interaction respondsToSelector:sel]) {
-		((void (*)(id, SEL, CGPoint))objc_msgSend)(interaction, sel, point);
+	if ([interaction respondsToSelector:selector]) {
+		((void (*)(id, SEL, CGPoint))objc_msgSend)(interaction, selector, point);
 	}
 }
 
@@ -251,6 +305,13 @@ static void sciRemoveReelButton(UIView *root) {
 	[[root viewWithTag:kReelActionHitTag] removeFromSuperview];
 	[[root viewWithTag:kReelActionBtnTag] removeFromSuperview];
 }
+
+%hook IGUFIButton
+- (void)setEDR:(BOOL)edr {
+	objc_setAssociatedObject(self, &kSCIIGUFIButtonEDRKey, @(edr), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	%orig;
+}
+%end
 
 %hook IGSundialViewerVerticalUFI
 
@@ -327,10 +388,8 @@ static void sciRemoveReelButton(UIView *root) {
 		sciConfigureHit(hit, button);
 	}
 
-	button.hidden = NO;
-	button.alpha = 1.0;
 	button.transform = CGAffineTransformIdentity;
-	button.userInteractionEnabled = NO;
+	sciApplyReelIconBrightness(button, sciNativeReelEDR(self));
 
 	hit.hidden = NO;
 	sciClearHit(hit);
