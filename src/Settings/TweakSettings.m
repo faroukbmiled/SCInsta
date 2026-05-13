@@ -334,7 +334,8 @@
                                             @"header": SCILocalized(@"Mentions"),
                                             @"rows": @[
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"View story mentions") subtitle:SCILocalized(@"Adds a 'View mentions' entry to the action button menu and story 3-dot menu") defaultsKey:@"view_story_mentions"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Mentions overlay button") subtitle:SCILocalized(@"Adds a button next to the action/eye button on the story overlay. Only appears when the current story has mentions or shared posts/reels") defaultsKey:@"story_mentions_button" requiresRestart:YES]
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Mentions overlay button") subtitle:SCILocalized(@"Adds a button next to the action/eye button on the story overlay. Only appears when the current story has mentions or shared posts/reels") defaultsKey:@"story_mentions_button" requiresRestart:YES],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Mentions counter") subtitle:SCILocalized(@"Adds Counter to mentions button") defaultsKey:@"story_mentions_counter"]
                                             ]
                                         }]
                 ],

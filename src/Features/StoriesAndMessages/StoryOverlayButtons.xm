@@ -20,9 +20,12 @@ extern "C" void sciTriggerStoryMarkSeen(UIViewController *storyVC);
 extern "C" __weak UIViewController *sciActiveStoryViewerVC;
 extern "C" NSDictionary *sciOwnerInfoForView(UIView *view);
 
+static const NSInteger kStoryMentionsCountTag = 13450;
+
 static char kStoryActionDefaultKey;
 static char kStoryReelItemsProviderKey;
 static char kStoryMentionsAnchorKey;
+static char kStoryMentionsCountKey;
 static char kStoryMentionsRetryGenKey;
 static char kStoryLastPKKey;
 static char kStoryLastExcludedKey;
@@ -164,6 +167,50 @@ static void SCIConfigureStoryActionButton(SCIChromeButton *button) {
 		SCIChromeButton *strongButton = weakButton;
 		if (strongButton) sciResumeStoryPlayback(strongButton);
 	}, OBJC_ASSOCIATION_COPY_NONATOMIC);
+}
+
+// MARK: - Mentions counter
+
+static void sciApplyMentionsCounter(SCIChromeButton *button, NSInteger count) {
+	if (!button) return;
+
+	UILabel *label = (UILabel *)[button viewWithTag:kStoryMentionsCountTag];
+
+	if (![SCIUtils getBoolPref:@"story_mentions_counter"] || count <= 0) {
+		[label removeFromSuperview];
+		objc_setAssociatedObject(button, &kStoryMentionsCountKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+		return;
+	}
+
+	NSNumber *old = objc_getAssociatedObject(button, &kStoryMentionsCountKey);
+	if (label && old && old.integerValue == count) return;
+
+	if (!label) {
+		label = [UILabel new];
+		label.tag = kStoryMentionsCountTag;
+		label.translatesAutoresizingMaskIntoConstraints = NO;
+		label.textAlignment = NSTextAlignmentCenter;
+		label.font = [UIFont systemFontOfSize:10.0 weight:UIFontWeightBold];
+		label.textColor = UIColor.whiteColor;
+		label.backgroundColor = UIColor.systemRedColor;
+		label.layer.cornerRadius = 8.0;
+		label.layer.masksToBounds = YES;
+		label.adjustsFontSizeToFitWidth = YES;
+		label.minimumScaleFactor = 0.7;
+		label.userInteractionEnabled = NO;
+
+		[button addSubview:label];
+
+		[NSLayoutConstraint activateConstraints:@[
+			[label.topAnchor constraintEqualToAnchor:button.topAnchor constant:-3.0],
+			[label.trailingAnchor constraintEqualToAnchor:button.trailingAnchor constant:3.0],
+			[label.widthAnchor constraintGreaterThanOrEqualToConstant:16.0],
+			[label.heightAnchor constraintEqualToConstant:16.0]
+		]];
+	}
+
+	label.text = count > 99 ? @"99+" : [NSString stringWithFormat:@"%ld", (long)count];
+	objc_setAssociatedObject(button, &kStoryMentionsCountKey, @(count), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 // MARK: - Overlay hook
@@ -434,9 +481,16 @@ static void SCIConfigureStoryActionButton(SCIChromeButton *button) {
 	BOOL hasEye = [self viewWithTag:SCI_STORY_EYE_TAG] != nil;
 	BOOL hasAction = [self viewWithTag:SCI_STORY_ACTION_TAG] != nil;
 	NSInteger neighbours = (hasEye ? 1 : 0) | (hasAction ? 2 : 0);
+	NSInteger count = [SCIUtils getBoolPref:@"story_mentions_counter"] ? sciStoryMentionsCount(self) : 0;
 
-	NSNumber *prev = objc_getAssociatedObject(existing, &kStoryMentionsAnchorKey);
-	if (existing && prev && prev.integerValue == neighbours) return;
+	NSNumber *prevAnchor = objc_getAssociatedObject(existing, &kStoryMentionsAnchorKey);
+	NSNumber *prevCount = objc_getAssociatedObject(existing, &kStoryMentionsCountKey);
+
+	if (existing && prevAnchor && prevAnchor.integerValue == neighbours) {
+		if (![SCIUtils getBoolPref:@"story_mentions_counter"] || (prevCount && prevCount.integerValue == count)) return;
+		sciApplyMentionsCounter(existing, count);
+		return;
+	}
 
 	if (existing) [existing removeFromSuperview];
 
@@ -456,6 +510,8 @@ static void SCIConfigureStoryActionButton(SCIChromeButton *button) {
 		[button.widthAnchor constraintEqualToConstant:36.0],
 		[button.heightAnchor constraintEqualToConstant:36.0]
 	]];
+
+	sciApplyMentionsCounter(button, count);
 }
 
 %new

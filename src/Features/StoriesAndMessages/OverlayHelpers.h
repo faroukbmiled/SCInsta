@@ -52,6 +52,7 @@ void sciOpenMessagesSettings(UIView *source);
 // Story mentions sheet (StoryMentions.x).
 void sciShowStoryMentions(UIViewController *presenter, UIView *anchor);
 BOOL sciStoryHasMentionsOrShares(UIView *anchor);
+NSInteger sciStoryMentionsCount(UIView *anchor);
 
 #ifdef __cplusplus
 }

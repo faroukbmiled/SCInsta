@@ -216,6 +216,7 @@ NSDictionary *SCIDefaultsDictionary(void) {
 		@"story_audio_toggle": @(NO),
 		@"view_story_mentions": @(YES),
 		@"story_mentions_button": @(NO),
+		@"story_mentions_counter": @(NO),
 
 		@"stories_show_quiz_answer": @(NO),
 		@"stories_show_poll_votes_count": @(NO),
