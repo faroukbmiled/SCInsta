@@ -52,15 +52,6 @@ static BOOL sciFollowingFeedEnabled(void) {
 }
 %end
 
-// `Following` feed uses smaller story tray avatars for some reason; match `For You` feed sizing instead.
-%hook _TtC19IGStoryTrayUIModels24IGStoryTrayCellViewModel
-- (double)avatarSizeAdjustment {
-    if (sciFollowingFeedEnabled())
-        return 28.5;
-    return %orig;
-}
-%end
-
 %hook IGMainFeedViewModel
 - (id)initWithDeps:(id)deps posts:(id)posts nextMaxID:(id)nextMaxID initialPaginationSource:(NSString *)paginationSource contentCoordinator:(id)coordinator dataSourceSupplementaryItemsProvider:(id)supplementaryProvider disableAutomaticRefresh:(BOOL)disableRefresh disableSerialization:(BOOL)disableSerialization sessionId:(id)sessionId analyticsModule:(id)analyticsModule disableFlashFeedTLI:(BOOL)disableFlashFeedTLI disableFlashFeedOnColdStart:(BOOL)disableColdStart disableResponseDeferral:(BOOL)disableResponseDeferral hidesStoriesTray:(BOOL)hidesStoriesTray isSecondaryFeed:(BOOL)isSecondaryFeed collectionViewBackgroundColorOverride:(id)backgroundColor minWarmStartFetchInterval:(double)minWarmStart peakMinWarmStartFetchInterval:(double)peakMinWarmStart minimumWarmStartBackgroundedInterval:(double)backgroundedMinWarmStart peakMinimumWarmStartBackgroundedInterval:(double)peakBackgroundedMinWarmStart supplementalFeedHoistedMediaID:(id)hoistedMediaId headerTitleOverride:(id)headerTitle isInFollowingTab:(BOOL)isInFollowingTab useShimmerLoadingWhenNoStoriesTray:(BOOL)useShimmer mainFeedDataFetcher:(id)dataFetcher {
     if (sciFollowingFeedEnabled()) {
