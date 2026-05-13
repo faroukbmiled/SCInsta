@@ -230,7 +230,7 @@
                                             @"header": SCILocalized(@"Hide"),
                                             @"rows": @[
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Hide suggested stories") subtitle:SCILocalized(@"Removes suggested accounts from the stories tray") defaultsKey:@"hide_suggested_stories"],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Hide mid cards stories") subtitle:SCILocalized(@"Removes Trending / Music Mid Cards from stories") defaultsKey:@"hide_stories_midcards" requiresRestart:YES],
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Hide stories midcards") subtitle:SCILocalized(@"Removes the Trending and Music promo cards from the stories tray") defaultsKey:@"hide_stories_midcards" requiresRestart:YES],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Hide stories tray") subtitle:SCILocalized(@"Hides the story tray at the top") defaultsKey:@"hide_stories_tray"],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Hide entire feed") subtitle:SCILocalized(@"Removes all content from your home feed") defaultsKey:@"hide_entire_feed"],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Hide repost button") subtitle:SCILocalized(@"Hides the repost button on feed posts") defaultsKey:@"hide_feed_repost" requiresRestart:YES],
@@ -336,7 +336,7 @@
                                             @"rows": @[
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"View story mentions") subtitle:SCILocalized(@"Adds a 'View mentions' entry to the action button menu and story 3-dot menu") defaultsKey:@"view_story_mentions"],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Mentions overlay button") subtitle:SCILocalized(@"Adds a button next to the action/eye button on the story overlay. Only appears when the current story has mentions or shared posts/reels") defaultsKey:@"story_mentions_button" requiresRestart:YES],
-                                                [SCISetting switchCellWithTitle:SCILocalized(@"Mentions counter") subtitle:SCILocalized(@"Adds Counter to mentions button") defaultsKey:@"story_mentions_counter"]
+                                                [SCISetting switchCellWithTitle:SCILocalized(@"Mentions count badge") subtitle:SCILocalized(@"Shows the number of unique mentioned accounts as a red badge on the overlay button") defaultsKey:@"story_mentions_counter"]
                                             ]
                                         }]
                 ],

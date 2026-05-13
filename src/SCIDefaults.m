@@ -119,6 +119,10 @@ NSDictionary *SCIDefaultsDictionary(void) {
 		@"note_actions": @(NO),
 		@"note_copy_on_hold": @(NO),
 		@"feed_date_format": @"default",
+		@"feed_date_show_seconds": @(NO),
+		@"feed_date_relative_days_threshold": @(0),
+		@"feed_date_compact_relative": @(NO),
+		@"feed_date_append_relative": @(NO),
 
 		@"date_fmt_mixed": @(YES),
 		@"date_fmt_notes_comments_stories": @(NO),

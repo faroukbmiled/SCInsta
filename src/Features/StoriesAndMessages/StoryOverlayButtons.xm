@@ -487,7 +487,7 @@ static void sciApplyMentionsCounter(SCIChromeButton *button, NSInteger count) {
 	NSNumber *prevCount = objc_getAssociatedObject(existing, &kStoryMentionsCountKey);
 
 	if (existing && prevAnchor && prevAnchor.integerValue == neighbours) {
-		if (![SCIUtils getBoolPref:@"story_mentions_counter"] || (prevCount && prevCount.integerValue == count)) return;
+		if (prevCount.integerValue == count) return;
 		sciApplyMentionsCounter(existing, count);
 		return;
 	}

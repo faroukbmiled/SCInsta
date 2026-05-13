@@ -6,6 +6,7 @@ static NSString *const kFmtKey = @"feed_date_format";
 static NSString *const kSecKey = @"feed_date_show_seconds";
 static NSString *const kCompactKey = @"feed_date_compact_relative";
 static NSString *const kThresholdKey = @"feed_date_relative_days_threshold";
+static NSString *const kAppendKey = @"feed_date_append_relative";
 
 static NSArray<NSArray *> *sciDateFormatOptions(void) {
 	static NSArray *opts = nil;
@@ -63,7 +64,7 @@ static NSDate *sciRefDate(void) {
 static NSString *sciExampleForKey(NSString *key) {
 	if (!key.length || [key isEqualToString:@"default"]) return SCILocalized(@"Default");
 
-	BOOL sec = [[NSUserDefaults standardUserDefaults] boolForKey:kSecKey];
+	BOOL sec = [SCIUtils getBoolPref:kSecKey];
 
 	for (NSArray *opt in sciDateFormatOptions()) {
 		if ([opt[0] isEqualToString:key]) {
@@ -81,10 +82,10 @@ static NSString *sciExampleForKey(NSString *key) {
 }
 
 static NSString *sciThresholdText(void) {
-	NSInteger days = [[NSUserDefaults standardUserDefaults] integerForKey:kThresholdKey];
+	NSInteger days = (NSInteger)[SCIUtils getDoublePref:kThresholdKey];
 	if (days <= 0) return SCILocalized(@"Off");
-	if (days == 1) return SCILocalized(@"1 day");
-	return [NSString stringWithFormat:@"%ld %@", (long)days, SCILocalized(@"days")];
+	if (days == 1) return SCILocalized(@"Within 1 day");
+	return [NSString stringWithFormat:SCILocalized(@"Within %ld days"), (long)days];
 }
 
 @implementation SCIDateFormatPickerVC {
@@ -108,32 +109,40 @@ static NSString *sciThresholdText(void) {
 	[self.view addSubview:_tableView];
 }
 
-// 0 = format, 1 = relative style, 2 = seconds, 3 = surfaces
+// 0 = format, 1 = seconds, 2 = relative, 3 = surfaces
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tv {
 	return 4;
 }
 
 - (NSInteger)tableView:(UITableView *)tv numberOfRowsInSection:(NSInteger)section {
 	if (section == 0) return (NSInteger)sciDateFormatOptions().count;
-	if (section == 1) return 2;
-	if (section == 2) return 1;
+	if (section == 1) return 1;
+	if (section == 2) return 3;
 	return (NSInteger)sciSurfaceEntries().count;
 }
 
 - (NSString *)tableView:(UITableView *)tv titleForHeaderInSection:(NSInteger)section {
-	if (section == 0) return SCILocalized(@"Format");
-	if (section == 1) return SCILocalized(@"Relative time");
-	if (section == 2) return @"";
+	if (section == 0) return SCILocalized(@"Absolute format");
+	if (section == 1) return SCILocalized(@"Time");
+	if (section == 2) return SCILocalized(@"Relative time");
 	return SCILocalized(@"Apply to");
 }
 
 - (NSString *)tableView:(UITableView *)tv titleForFooterInSection:(NSInteger)section {
+	if (section == 0) {
+		return SCILocalized(@"Pick how absolute dates are written. “Default” leaves IG's own format untouched.");
+	}
+
 	if (section == 1) {
-		return SCILocalized(@"When threshold is enabled, newer dates show relative time like “2h ago” or compact “2h”. Older dates use the selected format.");
+		return SCILocalized(@"Include seconds when the format already shows time.");
+	}
+
+	if (section == 2) {
+		return SCILocalized(@"Dates younger than the threshold show as relative time (e.g. “2h”). Older dates fall back to the absolute format. “Append after absolute date” shows both — “Jan 5, 2026 (2h)”.");
 	}
 
 	if (section == 3) {
-		return SCILocalized(@"Toggle each NSDate formatter IG uses. Different surfaces go through different methods.");
+		return SCILocalized(@"Each surface in IG goes through a different NSDate formatter. Toggle the ones you want this format to apply to.");
 	}
 
 	return nil;
@@ -148,7 +157,7 @@ static NSString *sciThresholdText(void) {
 	cell.selectionStyle = UITableViewCellSelectionStyleNone;
 
 	UISwitch *sw = [UISwitch new];
-	sw.on = [[NSUserDefaults standardUserDefaults] boolForKey:key];
+	sw.on = [SCIUtils getBoolPref:key];
 	[sw addTarget:self action:action forControlEvents:UIControlEventValueChanged];
 
 	cell.accessoryView = sw;
@@ -172,28 +181,35 @@ static NSString *sciThresholdText(void) {
 	}
 
 	if (ip.section == 1) {
+		return [self switchCellWithTitle:SCILocalized(@"Show seconds")
+									 key:kSecKey
+								  action:@selector(secondsToggled:)
+								 reuseID:@"sec"];
+	}
+
+	if (ip.section == 2) {
 		if (ip.row == 0) {
 			UITableViewCell *cell = [tv dequeueReusableCellWithIdentifier:@"threshold"];
 			if (!cell) cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"threshold"];
 
-			cell.textLabel.text = SCILocalized(@"Use relative until");
+			cell.textLabel.text = SCILocalized(@"Relative within");
 			cell.detailTextLabel.text = sciThresholdText();
 			cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 
 			return cell;
 		}
 
-		return [self switchCellWithTitle:SCILocalized(@"Compact style, example: 1h")
-									 key:kCompactKey
-								  action:@selector(compactToggled:)
-								 reuseID:@"compact"];
-	}
+		if (ip.row == 1) {
+			return [self switchCellWithTitle:SCILocalized(@"Compact style (e.g. “1h” instead of “1 hour ago”)")
+										 key:kCompactKey
+									  action:@selector(compactToggled:)
+									 reuseID:@"compact"];
+		}
 
-	if (ip.section == 2) {
-		return [self switchCellWithTitle:SCILocalized(@"Show seconds")
-									 key:kSecKey
-								  action:@selector(secondsToggled:)
-								 reuseID:@"sec"];
+		return [self switchCellWithTitle:SCILocalized(@"Append after absolute date")
+									 key:kAppendKey
+								  action:@selector(appendToggled:)
+								 reuseID:@"append"];
 	}
 
 	UITableViewCell *cell = [tv dequeueReusableCellWithIdentifier:@"surf"];
@@ -207,7 +223,7 @@ static NSString *sciThresholdText(void) {
 	cell.selectionStyle = UITableViewCellSelectionStyleNone;
 
 	UISwitch *sw = [UISwitch new];
-	sw.on = [[NSUserDefaults standardUserDefaults] boolForKey:entry[0]];
+	sw.on = [SCIUtils getBoolPref:entry[0]];
 	sw.tag = ip.row;
 	[sw addTarget:self action:@selector(surfaceToggled:) forControlEvents:UIControlEventValueChanged];
 
@@ -225,14 +241,14 @@ static NSString *sciThresholdText(void) {
 		return;
 	}
 
-	if (ip.section != 1 || ip.row != 0) return;
+	if (ip.section != 2 || ip.row != 0) return;
 
-	UIAlertController *alert = [UIAlertController alertControllerWithTitle:SCILocalized(@"Relative threshold")
-																   message:SCILocalized(@"Show relative time for dates newer than this many days. Use 0 to disable.")
+	UIAlertController *alert = [UIAlertController alertControllerWithTitle:SCILocalized(@"Relative within")
+																   message:SCILocalized(@"Show relative time for dates younger than this many days. 0 disables it.")
 															preferredStyle:UIAlertControllerStyleAlert];
 
 	[alert addTextFieldWithConfigurationHandler:^(UITextField *field) {
-		NSInteger days = [[NSUserDefaults standardUserDefaults] integerForKey:kThresholdKey];
+		NSInteger days = (NSInteger)[SCIUtils getDoublePref:kThresholdKey];
 		field.keyboardType = UIKeyboardTypeNumberPad;
 		field.placeholder = @"0";
 		field.text = [NSString stringWithFormat:@"%ld", (long)days];
@@ -259,6 +275,10 @@ static NSString *sciThresholdText(void) {
 
 - (void)compactToggled:(UISwitch *)sw {
 	[[NSUserDefaults standardUserDefaults] setBool:sw.on forKey:kCompactKey];
+}
+
+- (void)appendToggled:(UISwitch *)sw {
+	[[NSUserDefaults standardUserDefaults] setBool:sw.on forKey:kAppendKey];
 }
 
 - (void)surfaceToggled:(UISwitch *)sw {

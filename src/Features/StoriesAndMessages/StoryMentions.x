@@ -1054,11 +1054,7 @@ void sciShowStoryMentions(UIViewController *presenter, UIView *anchor) {
 	if (@available(iOS 15.0, *)) {
 		UISheetPresentationController *sheet = vc.sheetPresentationController;
 		sheet.detents = @[UISheetPresentationControllerDetent.mediumDetent, UISheetPresentationControllerDetent.largeDetent];
-
-		@try {
-			[sheet setValue:@YES forKey:@"prefersGrabberIndicator"];
-		} @catch (__unused id e) {}
-
+		sheet.prefersGrabberVisible = YES;
 		sheet.prefersScrollingExpandsWhenScrolledToEdge = YES;
 	}
 

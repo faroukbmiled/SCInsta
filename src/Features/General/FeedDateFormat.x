@@ -10,6 +10,7 @@ static NSString *const kDateFmtKey = @"feed_date_format";
 static NSString *const kShowSecondsKey = @"feed_date_show_seconds";
 static NSString *const kRelativeThresholdKey = @"feed_date_relative_days_threshold";
 static NSString *const kCompactRelativeKey = @"feed_date_compact_relative";
+static NSString *const kAppendRelativeKey = @"feed_date_append_relative";
 
 static NSDictionary<NSString *, NSArray<NSString *> *> *sciDatePatternMap(void) {
 	static NSDictionary *map = nil;
@@ -60,19 +61,11 @@ static NSString *sciRelativeUnit(NSInteger value, NSString *compactUnit, NSStrin
 	return [NSString stringWithFormat:@"%ld %@ ago", (long)value, suffix];
 }
 
-static NSString *sciRelativeFormat(NSDate *date) {
+static NSString *sciRelativeText(NSDate *date, BOOL compact) {
 	if (!date) return nil;
-
-	NSInteger thresholdDays = [[NSUserDefaults standardUserDefaults] integerForKey:kRelativeThresholdKey];
-	if (thresholdDays <= 0) return nil;
 
 	NSTimeInterval diff = [[NSDate date] timeIntervalSinceDate:date];
 	if (diff < 0) diff = 0;
-
-	NSTimeInterval maxAge = (NSTimeInterval)thresholdDays * 86400.0;
-	if (diff >= maxAge) return nil;
-
-	BOOL compact = [[NSUserDefaults standardUserDefaults] boolForKey:kCompactRelativeKey];
 
 	if (diff < 60.0) return compact ? @"now" : @"just now";
 
@@ -89,6 +82,21 @@ static NSString *sciRelativeFormat(NSDate *date) {
 	return sciRelativeUnit(MAX(weeks, 1), @"w", @"week", compact);
 }
 
+static NSString *sciRelativeFormat(NSDate *date) {
+	if (!date) return nil;
+
+	NSInteger thresholdDays = (NSInteger)[SCIUtils getDoublePref:kRelativeThresholdKey];
+	if (thresholdDays <= 0) return nil;
+
+	NSTimeInterval diff = [[NSDate date] timeIntervalSinceDate:date];
+	if (diff < 0) diff = 0;
+
+	NSTimeInterval maxAge = (NSTimeInterval)thresholdDays * 86400.0;
+	if (diff >= maxAge) return nil;
+
+	return sciRelativeText(date, [SCIUtils getBoolPref:kCompactRelativeKey]);
+}
+
 static NSString *sciAbsoluteFormat(NSDate *date) {
 	if (!date) return nil;
 
@@ -98,7 +106,7 @@ static NSString *sciAbsoluteFormat(NSDate *date) {
 	NSArray *patterns = sciDatePatternMap()[fmt];
 	if (!patterns.count) return nil;
 
-	BOOL showSeconds = [[NSUserDefaults standardUserDefaults] boolForKey:kShowSecondsKey];
+	BOOL showSeconds = [SCIUtils getBoolPref:kShowSecondsKey];
 	NSString *pattern = patterns[showSeconds ? 1 : 0];
 
 	NSDateFormatter *df = sciFormatterForPattern(pattern);
@@ -113,7 +121,13 @@ static NSString *sciFormatDate(NSDate *date) {
 	NSString *relative = sciRelativeFormat(date);
 	if (relative.length) return relative;
 
-	return sciAbsoluteFormat(date);
+	NSString *absolute = sciAbsoluteFormat(date);
+	if (!absolute.length) return absolute;
+
+	if (![SCIUtils getBoolPref:kAppendRelativeKey]) return absolute;
+
+	NSString *suffix = sciRelativeText(date, YES);
+	return suffix.length ? [NSString stringWithFormat:@"%@ (%@)", absolute, suffix] : absolute;
 }
 
 #define SCI_HOOK0(NAME, SEL_, LABEL, PREF) \

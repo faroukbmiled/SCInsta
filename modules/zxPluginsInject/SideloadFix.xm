@@ -1,9 +1,19 @@
 // Sideload compatibility shim for IG. Upstream: github.com/asdfzxcvbn/zxPluginsInject.
-// Local deviation: NSUserDefaults init redirect is appex-only so main-app reads
-// hit cfprefsd's natural sandbox-local path (else IG's NUX dismiss flags never
-// read back and every popup re-fires); main-app writes to group.* suites are
-// fanned out to the shared group container so the notification appex still sees
-// what main app wrote (auth, session, multi-account, rich-preview metadata).
+//
+// Four pieces:
+//   1. SecItem* rebind — IG hard-codes `group.com.facebook.family` as its
+//      keychain access group; sideload doesn't have it. Every query is
+//      rewritten to the entitled group.
+//   2. NSUserDefaults init redirect (appex-only) — appex reads what the
+//      main app wrote so rich-notification previews fill in. Applying it
+//      in the main process breaks NUX dismiss flags on IG 423+.
+//   3. Main-app fan-out — cfprefsd caches group.* writes per-process; the
+//      appex sees stale data until flush. Mirror writes through an explicit
+//      shared-container `_initWithSuiteName:container:`. Skipped without
+//      a real app-groups entitlement.
+//   4. `containerURLForSecurityApplicationGroupIdentifier:` never returns
+//      nil — IG's IGProductSaveStatusStore crashes inside `hasPrefix:nil`
+//      otherwise. Real URL when entitled, Documents-dir sandbox path when not.
 
 #import <Foundation/Foundation.h>
 #import <Security/Security.h>
@@ -25,39 +35,33 @@
 static NSString *accessGroupId;
 
 static BOOL createDirectoryIfNotExists(NSString *path) {
-	NSFileManager *fileManager = [NSFileManager defaultManager];
-	if ([fileManager fileExistsAtPath:path]) return YES;
-
+	NSFileManager *fm = [NSFileManager defaultManager];
+	if ([fm fileExistsAtPath:path]) return YES;
 	NSError *error = nil;
-	[fileManager createDirectoryAtPath:path
-		   withIntermediateDirectories:YES
-							attributes:nil
-								 error:&error];
+	[fm createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:&error];
 	return error == nil;
 }
 
 static NSURL *getAppGroupPathIfExists(void) {
-	static NSURL *cachedAppGroupPath = nil;
-	static dispatch_once_t onceToken;
+	static NSURL *cached = nil;
+	static dispatch_once_t once;
+	dispatch_once(&once, ^{
+		LSBundleProxy *proxy = [objc_getClass("LSBundleProxy") bundleProxyForCurrentProcess];
+		if (!proxy) return;
 
-	dispatch_once(&onceToken, ^{
-		LSBundleProxy *bundleProxy = [objc_getClass("LSBundleProxy") bundleProxyForCurrentProcess];
-		if (!bundleProxy) return;
-
-		NSDictionary *entitlements = bundleProxy.entitlements;
+		NSDictionary *entitlements = proxy.entitlements;
 		if (![entitlements isKindOfClass:[NSDictionary class]]) return;
 
 		NSArray *appGroups = entitlements[@"com.apple.security.application-groups"];
 		if (![appGroups isKindOfClass:[NSArray class]] || appGroups.count == 0) return;
 
-		NSDictionary *appGroupsPaths = bundleProxy.groupContainerURLs;
-		if (![appGroupsPaths isKindOfClass:[NSDictionary class]]) return;
+		NSDictionary *paths = proxy.groupContainerURLs;
+		if (![paths isKindOfClass:[NSDictionary class]]) return;
 
-		NSURL *ourAppGroupURL = appGroupsPaths[[appGroups firstObject]];
-		if ([ourAppGroupURL isKindOfClass:[NSURL class]]) cachedAppGroupPath = ourAppGroupURL;
+		NSURL *url = paths[[appGroups firstObject]];
+		if ([url isKindOfClass:[NSURL class]]) cached = url;
 	});
-
-	return cachedAppGroupPath;
+	return cached;
 }
 
 static BOOL sciIsAppExtensionProcess(void) {
@@ -69,17 +73,16 @@ static BOOL sciIsAppExtensionProcess(void) {
 	return cached;
 }
 
-// Cross-process fan-out. Tagged with an associated object so the fan-out's
-// own setObject:/removeObject: doesn't recurse back through our hook.
+// Marker on the fan-out NSUserDefaults so its own writes don't recurse here.
 static const void *kSCIFanoutTagKey = &kSCIFanoutTagKey;
 
 static NSURL *sciSharedContainerURLForSuite(NSString *suiteName) {
 	NSURL *appGroup = getAppGroupPathIfExists();
 	if (!appGroup || !suiteName.length) return nil;
-	NSURL *containerURL = [appGroup URLByAppendingPathComponent:suiteName isDirectory:YES];
-	NSURL *prefsDir = [[containerURL URLByAppendingPathComponent:@"Library"] URLByAppendingPathComponent:@"Preferences"];
-	createDirectoryIfNotExists(prefsDir.path);
-	return containerURL;
+	NSURL *container = [appGroup URLByAppendingPathComponent:suiteName isDirectory:YES];
+	NSURL *prefs = [[container URLByAppendingPathComponent:@"Library"] URLByAppendingPathComponent:@"Preferences"];
+	createDirectoryIfNotExists(prefs.path);
+	return container;
 }
 
 static NSUserDefaults *sciFanoutDefaultsForSuite(NSString *suiteName) {
@@ -88,15 +91,11 @@ static NSUserDefaults *sciFanoutDefaultsForSuite(NSString *suiteName) {
 	dispatch_once(&once, ^{ cache = [NSMutableDictionary new]; });
 
 	@synchronized(cache) {
-		NSUserDefaults *cached = cache[suiteName];
-		if (cached) return cached;
-
-		NSURL *containerURL = sciSharedContainerURLForSuite(suiteName);
-		if (!containerURL) return nil;
-
-		NSUserDefaults *fanout = [[NSUserDefaults alloc] _initWithSuiteName:suiteName container:containerURL];
+		if (NSUserDefaults *hit = cache[suiteName]) return hit;
+		NSURL *container = sciSharedContainerURLForSuite(suiteName);
+		if (!container) return nil;
+		NSUserDefaults *fanout = [[NSUserDefaults alloc] _initWithSuiteName:suiteName container:container];
 		if (!fanout) return nil;
-
 		objc_setAssociatedObject(fanout, kSCIFanoutTagKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 		cache[suiteName] = fanout;
 		return fanout;
@@ -110,9 +109,9 @@ static NSString *sciSuiteNameForDefaults(NSUserDefaults *defaults) {
 
 static BOOL sciShouldFanout(NSUserDefaults *defaults) {
 	if (sciIsAppExtensionProcess()) return NO;
+	if (!getAppGroupPathIfExists()) return NO;  // no appex on the other end
 	if (objc_getAssociatedObject(defaults, kSCIFanoutTagKey)) return NO;
-	NSString *suite = sciSuiteNameForDefaults(defaults);
-	return [suite hasPrefix:@"group"];
+	return [sciSuiteNameForDefaults(defaults) hasPrefix:@"group"];
 }
 
 // === keychain access-group rebind ==========================================
@@ -162,7 +161,7 @@ static void rebindSecFuncs(void) {
 		{"SecItemAdd", (void *)zxSecItemAdd, (void **)&origSecItemAdd},
 		{"SecItemCopyMatching", (void *)zxSecItemCopyMatching, (void **)&origSecItemCopyMatching},
 		{"SecItemUpdate", (void *)zxSecItemUpdate, (void **)&origSecItemUpdate},
-		{"SecItemDelete", (void *)zxSecItemDelete, (void **)&origSecItemDelete}
+		{"SecItemDelete", (void *)zxSecItemDelete, (void **)&origSecItemDelete},
 	};
 	rebind_symbols(rebinds, 4);
 }
@@ -187,12 +186,16 @@ static void rebindSecFuncs(void) {
 
 %hook NSFileManager
 - (NSURL *)containerURLForSecurityApplicationGroupIdentifier:(NSString *)groupIdentifier {
-	if (NSURL *ourAppGroupURL = getAppGroupPathIfExists()) {
-		NSURL *fakeAppGroupURL = [ourAppGroupURL URLByAppendingPathComponent:groupIdentifier isDirectory:YES];
-		createDirectoryIfNotExists(fakeAppGroupURL.path);
-		return fakeAppGroupURL;
+	if (NSURL *appGroupURL = getAppGroupPathIfExists()) {
+		NSURL *url = [appGroupURL URLByAppendingPathComponent:groupIdentifier];
+		createDirectoryIfNotExists(url.path);
+		return url;
 	}
-	return %orig(groupIdentifier);
+	// No entitlement → sandbox path so the caller never sees nil.
+	NSString *docs = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+	NSString *path = [docs stringByAppendingPathComponent:groupIdentifier];
+	createDirectoryIfNotExists(path);
+	return [NSURL fileURLWithPath:path];
 }
 %end
 
@@ -201,35 +204,29 @@ static void rebindSecFuncs(void) {
 %hook NSUserDefaults
 
 - (id)_initWithSuiteName:(NSString *)suiteName container:(NSURL *)container {
-	// Main app stays on cfprefsd's natural path so IG's reads find what IG
-	// wrote (popup dismiss flags etc). Fan-out mirrors group.* writes into
-	// the entitled container the appex reads from.
 	if (!sciIsAppExtensionProcess()) return %orig(suiteName, container);
 
 	NSURL *appGroupURL = getAppGroupPathIfExists();
-	if (!appGroupURL) return %orig(suiteName, container);
-	if (![suiteName hasPrefix:@"group"]) return %orig(suiteName, container);
+	if (!appGroupURL || ![suiteName hasPrefix:@"group"]) return %orig(suiteName, container);
 
-	NSURL *customContainerURL = [appGroupURL URLByAppendingPathComponent:suiteName isDirectory:YES];
-	if (!customContainerURL) return %orig(suiteName, container);
+	NSURL *redirect = [appGroupURL URLByAppendingPathComponent:suiteName isDirectory:YES];
+	if (!redirect) return %orig(suiteName, container);
 
-	NSURL *prefsDir = [[customContainerURL URLByAppendingPathComponent:@"Library"] URLByAppendingPathComponent:@"Preferences"];
-	createDirectoryIfNotExists(prefsDir.path);
-	return %orig(suiteName, customContainerURL);
+	NSURL *prefs = [[redirect URLByAppendingPathComponent:@"Library"] URLByAppendingPathComponent:@"Preferences"];
+	createDirectoryIfNotExists(prefs.path);
+	return %orig(suiteName, redirect);
 }
 
 - (void)setObject:(id)value forKey:(NSString *)key {
 	%orig;
 	if (!sciShouldFanout(self)) return;
-	NSUserDefaults *fanout = sciFanoutDefaultsForSuite(sciSuiteNameForDefaults(self));
-	[fanout setObject:value forKey:key];
+	[sciFanoutDefaultsForSuite(sciSuiteNameForDefaults(self)) setObject:value forKey:key];
 }
 
 - (void)removeObjectForKey:(NSString *)key {
 	%orig;
 	if (!sciShouldFanout(self)) return;
-	NSUserDefaults *fanout = sciFanoutDefaultsForSuite(sciSuiteNameForDefaults(self));
-	[fanout removeObjectForKey:key];
+	[sciFanoutDefaultsForSuite(sciSuiteNameForDefaults(self)) removeObjectForKey:key];
 }
 
 %end
@@ -241,7 +238,7 @@ static void setRequiredIDs(void) {
 		(__bridge NSString *)kSecClass: (__bridge NSString *)kSecClassGenericPassword,
 		(__bridge NSString *)kSecAttrAccount: @"zxPluginsInjectGenericEntry",
 		(__bridge NSString *)kSecAttrService: @"",
-		(__bridge id)kSecReturnAttributes: (id)kCFBooleanTrue
+		(__bridge id)kSecReturnAttributes: (id)kCFBooleanTrue,
 	};
 
 	CFDictionaryRef result = nil;

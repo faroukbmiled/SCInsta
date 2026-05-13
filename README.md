@@ -70,7 +70,7 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 - Disable video autoplay
 - Media zoom — long press media to expand in full-screen viewer **\***
 - Start media muted — expanded videos open with sound off **\***
-- Custom date format — feed, notes/comments/stories, and DMs **\***
+- Custom date format — feed, notes/comments/stories, and DMs; optional relative threshold, compact "1h" style, and append-after-absolute mode **\***
 - Disable background refresh, home button refresh, and home button scroll **\***
 - Disable reels tab button refresh **\***
 - Hide repost button in feed **\***
@@ -183,7 +183,8 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 - Long-press the story seen button for quick actions **\***
 - Per-user story seen-receipt exclusion list with Block all / Block selected mode **\***
 - Story audio mute/unmute toggle **\***
-- View story mentions, with optional quick-access overlay button **\***
+- View story mentions, with optional quick-access overlay button and count badge **\***
+- Hide stories midcards (Trending / Music) **\***
 - Stop story auto-advance **\***
 - Reveal poll/slider vote counts and quiz answers on stories and reels before interacting **\***
 - Force legacy Quiz and Reveal stickers back into the story composer tray **\***
