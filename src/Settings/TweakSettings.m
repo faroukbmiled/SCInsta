@@ -518,7 +518,7 @@
 										@{
 											@"header": SCILocalized(@"Voice messages"),
 											@"rows": @[
-												[SCISetting switchCellWithTitle:SCILocalized(@"Send audio as file") subtitle:SCILocalized(@"Adds an 'Audio File' option to the plus menu in DMs to send audio files as voice messages") defaultsKey:@"send_audio_as_file"],
+												[SCISetting switchCellWithTitle:SCILocalized(@"Send audio as file") subtitle:SCILocalized(@"Adds an 'Audio File' option to the plus menu in DMs to send audio files as voice messages") defaultsKey:@"send_audio_as_file" requiresRestart:YES],
 												[SCISetting switchCellWithTitle:SCILocalized(@"Download voice messages") subtitle:SCILocalized(@"Adds a 'Download' option to the long-press menu on voice messages to save them as M4A audio") defaultsKey:@"download_audio_message"],
 											]
 										},
