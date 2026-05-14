@@ -16,6 +16,7 @@ NSDictionary *SCIDefaultsDictionary(void) {
 		@"dm_log_date_format": @"relative",
 		@"hide_suggested_stories": @(NO),
 		@"hide_stories_midcards": @(NO),
+		@"hide_testflight_nag": @(NO),
 		@"profile_analyzer_accumulate": @(NO),
 		@"profile_analyzer_track_visits": @(NO),
 		@"story_tray_actions": @(NO),
