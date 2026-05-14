@@ -672,6 +672,7 @@
                                             @"rows": @[
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Enable liquid glass buttons") subtitle:SCILocalized(@"Enables experimental liquid glass buttons") defaultsKey:@"liquid_glass_buttons" requiresRestart:YES],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Enable liquid glass surfaces") subtitle:SCILocalized(@"Enables liquid glass tab bar, floating navigation, and other UI elements") defaultsKey:@"liquid_glass_surfaces" requiresRestart:YES],
+                                                [SCISetting menuCellWithTitle:SCILocalized(@"Liquid glass tab bar") subtitle:SCILocalized(@"Fixed prevents shrinking. Hide makes it disappear when scrolling down") menu:[self menus][@"liquid_glass_tabbar_mode"]],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Enable teen app icons") subtitle:SCILocalized(@"Hold down on the Instagram logo to change the app icon") defaultsKey:@"teen_app_icons" requiresRestart:YES],
                                                 [SCISetting switchCellWithTitle:SCILocalized(@"Disable app haptics") subtitle:SCILocalized(@"Disables haptics/vibrations within the app") defaultsKey:@"disable_haptics"],
                                                 [SCISetting buttonCellWithTitle:SCILocalized(@"Open app icon picker")
@@ -1824,6 +1825,14 @@ static void sciPresentTeenIconPicker(void) {
                            propertyList:@{@"defaultsKey": @"main_feed_mode", @"value": @"default", @"requiresRestart": @YES}],
             [UICommand commandWithTitle:SCILocalized(@"Following") image:nil action:@selector(menuChanged:)
                            propertyList:@{@"defaultsKey": @"main_feed_mode", @"value": @"following", @"requiresRestart": @YES}],
+        ]],
+        @"liquid_glass_tabbar_mode": [UIMenu menuWithChildren:@[
+            [UICommand commandWithTitle:SCILocalized(@"Default") image:nil action:@selector(menuChanged:)
+                           propertyList:@{@"defaultsKey": @"liquid_glass_tabbar_mode", @"value": @"default", @"requiresRestart": @YES}],
+            [UICommand commandWithTitle:SCILocalized(@"Fixed") image:nil action:@selector(menuChanged:)
+                           propertyList:@{@"defaultsKey": @"liquid_glass_tabbar_mode", @"value": @"fixed", @"requiresRestart": @YES}],
+            [UICommand commandWithTitle:SCILocalized(@"Hide on scroll") image:nil action:@selector(menuChanged:)
+                           propertyList:@{@"defaultsKey": @"liquid_glass_tabbar_mode", @"value": @"hide", @"requiresRestart": @YES}],
         ]],
 
         @"default_video_quality": [UIMenu menuWithChildren:@[

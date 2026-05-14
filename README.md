@@ -40,6 +40,7 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 - Use detailed (native) color picker
 - Enable liquid glass buttons
 - Enable liquid glass surfaces **\***
+- Liquid glass tab bar — Fixed (never shrink) / Hide on scroll
 - Enable teen app icons
 - IG Notes:
   - Hide notes tray

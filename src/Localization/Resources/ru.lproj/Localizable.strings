@@ -106,6 +106,8 @@
 "Enables experimental liquid glass buttons" = "Включает экспериментальные кнопки Liquid Glass";
 "Enables liquid glass tab bar, floating navigation, and other UI elements" = "Включает Liquid Glass для панели вкладок, плавающей навигации и других элементов интерфейса";
 "Experimental features" = "Экспериментальные функции";
+"Fixed" = "Зафиксировано";
+"Fixed prevents shrinking. Hide makes it disappear when scrolling down" = "«Зафиксировано» предотвращает уменьшение. «Скрывать» делает панель невидимой при прокрутке вниз";
 "Focus/distractions" = "Фокус/отвлечения";
 "General" = "Общие";
 "Hide ads" = "Скрыть рекламу";
@@ -114,6 +116,7 @@
 "Hide Meta AI" = "Скрыть Meta AI";
 "Hide metrics" = "Скрыть метрики";
 "Hide notes tray" = "Скрыть панель заметок";
+"Hide on scroll" = "Скрывать при прокрутке";
 "Hide trending searches" = "Скрыть популярные запросы";
 "Hide UI on capture" = "Скрыть интерфейс при захвате";
 "Hides all suggested users for you to follow, outside your feed" = "Скрывает всех рекомендуемых пользователей вне вашей ленты";
@@ -125,6 +128,7 @@
 "Hides the suggested broadcast channels in direct messages" = "Скрывает рекомендуемые каналы вещания в личных сообщениях";
 "Hides the trending searches under the explore search bar" = "Скрывает популярные запросы под строкой поиска Explore";
 "Hold down on the Instagram logo to change the app icon" = "Удерживайте логотип Instagram, чтобы сменить иконку приложения";
+"Liquid glass tab bar" = "Панель вкладок Liquid Glass";
 "Live" = "Прямые трансляции";
 "Long press on the eyedropper tool in stories to customize the text color more precisely" = "Удерживайте пипетку в историях, чтобы точнее настроить цвет текста";
 "Long-press the heart button in a live to hide or show the comments" = "Удерживайте кнопку сердца в прямой трансляции, чтобы скрыть или показать комментарии";

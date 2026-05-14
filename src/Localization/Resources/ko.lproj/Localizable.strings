@@ -106,6 +106,8 @@
 "Enables experimental liquid glass buttons" = "실험적인 리퀴드 글래스 버튼을 활성화합니다";
 "Enables liquid glass tab bar, floating navigation, and other UI elements" = "리퀴드 글래스 탭 바, 플로팅 내비게이션 및 기타 UI 요소를 활성화합니다";
 "Experimental features" = "실험실 기능";
+"Fixed" = "고정";
+"Fixed prevents shrinking. Hide makes it disappear when scrolling down" = "고정은 축소를 방지합니다. 숨기기는 아래로 스크롤할 때 사라지게 합니다";
 "Focus/distractions" = "집중/방해 요소";
 "General" = "일반";
 "Hide ads" = "광고 숨기기";
@@ -114,6 +116,7 @@
 "Hide Meta AI" = "Meta AI 숨기기";
 "Hide metrics" = "수치 숨기기";
 "Hide notes tray" = "노트 트레이 숨기기";
+"Hide on scroll" = "스크롤 시 숨기기";
 "Hide trending searches" = "인기 검색어 숨기기";
 "Hide UI on capture" = "캡처 시 UI 숨기기";
 "Hides all suggested users for you to follow, outside your feed" = "피드 외부에서 팔로우할 추천 사용자를 모두 숨깁니다";
@@ -125,6 +128,7 @@
 "Hides the suggested broadcast channels in direct messages" = "다이렉트 메시지에서 추천 공지 채널을 숨깁니다";
 "Hides the trending searches under the explore search bar" = "탐색 검색창 아래의 인기 검색어를 숨깁니다";
 "Hold down on the Instagram logo to change the app icon" = "Instagram 로고를 길게 눌러 앱 아이콘을 변경합니다";
+"Liquid glass tab bar" = "리퀴드 글래스 탭 바";
 "Live" = "라이브";
 "Long press on the eyedropper tool in stories to customize the text color more precisely" = "스토리의 스포이트 도구를 길게 눌러 텍스트 색상을 더 정밀하게 사용자 지정합니다";
 "Long-press the heart button in a live to hide or show the comments" = "라이브 중 하트 버튼을 길게 눌러 댓글을 숨기거나 표시";

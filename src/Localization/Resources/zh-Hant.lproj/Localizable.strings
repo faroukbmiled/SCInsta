@@ -106,6 +106,8 @@
 "Enables experimental liquid glass buttons" = "啟用實驗性液態玻璃按鈕";
 "Enables liquid glass tab bar, floating navigation, and other UI elements" = "啟用液態玻璃標籤列、浮動導航及其他介面元素";
 "Experimental features" = "實驗性功能";
+"Fixed" = "固定";
+"Fixed prevents shrinking. Hide makes it disappear when scrolling down" = "固定可防止縮小。隱藏可在向下滾動時讓其消失";
 "Focus/distractions" = "專注／分心";
 "General" = "一般";
 "Hide ads" = "隱藏廣告";
@@ -114,6 +116,7 @@
 "Hide Meta AI" = "隱藏 Meta AI";
 "Hide metrics" = "隱藏指標";
 "Hide notes tray" = "隱藏筆記托盤";
+"Hide on scroll" = "滾動時隱藏";
 "Hide trending searches" = "隱藏熱門搜尋";
 "Hide UI on capture" = "錄影/截圖時隱藏 UI";
 "Hides all suggested users for you to follow, outside your feed" = "隱藏所有建議追蹤的用戶，位於動態牆外";
@@ -125,6 +128,7 @@
 "Hides the suggested broadcast channels in direct messages" = "隱藏私訊中的建議廣播頻道";
 "Hides the trending searches under the explore search bar" = "隱藏探索搜尋列下方的熱門搜尋";
 "Hold down on the Instagram logo to change the app icon" = "長按 Instagram 標誌以更換應用程式圖示";
+"Liquid glass tab bar" = "液態玻璃標籤列";
 "Live" = "直播";
 "Long press on the eyedropper tool in stories to customize the text color more precisely" = "在限時動態中長按吸管工具以更精確自訂文字顏色";
 "Long-press the heart button in a live to hide or show the comments" = "在直播中長按愛心按鈕以隱藏或顯示留言";

@@ -51,6 +51,7 @@ NSDictionary *SCIDefaultsDictionary(void) {
 
 		@"liquid_glass_buttons": @(NO),
 		@"liquid_glass_surfaces": @(NO),
+		@"liquid_glass_tabbar_mode": @"default",
 
 		@"flex_app_launch": @(NO),
 		@"flex_app_start": @(NO),

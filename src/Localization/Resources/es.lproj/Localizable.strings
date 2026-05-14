@@ -106,6 +106,8 @@
 "Enables experimental liquid glass buttons" = "Habilita botones experimentales Liquid Glass";
 "Enables liquid glass tab bar, floating navigation, and other UI elements" = "Habilita Liquid Glass en la barra de pestañas, navegación flotante y otros elementos de la interfaz";
 "Experimental features" = "Funciones experimentales";
+"Fixed" = "Fijo";
+"Fixed prevents shrinking. Hide makes it disappear when scrolling down" = "Fijo evita que se reduzca. Ocultar lo hace desaparecer al desplazar hacia abajo";
 "Focus/distractions" = "Concentración/Distracciones";
 "General" = "General";
 "Hide ads" = "Ocultar anuncios";
@@ -114,6 +116,7 @@
 "Hide Meta AI" = "Ocultar Meta AI";
 "Hide metrics" = "Ocultar métricas";
 "Hide notes tray" = "Ocultar bandeja de notas";
+"Hide on scroll" = "Ocultar al desplazar";
 "Hide trending searches" = "Ocultar búsquedas en tendencia";
 "Hide UI on capture" = "Ocultar UI al capturar";
 "Hides all suggested users for you to follow, outside your feed" = "Oculta 'Sugerencias para ti' en tu Feed (Inicio)";
@@ -125,6 +128,7 @@
 "Hides the suggested broadcast channels in direct messages" = "Oculta los canales sugeridos en mensajes";
 "Hides the trending searches under the explore search bar" = "Oculta las búsquedas en tendencia debajo de la barra de búsqueda";
 "Hold down on the Instagram logo to change the app icon" = "Mantén pulsado el logo de Instagram para cambiar el ícono de la aplicación";
+"Liquid glass tab bar" = "Barra de pestañas Liquid Glass";
 "Live" = "En vivo";
 "Long press on the eyedropper tool in stories to customize the text color more precisely" = "Mantener pulsada la herramienta de selección de color en historias para seleccionar el color del texto de manera más precisa";
 "Long-press the heart button in a live to hide or show the comments" = "Mantén presionado el botón de corazón en un directo para ocultar o mostrar los comentarios";
