@@ -109,7 +109,7 @@
 												[SCISetting switchCellWithTitle:SCILocalized(@"Hide ads") subtitle:SCILocalized(@"Removes all ads from the Instagram app") defaultsKey:@"hide_ads"],
 												[SCISetting switchCellWithTitle:SCILocalized(@"Hide Meta AI") subtitle:SCILocalized(@"Hides the meta ai buttons/functionality within the app") defaultsKey:@"hide_meta_ai"],
 												[SCISetting switchCellWithTitle:SCILocalized(@"Hide metrics") subtitle:SCILocalized(@"Hides like/comment/share counts on posts and reels") defaultsKey:@"hide_metrics"],
-												[SCISetting switchCellWithTitle:SCILocalized(@"Hide Testflight") subtitle:SCILocalized(@"Hides Instagram TestFlight beta update popup.") defaultsKey:@"hide_testflight_nag" requiresRestart:YES],
+												[SCISetting switchCellWithTitle:SCILocalized(@"Hide TestFlight popup") subtitle:SCILocalized(@"Suppresses the \"It's time to update Instagram Beta\" nag") defaultsKey:@"hide_testflight_nag" requiresRestart:YES],
 												[SCISetting switchCellWithTitle:SCILocalized(@"Do not save recent searches") subtitle:SCILocalized(@"Search bars will no longer save your recent searches") defaultsKey:@"no_recent_searches"],
 												[SCISetting switchCellWithTitle:SCILocalized(@"Open link from clipboard") subtitle:SCILocalized(@"Long-press the search tab to open a copied Instagram link") defaultsKey:@"paste_link_from_search"],
 												[SCISetting switchCellWithTitle:SCILocalized(@"Copy description") subtitle:SCILocalized(@"Copy description text fields by long-pressing on them") defaultsKey:@"copy_description"],

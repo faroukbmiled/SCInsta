@@ -117,6 +117,8 @@
 "Hide metrics" = "수치 숨기기";
 "Hide notes tray" = "노트 트레이 숨기기";
 "Hide on scroll" = "스크롤 시 숨기기";
+"Hide TestFlight popup" = "TestFlight 팝업 숨기기";
+"Suppresses the \"It's time to update Instagram Beta\" nag" = "\"It's time to update Instagram Beta\" 알림을 차단";
 "Hide trending searches" = "인기 검색어 숨기기";
 "Hide UI on capture" = "캡처 시 UI 숨기기";
 "Hides all suggested users for you to follow, outside your feed" = "피드 외부에서 팔로우할 추천 사용자를 모두 숨깁니다";

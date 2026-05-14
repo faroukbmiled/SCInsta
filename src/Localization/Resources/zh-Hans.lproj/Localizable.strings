@@ -117,6 +117,8 @@
 "Hide metrics" = "隐藏指标";
 "Hide notes tray" = "隐藏笔记托盘";
 "Hide on scroll" = "滚动时隐藏";
+"Hide TestFlight popup" = "隐藏 TestFlight 弹窗";
+"Suppresses the \"It's time to update Instagram Beta\" nag" = "抑制\"It's time to update Instagram Beta\"提示";
 "Hide trending searches" = "隐藏热门搜寻";
 "Hide UI on capture" = "录影/截图时隐藏 UI";
 "Hides all suggested users for you to follow, outside your feed" = "隐藏所有建议追踪的用户，位于动态墙外";

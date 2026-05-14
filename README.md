@@ -24,6 +24,7 @@ A feature-rich iOS tweak for Instagram, forked from [SCInsta](https://github.com
 - Hide ads
 - Hide Meta AI
 - Hide metrics (likes, comments, shares counts)
+- Hide the TestFlight beta update popup
 - Disable app haptics
 - Copy description
 - Copy comment text from long-press menu **\***

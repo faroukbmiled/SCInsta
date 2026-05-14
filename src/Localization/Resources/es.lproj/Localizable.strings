@@ -117,6 +117,8 @@
 "Hide metrics" = "Ocultar métricas";
 "Hide notes tray" = "Ocultar bandeja de notas";
 "Hide on scroll" = "Ocultar al desplazar";
+"Hide TestFlight popup" = "Ocultar ventana de TestFlight";
+"Suppresses the \"It's time to update Instagram Beta\" nag" = "Suprime el aviso \"It's time to update Instagram Beta\"";
 "Hide trending searches" = "Ocultar búsquedas en tendencia";
 "Hide UI on capture" = "Ocultar UI al capturar";
 "Hides all suggested users for you to follow, outside your feed" = "Oculta 'Sugerencias para ti' en tu Feed (Inicio)";

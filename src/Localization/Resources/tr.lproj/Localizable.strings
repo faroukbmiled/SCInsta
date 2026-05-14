@@ -117,6 +117,8 @@
 "Hide metrics" = "İstatistikleri gizle";
 "Hide notes tray" = "Notlar bölümünü gizle";
 "Hide on scroll" = "Kaydırırken gizle";
+"Hide TestFlight popup" = "TestFlight açılır penceresini gizle";
+"Suppresses the \"It's time to update Instagram Beta\" nag" = "\"It's time to update Instagram Beta\" bildirimini bastırır";
 "Hide trending searches" = "Trend aramaları gizle";
 "Hide UI on capture" = "Ekran kaydında arayüzü gizle";
 "Hides all suggested users for you to follow, outside your feed" = "Akışınız dışında takip etmeniz önerilen tüm kullanıcıları gizler";
